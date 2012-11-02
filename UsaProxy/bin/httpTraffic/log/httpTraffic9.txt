@@ -1,0 +1,14 @@
+[request]
+GET /images/inserm-logo.png HTTP/1.0
+X-Forwarded-For: 130.88.193.26
+Cache-Control: max-age=0
+Cookie: _pk_ref.1.2b05=%5B%22%22%2C%22%22%2C1351785623%2C%22http%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3Dj%26q%3Dikup%2Bbrowser%2Bkidney%26source%3Dweb%26cd%3D1%26ved%3D0CE0QFjAA%26url%3Dhttp%253A%252F%252Fwww.kupkb.org%252F%26ei%3DEfggUNa2BoLP0QWhvYFQ%26usg%3DAFQjCNGEftiYMdo9Ck4PrnuZ1iH-lwkKfA%22%5D; _pk_id.1.2b05=3c5e1cb67e45f33e.1344338000.37.1351785623.1351780733.; _pk_ref.3.2b05=%5B%22%22%2C%22%22%2C1351785629%2C%22http%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3Dj%26q%3Dikup%2Bbrowser%2Bkidney%26source%3Dweb%26cd%3D1%26ved%3D0CE0QFjAA%26url%3Dhttp%253A%252F%252Fwww.kupkb.org%252F%26ei%3DEfggUNa2BoLP0QWhvYFQ%26usg%3DAFQjCNGEftiYMdo9Ck4PrnuZ1iH-lwkKfA%22%5D; _pk_id.3.2b05=3f7ce85c7ad52365.1344338002.37.1351785629.1351780735.; PIWIK_SESSID=7m4n3fbooo5q9ngna2ludgigv7; PHPSESSID=537tktma2ai233ecdv6ca3gsj4
+Host: www.kupkb.org
+Accept: image/png,image/*;q=0.8,*/*;q=0.5
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0
+Accept-Language: en-gb,en;q=0.5
+Accept-Encoding: identity
+X-UsaProxy: client
+Connection: close
+Referer: http://www.kupkb.org/
+

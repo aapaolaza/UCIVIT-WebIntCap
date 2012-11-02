@@ -1,0 +1,49 @@
+130.88.193.26 null httptraffic url=http://www.kupkb.org/counter/counter.php sd=14
+130.88.193.26 2012-11-01,17:10:15 sd=2 sid=TbU0hukamrND event=load size=1440x746
+130.88.193.26 2012-11-01,17:10:16 sd=2 sid=TbU0hukamrND event=mousemove offset=611,14 dom=abgdb
+130.88.193.26 2012-11-01,17:10:16 sd=2 sid=TbU0hukamrND event=mouseover dom=abgdbfa img=powered_by-owlim.png link=http://www.ontotext.com/owlim
+130.88.193.26 2012-11-01,17:10:16 sd=2 sid=TbU0hukamrND event=mouseover dom=abgdbea img=elico-logo.png link=http://www.e-lico.eu/
+130.88.193.26 2012-11-01,17:10:17 sd=2 sid=TbU0hukamrND event=mousemove offset=7,323 dom=a
+130.88.193.26 2012-11-01,17:10:17 sd=2 sid=TbU0hukamrND event=mouseover dom=abgdbca img=inserm-logo.png link=http://www.inserm.fr/
+130.88.193.26 2012-11-01,17:17:45 httptraffic url=http://www.kupkb.org/kupkb/FC952DA980DAF8F110230C28A31F522F.cache.html sd=39
+130.88.193.26 null httptraffic url=http://www.kupkb.org/counter/counter.php sd=35
+130.88.193.26 2012-11-01,17:17:46 httptraffic url=http://www.kupkb.org/vis/index.php?remove_template=1 sd=61
+130.88.193.26 2012-11-01,17:17:45 sd=39 sid=wrW9t477wL96 event=load size=0x0
+130.88.193.26 2012-11-01,17:17:46 sd=61 sid=wrW9t477wL96 event=load size=0x0
+130.88.193.26 2012-11-01,17:10:15 sd=2 sid=TbU0hukamrND event=load size=1440x746
+130.88.193.26 2012-11-01,17:10:17 sd=2 sid=TbU0hukamrND event=mousemove offset=439,20 dom=abgcaabaaaaabaaaaaaabaa
+130.88.193.26 2012-11-01,17:10:20 sd=2 sid=TbU0hukamrND event=mousemove offset=166,44 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:20 sd=2 sid=TbU0hukamrND event=mouseover dom=abgaa img=kupkb-logo-small.png link=http://www.kupkb.org/
+130.88.193.26 2012-11-01,17:10:47 sd=2 sid=TbU0hukamrND event=mousemove offset=95,5 dom=abfaaaa
+130.88.193.26 2012-11-01,17:10:47 sd=2 sid=TbU0hukamrND event=mouseover dom=abgaa img=kupkb-logo-small.png link=http://www.kupkb.org/
+130.88.193.26 2012-11-01,17:10:47 sd=2 sid=TbU0hukamrND event=mousemove offset=211,80 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:47 sd=2 sid=TbU0hukamrND event=mousemove offset=187,67 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:47 sd=2 sid=TbU0hukamrND event=mousemove offset=164,79 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:47 sd=2 sid=TbU0hukamrND event=mousemove offset=190,70 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:48 sd=2 sid=TbU0hukamrND event=mousemove offset=165,46 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:48 sd=2 sid=TbU0hukamrND event=mousemove offset=154,45 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:48 sd=2 sid=TbU0hukamrND event=mousemove offset=152,52 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:48 sd=2 sid=TbU0hukamrND event=mousedown offset=152,54 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:48 sd=2 sid=TbU0hukamrND event=mousedown offset=152,54 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:48 sd=2 sid=TbU0hukamrND event=mousemove offset=154,51 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaaeaaa
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=mousemove offset=147,49 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=keypress key=ctrl+c
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=select text=TGFB1
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=focus dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=mousemove offset=133,52 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=keypress key=ctrl+v
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=mousemove offset=5,201 dom=abgcaabaaaaabaaaaaaabaa
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=mousemove offset=14,11 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaacaaaaaa
+130.88.193.26 2012-11-01,17:10:49 sd=2 sid=TbU0hukamrND event=mousemove offset=23,10 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaacaaaaaa
+130.88.193.26 2012-11-01,17:10:50 sd=2 sid=TbU0hukamrND event=mousedown offset=24,10 dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaacaaaaaa
+130.88.193.26 2012-11-01,17:10:50 sd=2 sid=TbU0hukamrND event=blur dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:50 sd=2 sid=TbU0hukamrND event=focus dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:10:52 sd=2 sid=TbU0hukamrND event=mousemove offset=12,5 dom=abraaabbaabaaaa
+130.88.193.26 2012-11-01,17:10:55 sd=2 sid=TbU0hukamrND event=blur dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=focus dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=mousemove offset=1203,24 dom=abp
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=mousemove offset=177,349 dom=abqaaabaa
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=mousemove offset=20,11 dom=abqaaacaaaaba
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=mousemove offset=33,22 dom=abqaaacaaaaba
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=mousedown offset=34,22 dom=abqaaacaaaaba
+130.88.193.26 2012-11-01,17:11:04 sd=2 sid=TbU0hukamrND event=blur dom=abgcaabaaaaabaaaaaaabaaaaaaaaaaaaabaaaaaa

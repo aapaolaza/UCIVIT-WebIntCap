@@ -1,0 +1,14 @@
+[request]
+GET /piwik/piwik.js HTTP/1.0
+X-Forwarded-For: 130.88.193.26
+If-Modified-Since: Mon, 20 Jun 2011 07:41:55 GMT
+Host: 194.57.225.115
+Accept: */*
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0
+Accept-Language: en-gb,en;q=0.5
+Accept-Encoding: identity
+X-UsaProxy: client
+If-None-Match: "27c10ae-491c-4a61fde9e2c22"
+Connection: close
+Referer: http://www.kupkb.org/vis/index.php?remove_template=1
+

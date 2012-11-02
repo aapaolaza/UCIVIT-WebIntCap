@@ -1,0 +1,607 @@
+[request]
+GET /vis/css/kupkb.css HTTP/1.0
+X-Forwarded-For: 130.88.193.26
+Cookie: _pk_ref.1.2b05=%5B%22%22%2C%22%22%2C1351790265%2C%22http%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3Dj%26q%3Dikup%2Bbrowser%2Bkidney%26source%3Dweb%26cd%3D1%26ved%3D0CE0QFjAA%26url%3Dhttp%253A%252F%252Fwww.kupkb.org%252F%26ei%3DEfggUNa2BoLP0QWhvYFQ%26usg%3DAFQjCNGEftiYMdo9Ck4PrnuZ1iH-lwkKfA%22%5D; _pk_id.1.2b05=3c5e1cb67e45f33e.1344338000.38.1351790265.1351785623.; _pk_ref.3.2b05=%5B%22%22%2C%22%22%2C1351785629%2C%22http%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3Dj%26q%3Dikup%2Bbrowser%2Bkidney%26source%3Dweb%26cd%3D1%26ved%3D0CE0QFjAA%26url%3Dhttp%253A%252F%252Fwww.kupkb.org%252F%26ei%3DEfggUNa2BoLP0QWhvYFQ%26usg%3DAFQjCNGEftiYMdo9Ck4PrnuZ1iH-lwkKfA%22%5D; _pk_id.3.2b05=3f7ce85c7ad52365.1344338002.37.1351785629.1351780735.; PIWIK_SESSID=7m4n3fbooo5q9ngna2ludgigv7; PHPSESSID=537tktma2ai233ecdv6ca3gsj4; _pk_ses.1.2b05=*
+Host: www.kupkb.org
+Accept: text/css,*/*;q=0.1
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0
+Accept-Language: en-gb,en;q=0.5
+Accept-Encoding: identity
+X-UsaProxy: client
+Connection: close
+Referer: http://www.kupkb.org/vis/index.php?remove_template=1
+
+html { height: 100%; }
+
+body 
+{
+    background: white;
+    color: #7F7F7F;
+    font-family: Arial Unicode MS, Arial, sans-serif;
+    font-size: small;
+    line-height: 1.7em;
+    height: 100%;
+    width: 100%;
+    margin: 0px;
+    overflow: scroll;
+}
+
+h1 
+{
+	padding-top:40px;
+	font-size: 2em;
+	font-weight: bold;
+	font-style: italic ;
+	color: #434041;
+	text-align: left;
+}
+
+table
+{
+    border: solid;
+	border-width: 1px;
+	border-collapse: collapse;
+	border-color: #000000;
+	border-spacing: 100px;
+	width: 100%;
+	height: 100%;
+}  
+
+table.main
+{
+    background: url(../images/up-left-corner.png) no-repeat top left,
+    url(../images/bottom-left-corner.png) no-repeat bottom left,
+    url(../images/up-right-corner.png) no-repeat top right,
+    url(../images/up-left-corner.png) no-repeat top left;
+    border-spacing: 0px;
+    border-style: none;
+}
+
+td.main
+{
+    padding: 0px;
+    border-style: none;
+}
+
+textarea
+{
+	font-family: Arial Unicode MS, Arial, sans-serif;
+    font-size: small;
+    color: #000000;
+    width: 90%;
+    height: 16em;
+    margin-left: 2px;
+    resize: none;
+    border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+}
+
+textarea.info
+{
+	font-family: Arial Unicode MS, Arial, sans-serif;
+    font-size: 0.5em;
+    color: #000000;
+    background-color: #E0E0E0;
+    width: 95%;
+    height: 100%;
+    margin: 0px;
+    resize: none;
+}
+
+select
+{
+    width: 100%;
+    font-size: 0.9em;
+}
+
+input, text
+{
+	border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+}
+
+a.toggler
+{
+	font-size:1.2em;
+	font-weight:bold;
+	display:block;
+	width:30px;
+	text-decoration:none;
+	padding-top:1px;
+	padding-bottom:1px;
+	padding-left:2px;
+	padding-right:2px;
+	width: 100%;
+	cursor: pointer
+}
+
+a.toggler:hover
+{
+	color: #539AD9;
+}
+
+.boldText
+{
+	font-weight: bold;
+}
+
+.titleTable
+{
+	position: relative;
+	left: -60px;
+	top: -40px;
+	border: none;
+}
+
+.innerTable
+{
+	width: 100%;
+    border-style: solid;
+	border-spacing: 0px;
+	border-width: 0px;
+	/*border-color: #FF0000;*/
+}
+
+.innerCell
+{
+	padding: 5px;
+    vertical-align: middle;
+    /*border-width: 1px;
+    border-style: dashed;*/
+}
+
+.optsCell
+{
+    padding: 5px;
+    vertical-align: top;
+    /*border-width: 1px;
+    border-style: dashed;*/
+}
+
+.buttonCell
+{
+    padding-left: 3px;
+    padding-right: 3px;
+    vertical-align: middle;
+    /*border-width: 1px;
+    border-style: dashed;*/
+}
+
+.colorTableCellColor
+{
+	padding-left: 3px;
+	padding-right: 3px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+    vertical-align: middle;
+    text-align: left;
+    height: 25px;
+    /*border-width: 1px;
+    border-style: dashed;*/
+}
+
+.colorTableCellText
+{
+	padding-left: 5px;
+	padding-top: 0px;
+	padding-bottom: 0px;
+    vertical-align: middle;
+    text-align: left;
+    font-size: 0.9em;
+    height: 25px;
+    /*border-width: 1px;
+    border-style: dashed;*/
+}
+
+.layoptCell
+{
+	padding: 2px;
+    vertical-align: middle;
+    text-align: left;
+    /*border-width: 1px;
+    border-style: dashed;*/
+}
+
+.goLabel
+{
+	border-width: 1px;
+	border-color: #000000;
+	border-style: dashed;	
+	padding-left: 3px;
+	padding-right: 3px;
+	padding-bottom: 0px;
+	padding-top: 0px;
+	background-color: #FFFFFF;
+	text-align: center;
+	font-size: 0.9em;
+	color: #555555;
+}
+
+.goLabel:hover
+{
+	background-color: #FFE5E0;
+	cursor: pointer;
+}
+
+.optsGroup
+{
+	background-color: #F4F4F4;
+	border-radius: 8px;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+}
+
+.mainContainer 
+{
+    margin-left: 60px;
+    margin-right: 60px;
+	margin-top: 20px;
+    margin-bottom: 20px;
+	/*height: 100%;*/
+    width: 85%;
+}
+
+.fieldSetTitle
+{
+	font-weight: bold;
+	color: #555555;
+	background-color: #FFFF5F;
+	border: solid 1px black;
+	border-radius: 8px;
+	-webkit-border-radius: 8px;
+	-moz-border-radius: 8px;
+	padding: 5px;
+}
+
+#welcome
+{
+	margin: 2px;
+	height: 95%;
+	padding: 5px;
+	border-style: none;
+	color: #373737;
+	font-size: 1em;
+	line-height: 1.3em;
+	text-align: left;
+	/*background-color: #F3F3F3;
+	border-radius: 7px;
+	-webkit-border-radius: 7px;
+	-moz-border-radius: 7px;*/
+}
+
+#graphContainer 
+{		
+	width: 75%;
+	height: 100%;
+	border: solid;
+	border-width: 1px;
+	border-color: #000000;
+}
+
+#functionContainer
+{    
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    background-color: #E0E0E0;
+    border: solid;
+    border-color: #000000;
+    border-top-width: 0px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    vertical-align: text-top;    
+}
+
+#kupkbdataContainer
+{    
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    background-color: #E0E0E0;
+    border: solid;
+    border-color: #000000;
+    border-top-width: 0px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    vertical-align: text-top;    
+}
+
+#metadataContainer
+{	
+	width: 100%;
+	height: 100%;
+	padding: 5px;
+	background-color: #E0E0E0;
+	border: solid;
+	border-color: #000000;
+	border-top-width: 0px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+	line-height: 2em;
+}
+
+#advancedContainer
+{    
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    background-color: #E0E0E0;
+    border: solid;
+    border-color: #000000;
+    border-top-width: 0px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    vertical-align: text-top;    
+}
+
+#infoContainer
+{
+	display: fixed;
+	margin-left: 2px;
+	margin-right: 2px;
+	height: 250px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 5px;
+	padding-right: 5px;
+	color: #0000FF;
+	background-color: #EDEDED;
+	border-width: 2px;
+	border-style: ridge;
+	border-color: #BBBBBB;
+	font-size: 0.9em;
+	line-height: 1.2em;
+	text-align: left;
+	overflow: auto;
+}
+
+#layoutOptionContainer
+{
+	font-size: 0.8em;
+}
+
+#executeLayoutButton
+{
+	
+	border-radius: 3px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	width: 10em;
+}
+
+#cytoscapeweb 
+{ 
+	width: 100%;
+	height: 600px;
+	/*height: 100%;*/
+	text-align: center;
+	vertical-align: middle;
+}
+
+#errorText
+{
+	font-size: 0.9em;
+	margin-left: 5px;
+	color: #FF0000;
+	display: none;
+	width: 13em;
+}
+
+#errorContainer
+{
+	font-size: 1.1em;
+	color: #FF0000;
+	display: none;
+}
+
+#debugContainer
+{
+	font-size: 1.1em;
+	color: #0000FF;
+	display: none;
+}
+
+.fullscreen
+{
+	display: block;
+	position: absolute;
+	top: 0%;
+	left: 0%;
+	width: 100%;
+	height: 100%;
+	z-index: 999;
+	opacity: 0.9;
+	filter: alpha(opacity = 90);
+	overflow: auto;
+	border-style: dashed;
+	border-color: #000000;
+	border-width: 1px;
+}
+
+.primaryButton 
+{
+	font-size: 1.2em;
+	margin-left: 2px;
+    margin-top: 5px;
+    padding-left: 7px;
+    padding-right: 7px;
+    padding-bottom: 3px;
+    padding-top: 3px;
+	float: left;
+    overflow: visible;
+}
+
+.secondaryButton 
+{
+	font-size: 0.9em;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-bottom: 0px;
+    padding-top: 0px;
+	float: left;
+    overflow: visible;
+}
+
+.exportButton 
+{
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    border-style: ridge;
+    border-width: 1px;
+    width: 64px;
+    height: 32px;
+	float: left;
+    overflow: visible;
+}
+
+.loadingCircle { display: none; }
+
+.condensed { letter-spacing: -0.5px; }
+
+.footer 
+{
+	padding-left:30px;
+	width:900px;
+}
+
+.disclaimer 
+{
+	font-size:0.8EM;
+}
+
+.logos 
+{
+	width:900px;
+	text-align:center;
+}
+
+.logo
+{
+	padding:10px;
+	width:95px;
+	height:45px;
+}
+
+.infolink 
+{ 
+	text-decoration: underline; 
+	color: #FF0000; 
+	cursor: pointer; 
+}
+
+.error
+{
+	font-size: 1.1em;
+	color: #FF0000;
+}
+
+.hint
+{
+	float: right;
+}
+
+.ui-autocomplete 
+{
+	position: relative;	
+	max-height: 200px;
+	max-width: 17em;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 20px;
+	background-color: #FFFFFF;
+	font-family: Arial Unicode MS, Arial, sans-serif;
+    font-size: 0.9em;
+}
+
+.attention { font-size: small; }
+
+.modalsif
+{
+	color: #AE0000;
+	font-size: 0.7em;
+}
+
+.tooltip
+{
+	display: none;
+	background: transparent url(../images/tooltip_top.png);
+	font-size: 11px;
+	padding-top: 10px;
+	padding-left: 15px;
+	padding-right: 15px;
+	width: 190px;
+	height: 170px;
+	line-height: 1.3em;
+	color: #000000;
+}
+
+.tooltip.top
+{
+	background: transparent url(../images/tooltip_top.png);
+}
+
+.tooltip.bottom
+{
+	background: transparent url(../images/tooltip_bottom.png);
+	padding-top: 25px;
+	padding-left: 15px;
+	padding-right: 15px;
+	width: 190px;
+	height: 155px;	
+}
+
+.tooltip.right
+{
+	background: transparent url(../images/tooltip_right.png);
+	padding-top: 20px;
+	padding-left: 25px;
+	width: 182px;
+	height: 160px;	
+}
+
+.tooltip.left
+{
+	background: transparent url(../images/tooltip_left.png);
+	padding-top: 15px;
+	padding-left: 15px;
+	width: 190px;
+	height: 165px;
+}
+
+.tooltip-dataset
+{
+	display: none;
+	background-color: #FFFBD0;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #AD1700;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 2px;
+	padding-right: 2px;
+	font-size: 0.9em;
+	width: 400px;
+	opacity: 1.0;
+	z-index: 998;
+	border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+}
+
+.tooltip-dataset.top {}
+
+.tooltip-dataset.bottom {}
+
+.tooltip-dataset.right {}
+
+.tooltip-dataset.left {}
+
+/*html .ui-autocomplete { height: 200px; }*/

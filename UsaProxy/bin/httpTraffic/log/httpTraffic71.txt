@@ -1,0 +1,127 @@
+[request]
+GET /vis/css/dataset.css HTTP/1.0
+X-Forwarded-For: 130.88.193.26
+Cookie: _pk_ref.1.2b05=%5B%22%22%2C%22%22%2C1351790265%2C%22http%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3Dj%26q%3Dikup%2Bbrowser%2Bkidney%26source%3Dweb%26cd%3D1%26ved%3D0CE0QFjAA%26url%3Dhttp%253A%252F%252Fwww.kupkb.org%252F%26ei%3DEfggUNa2BoLP0QWhvYFQ%26usg%3DAFQjCNGEftiYMdo9Ck4PrnuZ1iH-lwkKfA%22%5D; _pk_id.1.2b05=3c5e1cb67e45f33e.1344338000.38.1351790265.1351785623.; _pk_ref.3.2b05=%5B%22%22%2C%22%22%2C1351785629%2C%22http%3A%2F%2Fwww.google.com%2Furl%3Fsa%3Dt%26rct%3Dj%26q%3Dikup%2Bbrowser%2Bkidney%26source%3Dweb%26cd%3D1%26ved%3D0CE0QFjAA%26url%3Dhttp%253A%252F%252Fwww.kupkb.org%252F%26ei%3DEfggUNa2BoLP0QWhvYFQ%26usg%3DAFQjCNGEftiYMdo9Ck4PrnuZ1iH-lwkKfA%22%5D; _pk_id.3.2b05=3f7ce85c7ad52365.1344338002.37.1351785629.1351780735.; PIWIK_SESSID=7m4n3fbooo5q9ngna2ludgigv7; PHPSESSID=537tktma2ai233ecdv6ca3gsj4; _pk_ses.1.2b05=*
+Host: www.kupkb.org
+Accept: text/css,*/*;q=0.1
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0
+Accept-Language: en-gb,en;q=0.5
+Accept-Encoding: identity
+X-UsaProxy: client
+Connection: close
+Referer: http://www.kupkb.org/vis/index.php?remove_template=1
+
+/* New page section */
+body
+{
+	background:white;
+	color: #5A5A5A;
+	font-family: Arial Unicode MS, Arial, sans-serif;
+	font-size: small;
+	line-height: 1.7em;
+}
+
+h1.dataset
+{
+	margin-top:20px;
+	font-size: 2em;
+	font-weight: bold;
+	color: #434041;
+}
+
+table.dataset
+{
+	width: 50%;
+	margin-left: 2%;
+	font-size: 1em;
+}
+
+td.dataset
+{
+	padding: 5px;
+	border-style: solid;
+	border-color: #CCCCCC;
+	border-width: 1px;
+}
+
+tr {}
+
+tr.odd { background-color: #ECECEC; }
+
+tr.even { }
+
+.section-d
+{
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+.infolink-d
+{ 
+	text-decoration: underline; 
+	color: #7F7F7F; 
+	cursor: pointer; 
+}
+
+.footer
+{
+	padding-left:30px;
+	width:900px;
+}
+
+.disclaimer
+{
+	font-size:0.8em;
+}
+
+.logos
+{
+	width:900px;
+	text-align:center;
+}
+
+.logo
+{
+	padding:10px;
+	width:95px;
+	height:45px;
+}
+
+/* Popup section */
+table.popup
+{
+	table-layout:fixed;
+	margin-left: 5px;
+	width: 70%;
+	border-style: none;
+	padding: 0px;
+}
+
+td.popup
+{
+	padding: 3px;
+	font-size: 0.9em;
+	line-height: 1em;
+	text-align: left;
+	vertical-align: middle;
+	border-style: dotted;
+	border-color: #909090;
+	border-width: 1px;
+}
+
+.section-p
+{
+	display: block;
+	padding: 0px;
+	margin-top: 1px;
+	margin-bottom: 1px;
+	font-size: 1em;
+	font-weight: bold;
+}
+
+.infolink-p
+{ 
+	text-decoration: underline; 
+	color: #5A5A5A; 
+	cursor: pointer; 
+}
