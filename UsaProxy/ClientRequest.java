@@ -1407,7 +1407,7 @@ public class ClientRequest extends Thread {
         try {
         	
         	/** transmit augmented response data */
-	        if (isHtmlStream && (isNotFoundMessage==false)) {
+        	if (isHtmlStream && (isNotFoundMessage==false)) {
 	        	/** send data StringBuffer content */
 	        	client.getOut().write(data.toString().getBytes(HTTPData.HEADER_DEFAULT_CHAR_ENCODING));
 	        	client.getOut().flush();
@@ -1415,23 +1415,23 @@ public class ClientRequest extends Thread {
 				/** store data to indexed txt-file */
 				if(usaProxy.getHttpTraffic().isCachingEnabled()) 
 					usaProxy.getHttpTraffic().store(httpTrafficIndex, data.toString());	
-	        }
+				}
         	
 	        while ((responseLength = in.read(response)) != -1) {
 				if (responseLength > 0) {
 
 					client.getOut().write (response,0,responseLength);
-					client.getOut().flush(); 
+					client.getOut().flush();
 		            
 		            /** in case HTML is transmitted
 			 		  * store response data (or the rest of the response data) 
 			 		  * to the corresponding httptraffic txt-file */
-		            if((isHtmlStream && (isNotFoundMessage==false)) 
-		            		&& usaProxy.getHttpTraffic().isCachingEnabled()) {
+				//TEST-REMOVAL if((isHtmlStream && (isNotFoundMessage==false)) 
+				//TEST-REMOVAL 		&& usaProxy.getHttpTraffic().isCachingEnabled()) {
 		            	
 						/** store data to indexed txt-file */
 		            	usaProxy.getHttpTraffic().store(httpTrafficIndex, response, 0, responseLength);
-					} 
+		            	//TEST-REMOVAL } 
 		        }
 			}
 		} catch (IOException e) {
