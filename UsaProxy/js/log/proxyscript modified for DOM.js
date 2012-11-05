@@ -11,7 +11,7 @@ function includeJquery(){
 	
 	if (typeof jQuery != 'undefined') {
  
-    alert("jQuery library is correctly loaded!");
+    alert("jQuery library is loaded!");
  
 }else{
  
@@ -297,7 +297,7 @@ function writeLog_UsaProxy(text) {
 	
 	// generate and append log entry
 	var logline;
-	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
+	logLine = datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
 	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + url;
 	
 	// set synchronization flag (block function)
@@ -1282,9 +1282,9 @@ function getPageXY(element) {
 
 
 function recordCurrentDOM(){
-	console.log($(document.body).html());
+	console.log($(document).html());
+	alert("showing DOM");
 	
-	writeLog_UsaProxy("domchange&domContent=" + $(document.body).html());
 	
 }
 

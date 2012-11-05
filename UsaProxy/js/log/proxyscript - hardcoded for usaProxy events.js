@@ -9,16 +9,6 @@ var _old_alert;
 
 function includeJquery(){
 	
-	if (typeof jQuery != 'undefined') {
- 
-    alert("jQuery library is correctly loaded!");
- 
-}else{
- 
-    alert("jQuery library is not found!");
- 
-}
-
 		var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
 		
 		//we add the script dinamically
@@ -28,8 +18,6 @@ function includeJquery(){
 		jQueryScriptNode.src = jQuerySrc;
 
 		document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
-		
-		alert("jQuery was added");
 }
 
 /** Core UsaProxy JavaScript part.
@@ -200,7 +188,7 @@ if(document.addEventListener) window.addEventListener('load', init_UsaProxy, fal
 
 /*I have to imitate these events to add the jQuery function*/
 if(document.attachEvent) window.attachEvent('onload', includeJquery);
-else if (document.addEventListener) window.addEventListener('load', includeJquery, false);
+if(document.addEventListener) window.addEventListener('load', includeJquery, false);
 
 
 /*document.addEventListener("DOMSubtreeModified", function() {
@@ -297,7 +285,7 @@ function writeLog_UsaProxy(text) {
 	
 	// generate and append log entry
 	var logline;
-	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
+	logLine = datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
 	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + url;
 	
 	// set synchronization flag (block function)
@@ -625,7 +613,6 @@ function processMousedown_UsaProxy(e) {
 
 		////DEBUG START
 			//alert("TEST");
-			recordCurrentDOM();
 		////DEBUG END
 		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
@@ -654,6 +641,13 @@ function processMousedown_UsaProxy(e) {
 		}
 	}
 	
+	//CHANGE!! Now we will check if the pressed element was interesting or not!
+	
+	processBasicSearchButton(target);
+	processBasicResultSelectionButton(target);
+	processSortingResultsList(target);
+	processFilteringResultsList(target);
+	processAdvancedSearchButton(target);
 	//saveLog_UsaProxy();
 }
 
@@ -1275,22 +1269,166 @@ function getPageXY(element) {
 }
 
 
+/////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//CHANGE!! This function gets called at the end of "processMousedown_UsaProxy()" to check if the search button was pressed, 
+//in which case it copies the text area contents into a new event called "searchA01-A02".
+//Right now it doesn't distinguish between one or more keywords.
 
-///////////////////////////////////DOM RECORDING FUNCTIONS/////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-
-
-function recordCurrentDOM(){
-	console.log($(document.body).html());
+function processBasicSearchButton(node /*DOM element*/){
+	//If the button we detected is the one we want
 	
-	writeLog_UsaProxy("domchange&domContent=" + $(document.body).html());
+	var url=window.location.href;
+	url=url.replace("#","");
 	
+	if	(node.tagName.toUpperCase()=="BUTTON" && node.textContent=="Search" && url=="http://www.kupkb.org/tab0") 
+	{
+
+		//The user clicked "Search" so we take the search items from the textArea using a hardcoded XPATH and send them to the log
+		var searchTermString = document.evaluate( "/html/body/div[2]/div[2]/table/tbody/tr[2]/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[2]/td/div/div/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr/td/textarea"
+					, document, null, XPathResult.ANY_TYPE, null).iterateNext().value;
+
+		writeLog_UsaProxy("KUPBEVENT-A01:A02-basicsearch&VALUES=" + searchTermString);
+		
+		//We record the event and register an event to detect if the search found any results
+		processResultsNotFoundTESTListener();
+		addNoBasicResultsListener();
+	}
 }
 
-/////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
-/////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
-//////////////////////////////////////////////////////////////////////////
+
+function processBasicResultSelectionButton(node /*DOM element*/){
+	//If the button we detected is the one we want
+	var url=window.location.href;
+	url=url.replace("#","");
+	if	(node.tagName.toUpperCase()=="BUTTON" && node.textContent=="Continue" && url=="http://www.kupkb.org/tab0") 
+	{
+		//TEST
+		//alert($("input:checkbox:checked").parents().parents().parents().eq(2).html());
+		//alert($("input:checkbox:checked").parents().parents().parents().find('td:nth-child(2)').size());
+
+		//This Jquery will give me the contents of the checked checkboxes, but when I loop through it, undesired elements like divs and buttons will appear
+		var searchIds = $("input:checkbox:checked").parents().parents().parents().find('td:nth-child(2)');
+
+		var selectedResults="";
+		//The first elements will be the checkboxes, while the rest will be undesired html nodes
+		// I will take only the amount of checked checkboxes, which will be calculated with $("input:checkbox:checked").length
+		for (i=0;i<$("input:checkbox:checked").length;i++){
+			selectedResults = selectedResults + searchIds[i].innerHTML+",";
+		}
+
+		//At this point we should have all IDs from the selected elements in "selectedResults" so we can write the log
+		writeLog_UsaProxy("KUPBEVENT-A03:A04-selectedsearch&VALUES=" + selectedResults);
+		processBasicResultsFoundEvent();
+	}
+}
+
+function processSortingResultsList(node /*DOM element*/){
+
+	//Is the clicked element a trigger for sorting? We need to check before using this code
+	//Javascript doesn't seem to have the function "contains" from java
+	//instead I will have to look for the position of a string inside another
+	//I will check the existence of "GCK1R1LCPD" in the class as I have manually found that is unique for the sorting elements
+	/*It works!! But the problem is that when a sorting option is selected, it gets wrapped in a div, 
+	losing it's class to its parents parents (two levels). To avoid this I will have to check both the node and the node's grandparents.
+	* 
+	* */
+	/*This condition will check that either the element's class corresponds with the one we are looking for
+	 * or the element is selected (and therefore wrapped in a div) and its grandparent has the class we look for*/
+	if (node.className.indexOf("GCK1R1LCPD") != -1||
+			node.parentNode.parentNode.className.indexOf("GCK1R1LCPD") != -1){
+			
+
+		//alert(node.textContent);
+		/////Now we have to distinguish between basic and advanced searches
+		var selected = $(".gwt-TabBarItem-selected");
+		var eventString;
+		//alert(selected.length);
+		for (i=0; i<selected.length; i++) {
+			if (selected[i].textContent=="Molecule Search")
+				eventString ="KUPBEVENT-A05:A010-basicsort&VALUES=";
+			if (selected[i].textContent=="Advanced Search")
+				eventString ="KUPBEVENT-A05:A010-advancedsort&VALUES=";
+		}
+		
+		var sortText = node.textContent
+			switch(sortText) {
+				case "Entity id": eventString += "gene"; break;
+				case "Anatomy": eventString += "anatomy"; break;
+				case "Disease/Model": eventString += "disease"; break;
+				case "Expression": eventString += "expression"; break;
+				case "Experiment": eventString += "experiment"; break;
+				case "Type": eventString += "molecule type"; break;
+			}
+		writeLog_UsaProxy(eventString);
+	}
+		
+}
+
+function processFilteringResultsList(node /*DOM element*/){
+	//This function checks the button clicked on the left side that applies the selected filters 
+	//We need to wait for the "Add Filter" button execution and then get the checked elements from the list.
+	//We will also take into account if the filter action was executed in the basic search or the advanced one
+	var url=window.location.href;
+	url=url.replace("#","");
+	//I could look for the colour change which represents the selection.
+	//alert (window.getComputedStyle(node).length);
+
+	if	(node.tagName.toUpperCase()=="BUTTON" && node.textContent=="Add Filter" && url=="http://www.kupkb.org/tab0"){
+		var stringedValues = "[";
+		//First I need to get all selectable filters in the tree item, their class is GCK1R1LCCG
+		//var selectedIds = $(".GCK1R1LCCG");//$(".GCK1R1LCPF");//
+		
+		//This function will both select the items and filter them, so only the divs with colour dark grey are selected
+		var selectedValues = $(".GCK1R1LCCG").filter(function() {	
+		    var match = 'rgb(188, 188, 188)'; // match background-color: dark grey
+			/*IF true = keep this element in our wrapped set
+		         false = remove this element from our wrapped set*/
+		    return ( getBackgroundColour(this) == match && isElementInActiveTab(this));
+		
+		});
+		
+		for (i=0; i<selectedValues.length; i++) {
+			//stringedValues += selectedValues[i].textContent + ", colour parent is:" + getBackgroundColour(selectedValues[i]) +  "\n";
+			stringedValues += selectedValues[i].textContent+",";
+		}
+		//alert(stringedIds);
+		//Remove the last comma if any filter was added
+		if (stringedValues.length > 1)
+			stringedValues = stringedValues.slice(0, -1)
+		stringedValues += "]";
+		
+		/////Now we have to distinguish between basic and advanced searches
+		/*var selected = $(".gwt-TabBarItem-selected");
+		//alert(selected.length);
+		for (i=0; i<selected.length; i++) {
+			if (selected[i].textContent=="Molecule Search")
+				writeLog_UsaProxy("KUPBEVENT-A11:A12-basicfilter&VALUES=" + stringedValues);
+			if (selected[i].textContent=="Advanced Search")
+				writeLog_UsaProxy("KUPBEVENT-A17:A18-advancedfilter&VALUES=" + stringedValues);
+		}*/
+		isBasicSearch = isCurrentStateBasic();
+			if (isBasicSearch)
+				{
+					writeLog_UsaProxy("KUPBEVENT-A11:A12-basicfilter&VALUES=" + stringedValues);
+					processBasicResultsFoundEvent();
+				}
+			else
+				{
+					writeLog_UsaProxy("KUPBEVENT-A17:A18-advancedfilter&VALUES=" + stringedValues);
+					addAdvancedSearchResultsListeners();
+				}
+		
+		
+	}
+	
+	//Remove filter event
+	if	(node.tagName.toUpperCase()=="BUTTON" && node.textContent=="Remove Filter" && url=="http://www.kupkb.org/tab0"){
+		writeLog_UsaProxy("KUPBEVENT-A23-removefilter");
+	}
+}
 
 //This function consider if the element's colour has been defined to transparent in order to omit it.
 //I had to fix the code as it was using "jqueryElement.css("background-color");" type of functions instead of "$(jqueryElement).css("
@@ -1336,6 +1474,253 @@ function getBackgroundColour(jqueryElement) {
 }
 
 
+
+////ADVANCED SEARCH
+
+function processAdvancedSearchButton(node /*DOM element*/){
+	//If the button we detected is the one we want
+	
+	var url=window.location.href;
+	url=url.replace("#","");
+	
+	if	(node.tagName.toUpperCase()=="BUTTON" && node.textContent=="Query" && url=="http://www.kupkb.org/tab0") 
+	{
+		
+		//////First we look on the selected options in the different listbox and we save them into "searchOptions"
+		var searchOptions = "[";
+		
+		var listboxElements = $("select");
+		for (i=0; i<listboxElements.length; i++) {
+			var selectedItem = listboxElements[i].options[listboxElements[i].selectedIndex].value;
+			////We need to know what category of listbox we are exploring right now.
+			////To do that we check that the selected item is in the possible categories for each possible listbox.
+			////IMPORTANT: If the selection is "Any" then that listbox has no effect so we won't use it.
+			//That's lucky because with current implementation shared elements between categories would create problems
+			
+			//We will avoid using regular strings and "contain" functions, we will use arrays which is more reliable
+			//anatomical location or cell type listbox categories
+
+			var categoryofAnatomiclocCelltype = ["bladder urine","endothelial cell","endothelial layer of renal artery","endothelial layer of renal vein","kidney cortex interstitial fibroblast","kidney cortex periarterial interstitial fibroblast","kidney cortex peritubular interstitial fibroblast","kidney inner medulla interstitial fibroblast","kidney inner medulla periarterial interstitial fibroblast","kidney outer medulla interstitial fibroblast","kidney outer medulla periarterial interstitial fibroblast","kidney outer medulla peritubular interstitial fibroblast","loop of Henle"," outer medullary portion","renal cortical capillary","renal cortical lymphatics","renal cortical nerves","renal cortical vasculature","renal medullary arterial system","renal medullary capillary","renal medullary vasculature","smooth muscle layer of renal artery","smooth muscle layer of renal vein","afferent arteriole","arcuate artery","bladder smooth muscle cell","cyst fluid","distal convoluted tubule","distal convoluted tubule straight part","distal straight tubule postmacula segment","distal straight tubule premacula segment","efferent arteriole","extraglomerular mesangium","glomerular capillary","glomerular capillary endothelial cell","glomerular mesangial cell","glomerular mesangium","glomerular parietal epithelium","glomerular visceral epithelium","glomerulus","inner renal medulla collecting duct","inner renal medulla interstitium","interlobular artery","kidney","kidney calyx","kidney capillary endothelial cell","kidney capsule","kidney collecting duct","kidney collecting duct epithelial cell","kidney cortex","kidney cortex cell","kidney cortex tubule cell","kidney distal tubule epithelial cell","kidney interstitial cell","kidney interstitial fibroblast","kidney interstitium","kidney medulla","kidney medulla cell","kidney pelvis smooth muscle","kidney pelvis urothelium","kidney proximal tubule epithelial cell","kidney tubule epithelial cell","loop of henle","loop of henle ascending limb thick segment","loop of henle ascending limb thin segment","loop of henle bend","loop of henle thin descending limb","macula densa","mesangial cell","outer renal medulla collecting duct","outer renal medulla interstitium","parietal epithelial cell","part of afferent arteriole forming juxtaglomerular complex","pelvis","plasma","podocyte","proximal convoluted tubule","proximal straight tubule","proximal tubule segment 1","proximal tubule segment 2","renal artery","renal connecting tubule","renal corpuscle","renal cortex artery","renal cortex collecting duct","renal cortex interstitium","renal cortex tubule","renal cortex vein","renal distal tubule","renal nerve","renal proximal tubule","renal tubule","renin secreting cell","rest of afferent arteriole","ureter","urinary bladder","urinary bladder detrussor smooth muscle","urinary bladder urothelium","urine","monocyte"];
+			if ($.inArray(selectedItem, categoryofAnatomiclocCelltype) != -1){
+				//alert("Anatomic location of cell type selection: " + selectedItem);
+				searchOptions += "anatomicORcelltype:" + selectedItem + ",";
+			}
+			
+				
+				
+			//Expression categories
+			var categoryofExpression = ["Down","Unmodified","Up","Absent","Medium","Possible","Present","Strong","Weak"];
+			if ($.inArray(selectedItem,categoryofExpression) != -1){
+				//alert("Expression selection: " + selectedItem);
+				searchOptions += "expression:" + selectedItem + ",";
+			}
+				
+				
+			//Condition/disease value categories
+			var categoryofConditionDisease = ["Acute renal allograft rejection","Acute renal allograft rejection model (allogenic transplantation)","Calcium oxalate monohydrate in vitro model","Ciclosporine A in vitro model","High glucose in vitro model","Interstitial fibrosis and tubular atrophy","Interstitial fibrosis and tubular atrophy model","Interstitial fibrosis and tubular atrophy model (allogenic transplantation)","Syngenic transplantation model","Autosomic dominant polycystic kidney disease","Ciclosporin-induced nephropathy model","Complete unilateral obstruction model"," Adult","Diabetic nephropathy model","Hypoxia in vitro model","Nephrotoxic model","PDGF in vitro model","PKD1 Autosomic dominant kidney disease","Polycystic kidney disease model","Renal transplantation","Streptozotocin-induced rat model of diabetic nephropathy","Sub-total nephrectomy model","TGFbeta in vitro model","Thy-1 nephritis rat model","Type 1 diabetes associated diabetic nephropathy model","Unilateral ischemia/reperfusion injury model","Vasopressine in vitro model","db/db model of diabetic nephropathy","type 2 diabetic nephropathy","Fanconi syndrome","IgA glomerulonephritis","chronic kidney failure","diabetic nephropathy","proteinuria","ureteral obstruction"];
+			if ($.inArray(selectedItem,categoryofConditionDisease) != -1){
+				//alert("Condition/disease selection: " + selectedItem);
+				searchOptions += "conditionORdisease:" + selectedItem + ",";
+			}
+				
+			
+		}
+		//Remove the last comma of the search options string
+		if (searchOptions.length > 1)
+			searchOptions = searchOptions.slice(0, -1)
+		searchOptions += "]";
+		
+		//The user clicked "Search" so we take the search items from the textArea using a hardcoded XPATH and send them to the log
+		var searchTermString = document.evaluate( "/html/body/div[2]/div[2]/table/tbody/tr[2]/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[2]/td/div/div[2]/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr/td/textarea"
+					, document, null, XPathResult.ANY_TYPE, null).iterateNext().value;
+		
+		
+		writeLog_UsaProxy("KUPBEVENT-A13:A18-advancedsearch&SEARCHVALUES=" + searchTermString + "&SEARCHOPTIONS=" + searchOptions);
+		
+		
+		//Now we need to register the listener for the advanced search results!!
+		addAdvancedSearchResultsListeners();
+	}
+	
+}
+
+//IMPORTANT: This function returns true if the element is in the active tab of KupBrowser
+function isElementInActiveTab(jqueryElement) {
+	/* In order to know if the element is in the active tab, we have to travel up all the way
+	 * to the tab wrapper and check if its attribute display value is equal to none "display:none"
+	 * In that case, the element is not visible right now. To find the wrapper, we have to travel up 
+	 * until the current node's parent's class is equal to "gwt-TabPanelBottom".
+	 * 
+	 * */
+	 //While there are still nodes to crawl
+	while (!$(jqueryElement).is("body")){
+		//We will iterate until we find the element whose parent's class is "gwt-TabPanelBottom"
+		
+	    var parentClass = $(jqueryElement).parent().attr("class");
+	    
+	    if (parentClass == 'gwt-TabPanelBottom') {
+	        // If it's the parent compare the display value with the one expected from visible objects
+	        return Boolean($(jqueryElement).css("display")!="none");
+	        //return $(jqueryElement).css("display");
+	    }
+	    jqueryElement = $(jqueryElement).parent();
+	}
+}
+
+//Returns true if the current state is basic search, if it's advanced it will return false
+function isCurrentStateBasic(){
+	/////Now we have to distinguish between basic and advanced searches
+		var selected = $(".gwt-TabBarItem-selected");
+		//alert(selected.length);
+		for (i=0; i<selected.length; i++) {
+			if (selected[i].textContent=="Molecule Search")
+				return true;
+			if (selected[i].textContent=="Advanced Search")
+				return false;
+		}
+}
+
+
+//This function will be called whenever basic results are found
+//Functions calling this event are basic selection event and adding filter
+function processBasicResultsFoundEvent(){
+	removeNoBasicResultsListener();
+	console.log("Basic Search Results Found Event happened!");
+	var searchTermString = document.evaluate( "/html/body/div[2]/div[2]/table/tbody/tr[2]/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[2]/td/div/div/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr/td/textarea"
+		,document, null, XPathResult.ANY_TYPE, null).iterateNext().value;
+	writeLog_UsaProxy("KUPBEVENT-A19-basicsearchresults&SEARCHVALUES=" + searchTermString);
+}
+
+function addNoBasicResultsListener(){
+	console.log("Basic Search No results listener added");
+	if(document.attachEvent) document.addEventListener("DOMSubtreeModified", processNoBasicResultsListener, false);
+	if(document.addEventListener) document.addEventListener("DOMSubtreeModified", processNoBasicResultsListener, false);
+}
+
+//Returns true if no results are found
+//In the basic search mode we look for a change in the DOM that shows a text message of class "error"
+function processNoBasicResultsListener(){
+	//We have to look for this text, with the CSS attribute "display" not "none"
+	var errorsInPage = $(".error")
+	console.log("DOM changed");
+	
+	for (i=0; i<errorsInPage.length; i++) {
+		if ((isElementInActiveTab(errorsInPage[i])) && ($(errorsInPage[i]).css("display")!="none"))
+			if(errorsInPage[i].textContent == "Sorry, but we couldn't find what you were looking for in any of the experiments in the KUPKB.")
+				{
+					//No results were found, register the appropiate event and remove the listener
+					//alert("There were no results");
+					removeNoBasicResultsListener();
+					console.log("Basic Search No Results Found Event happened!");
+					
+					//OPTIONAL! we are recording the events that were used in the search
+					var searchTermString = document.evaluate( "/html/body/div[2]/div[2]/table/tbody/tr[2]/td/div/div/table/tbody/tr[2]/td/table/tbody/tr/td/table/tbody/tr[2]/td/div/div/table/tbody/tr/td/table/tbody/tr/td/table/tbody/tr[2]/td/table/tbody/tr/td/textarea"
+							,document, null, XPathResult.ANY_TYPE, null).iterateNext().value;
+					writeLog_UsaProxy("KUPBEVENT-A20-basicsearchNoresults&SEARCHVALUES=" + searchTermString);
+				}
+	}
+	//<div class="error" style="display: none; ">Sorry, but we couldn't find what you were looking for in any of the experiments in the KUPKB.</div>
+}
+
+function processResultsNotFoundTESTListener(){
+	var errorsInPage = $(".error")
+	console.log("DOM changed");
+	for (i=0; i<errorsInPage.length; i++) {
+		
+		console.log("The error found display is: " +  $(errorsInPage[i]).css("display") 
+				+ " and its text is" + errorsInPage[i].textContent);
+	
+	}
+}
+
+function removeNoBasicResultsListener(){
+		console.log("Basic Search No results listener removed");
+	
+		if (document.removeEventListener) {    // all browsers except IE before version 9
+			document.removeEventListener ("DOMSubtreeModified", processNoBasicResultsListener, false);
+		}
+		
+		else {
+			if (document.detachEvent) {        // IE before version 9
+				document.detachEvent ('DOMSubtreeModified', processNoBasicResultsListener);
+			}
+		}
+}
+
+
+function addAdvancedSearchResultsListeners(){
+	addNoAdvancedResultsListener();
+	addAdvancedResultsFoundListener();
+}
+//For the no results found in advanced search, we need to look for an alert saying no results were found.
+//A way to detect the alert will be required,
+function addNoAdvancedResultsListener()
+{
+	console.log("Advanced Search No Results alert listener added");
+
+	_old_alert = window.alert;
+    window.alert = function() {
+                     // run some code when  the alert pops up
+                     //We will check if the alert window to be shown is the one we were looking for
+                     if (arguments[0] == "Sorry, no hits for your selected molecule(s) in the KUPKB")
+						{
+							console.log("Advanced Search No Results Found Event happened!");
+							writeLog_UsaProxy("KUPBEVENT-A21-advancedsearchNoresults");
+							_old_alert.apply(window,arguments);
+							removeAdvancedResultsFoundListeners();//we need to deactivate the listeners!!!
+						}
+					else
+						{
+							//There was an alert but it's not the one we are looking for!
+							console.log("Different alert found?" +arguments[0] );
+							_old_alert.apply(window,arguments);
+						}
+		
+					// run some code after the alert
+    };
+}
+
+
+function addAdvancedResultsFoundListener(){
+	console.log("Advanced Search Results DOM change listener added");
+	
+	if(document.attachEvent) document.addEventListener("DOMSubtreeModified", processAdvancedResultsFoundListener, false);
+	if(document.addEventListener) document.addEventListener("DOMSubtreeModified", processAdvancedResultsFoundListener, false);
+	
+}
+
+
+function processAdvancedResultsFoundListener(){
+	
+	var resultsIndex = $(".GCK1R1LCFI")
+	//alert(resultsIndex.length);
+	for (i=0; i<resultsIndex.length; i++) {
+		if (isElementInActiveTab(resultsIndex[i]) && resultsIndex[i].textContent != "1-1 of 0")
+			{
+				console.log("Advanced Search Results Found Event happened!");
+				writeLog_UsaProxy("KUPBEVENT-A22-advancedsearchresultsfound");
+				removeAdvancedResultsFoundListeners();
+			}
+	}
+}
+
+function removeAdvancedResultsFoundListeners()
+{
+	console.log("Advanced Search Result listeners removed");
+	//the behaviour of the alerts will be the same as usual
+	window.alert = _old_alert;
+	
+	//removing DOM change listener
+	if (document.removeEventListener) {    // all browsers except IE before version 9
+		document.removeEventListener ("DOMSubtreeModified", processAdvancedResultsFoundListener, false);
+	}
+	
+	else {
+		if (document.detachEvent) {        // IE before version 9
+			document.detachEvent ('DOMSubtreeModified', processAdvancedResultsFoundListener);
+		}
+	}
+}
 
 ////////////////////USEFUL FUNCTIONS FOR DEBUGGING
 //It's pretty useful to put calls to specific nodes in the mousedown function,

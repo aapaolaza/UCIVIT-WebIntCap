@@ -1,37 +1,5 @@
 /**CHANGES!!! This is not the original proxyscript, it was modified to allow developers to copypaste a script initialitation instead of a proxy approach. All the changes are tagged "CHANGE"**/
 
-//CHANGE!! I added jquery to use certain interesting functions
-//<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
-
-//I need this variable to be global, it's the original alert value that is changed in order to use it as a listener for advanced search
-var _old_alert;
-
-
-function includeJquery(){
-	
-	if (typeof jQuery != 'undefined') {
- 
-    alert("jQuery library is correctly loaded!");
- 
-}else{
- 
-    alert("jQuery library is not found!");
- 
-}
-
-		var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
-		
-		//we add the script dinamically
-		var jQueryScriptNode = document.createElement('script');
-		jQueryScriptNode.id='proxyScript_jQuery';
-		jQueryScriptNode.type = 'text/javascript';
-		jQueryScriptNode.src = jQuerySrc;
-
-		document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
-		
-		alert("jQuery was added");
-}
-
 /** Core UsaProxy JavaScript part.
 	This proxyscript.js is used for pure logging of user activity
 	without any collaboration functionality */
@@ -198,19 +166,6 @@ function init_UsaProxy() {
 if(document.attachEvent) window.attachEvent('onload', init_UsaProxy);
 if(document.addEventListener) window.addEventListener('load', init_UsaProxy, false);
 
-/*I have to imitate these events to add the jQuery function*/
-if(document.attachEvent) window.attachEvent('onload', includeJquery);
-else if (document.addEventListener) window.addEventListener('load', includeJquery, false);
-
-
-/*document.addEventListener("DOMSubtreeModified", function() {
-    alert("DOMSubtreeModified fired!");
-}, false);*/
-//if(document.attachEvent) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
-//if(document.addEventListener) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
-//$("element-root").bind(DOMSubtreeModified,"domChangeListener");
-
-
 //CHANGE: function added to calculate the date
 function set_date_UsaProxy(){
 	var today = new Date();
@@ -297,7 +252,7 @@ function writeLog_UsaProxy(text) {
 	
 	// generate and append log entry
 	var logline;
-	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
+	logLine = datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
 	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + url;
 	
 	// set synchronization flag (block function)
@@ -307,7 +262,6 @@ function writeLog_UsaProxy(text) {
 	FLG_writingLogVal_UsaProxy = false;
 }
 
-//CHANGE!!! now this function returns textContent as well, it will be useful!!
 /* Returns all available node information such as the DOM path, an image name, href, etc. */
 function generateEventString_UsaProxy(node /*DOM element*/) {
 	var eventString = "";
@@ -340,9 +294,6 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 		}
 	}
 	
-	//Get textContent of the variable
-	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + node.textContent + "&textValue=" + node.value;
-		
 	return eventString;
 }
 
@@ -622,11 +573,6 @@ function processMousedown_UsaProxy(e) {
 	}
 	// log middle and right button events, continue if left button was clicked
 	if (mbutton!="left") {
-
-		////DEBUG START
-			//alert("TEST");
-			recordCurrentDOM();
-		////DEBUG END
 		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 		return;
@@ -653,7 +599,6 @@ function processMousedown_UsaProxy(e) {
 			writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
-	
 	//saveLog_UsaProxy();
 }
 
@@ -1154,15 +1099,10 @@ function processSelectionNS_UsaProxy(e) {
 
 /* Returns the DOM path of the specified DOM node beginning with the first
  * corresponding child node of the document node (i.e. HTML) */
- 
- //CHANGE!!! Now this function returns the XPATH
 function getDOMPath(node /*DOM element*/) {
-
-	return getPathTo(node)
-	
-	/*if nodeType==9 same as nodetype==Node.DOCUMENT_NODE, IE doesn't speak constants*/
-	//~ if(node.parentNode.nodeType==9) return getDOMIndex(node);
-	//~ else return getDOMPath(node.parentNode) + getDOMIndex(node);
+	/* if nodeType==9 same as nodetype==Node.DOCUMENT_NODE, IE doesn't speak constants */
+	if(node.parentNode.nodeType==9) return getDOMIndex(node);
+	else return getDOMPath(node.parentNode) + getDOMIndex(node);
 }
 
 /** Returns the position of the specified node 
@@ -1228,130 +1168,3 @@ function absTop(element) {
      	return (element.offsetParent)? 
      	element.offsetTop + absTop(element.offsetParent) : element.offsetTop;
 }
-
-
-
-/*
-///TEST!!!!
-document.onclick= function(event) {
-    if (event===undefined) event= window.event;                     // IE hack
-    var target= 'target' in event? event.target : event.srcElement; // another IE hack
-
-alert(target.textContent);
-
-    //var root= document.compatMode==='CSS1Compat'? document.documentElement : document.body;
-    //var mxy= [event.clientX+root.scrollLeft, event.clientY+root.scrollTop];
-
-    //var path= getPathTo(target);
-    //var txy= getPageXY(target);
-    //alert('Clicked element '+path+' offset '+(mxy[0]-txy[0])+', '+(mxy[1]-txy[1]));
-}*/
-
-function getPathTo(element) {
-    if (element.id!=='')
-        return 'id("'+element.id+'")';
-    if (element===document.body)
-        return element.tagName;
-
-    var ix= 0;
-    var siblings= element.parentNode.childNodes;
-    for (var i= 0; i<siblings.length; i++) {
-        var sibling= siblings[i];
-        if (sibling===element)
-            return getPathTo(element.parentNode)+'/'+element.tagName+'['+(ix+1)+']';
-        if (sibling.nodeType===1 && sibling.tagName===element.tagName)
-            ix++;
-    }
-}
-
-function getPageXY(element) {
-    var x= 0, y= 0;
-    while (element) {
-        x+= element.offsetLeft;
-        y+= element.offsetTop;
-        element= element.offsetParent;
-    }
-    return [x, y];
-}
-
-
-
-
-///////////////////////////////////DOM RECORDING FUNCTIONS/////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-
-
-function recordCurrentDOM(){
-	console.log($(document.body).html());
-	
-	writeLog_UsaProxy("domchange&domContent=" + $(document.body).html());
-	
-}
-
-/////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
-/////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
-//////////////////////////////////////////////////////////////////////////
-
-//This function consider if the element's colour has been defined to transparent in order to omit it.
-//I had to fix the code as it was using "jqueryElement.css("background-color");" type of functions instead of "$(jqueryElement).css("
-//The first function also returns information about the "colour parent" that is responsible for the colour change of the element
-
-//Source:http://stackoverflow.com/questions/4259815/how-do-i-detect-the-inherited-background-color-of-an-element-using-jquery-js
-function getBackgroundColourWithColourParent(jqueryElement) {
-    // Is current element's background color set?
-    var color = $(jqueryElement).css("background-color");
-    
-    if ((color !== 'rgba(0, 0, 0, 0)') && (color !== 'transparent')) {
-        // if so then return that color
-        return (jqueryElement.html() + "," + jqueryElement.textContent+":" + color);
-    }
-
-    // if not: are you at the body element?
-    if ($(jqueryElement).is("body")) {
-        // return known 'false' value
-        return false;
-    } else {
-        // call getBackground with parent item
-        return getBackgroundColourWithColourParent($(jqueryElement).parent());
-    }
-}
-
-function getBackgroundColour(jqueryElement) {
-    // Is current element's background color set?
-    var color = $(jqueryElement).css("background-color");
-    
-    if ((color !== 'rgba(0, 0, 0, 0)') && (color !== 'transparent')) {
-        // if so then return that color
-        return (color);
-    }
-
-    // if not: are you at the body element?
-    if ($(jqueryElement).is("body")) {
-        // return known 'false' value
-        return false;
-    } else {
-        // call getBackground with parent item
-        return getBackgroundColour($(jqueryElement).parent());
-    }
-}
-
-
-
-////////////////////USEFUL FUNCTIONS FOR DEBUGGING
-//It's pretty useful to put calls to specific nodes in the mousedown function,
-//when the right or middle button gets activated
-
-//Function that prints all CSS values of an element
-	
-	/*var computedStyle = window.getComputedStyle(node);
-	var stringedStyle = "";
-	
-	//looping through the vector we get the value names
-	for (i=0; i<computedStyle.length; i++) {
-		
-		var cssValue = $(node).css(computedStyle[i]);//jQuery will get us the value of those fields
-		stringedStyle+= computedStyle[i] + ":" + cssValue +"||||\n";
-	}
-	
-	alert(stringedStyle);
-*/
