@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -118,13 +119,7 @@ public class EventManager {
      *  @param filename specifies the log file.
      */
 	public synchronized void log (OutputStream out, String data, Socket client, String filename) {
-    	
-		/*"data" is the equivalent to "requestURL.getQuery()" so we can use HTTPData.getValue 
-		 * to get some information*/
-		
-		String sid = HTTPData.getValue(data, "sid");
-		String sd = HTTPData.getValue(data, "sd");
-		String time = HTTPData.getValue(data, "time");
+
 		
     	/** if client log request (else: serverdata log-request from proxy)*/
     	if(out!=null)
@@ -153,12 +148,12 @@ public class EventManager {
 					
 					/** replace separators ("&") with spaces, leave attribute values escaped */
 					dataArray[m] = dataArray[m].replaceAll("&", " ");
-					System.out.println("Treating regular event");
+					System.out.println(dataArray[m]);
 					//TODO I will have to check if the event is "domchange" is being recorded in order to send it to logDOMChange
 					if (dataArray[m].contains("domchange"))
-					{
+					{//domContent
 						System.out.println("There was a dom CHANGE!!!");
-						logDOMChange(out, data, client, sd, sid, time);
+						logDOMChange(dataArray[m], clientIP);
 						
 					}
 					
@@ -357,58 +352,85 @@ public class EventManager {
 	/** Records the specific event of DOM change, the folder and name of file will depend on the values
 	 * of sid and sd. A timestamped file will hold a screenshot of the current DOM 
 	 *  
-	 *  @param event is the string to be examined
-	 *  @param parameter is the attribute to be searched for in the event string
+	 *  @param data is the string to be examined, which will include the complete encoded DOM
+	 *  @param clientIP is the client's machine IP address
 	 */
 	
-	public void logDOMChange(OutputStream out, String data, Socket client, String sd, String sid, String time){
+	public void logDOMChange(String data, String clientIP){
 		
-		
-		/** if client log request (else: serverdata log-request from proxy)*/
-    	if(out!=null)
-    		out = new DataOutputStream(out);
-    	
     	try {
+    		///First we need to get all the data, it should arrive in the following format, and we have already tested it is a "domchange" event
+    		//time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7 event=domchange domContent= ”encodedDOM”
+
+    		String[] paramList = data.split(" ");
+    		String time = "", sd = "", sid = "", domContent = "";
     		
-    		/** Create a folder with the session ID if it doesn't exist */ 
-    		File dir = new File(sid);
-    		if (!dir.exists()) {
-    			dir.mkdir();
+    		for(int i =0; i < paramList.length ; i++){
+    			String[] paramItemPair = paramList[i].split("=");
+    			
+    			switch (paramItemPair[0]) {
+    			  case "time": 
+    				  time = paramItemPair[1];
+    				  break;
+    			  case "sd": 
+    				  sd = paramItemPair[1];
+    				  break;
+    			  case "sid": 
+    				  sid = paramItemPair[1];
+    				  break;
+    			  case "domContent": 
+    				  domContent = paramItemPair[1];
+    				  break;
+    			  default: 
+    			    //this case should be when the item corresponds to "event"
+    			}
     		}
-    		File filename = new File(dir, sd + ";" + time);
+    		//At this point we should have all the information we need to record the event
+    		//Testing the data we have:
+    		System.out.println("time = " + time);
+    		System.out.println("sd = " + sd);
+    		System.out.println("sid = " + sid);
+    		System.out.println("domContent = " + URLDecoder.decode(domContent, "UTF-8"));
     		
-    		/** Open a stream to the log file. */
-			FileOutputStream fos = new FileOutputStream ( filename , true);
-			
-			/** retrieve the client's IP address */
-			String clientIP = client.getInetAddress().getHostAddress();
-			
-		
-			/** append complete entry */
-			data = data + clientIP + " " + data + HTTPData.CRLF;
-
-
-			//System.out.println(data);
-			fos.write(data.getBytes());
-			fos.flush();
-			fos.close();
-			
-			if(out!=null) {
-				/** send 404 message in order to complete the request */
-				SocketData.send404 (out);
-			}
-
-    	}
-    	catch ( FileNotFoundException e ) { 
-    		/** If log file doesn't exist, send 404 message. */
-        	System.err.println("\nAn ERROR occured: log file not found:\n"
-									+ e );
-        	
-        	/** Send 404 error message to client */
-			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
-			outPrint.println("HTTP/1.0 404 ");            /** version and status code */
-			outPrint.println();                           /** blank line */
-			outPrint.flush();
+//    		/** Create a folder with the session ID if it doesn't exist */ 
+//    		File dir = new File(sid);
+//    		if (!dir.exists()) {
+//    			dir.mkdir();
+//    		}
+//    		File filename = new File(dir, sd + ";" + time);
+//    		
+//    		/** Open a stream to the log file. */
+//			FileOutputStream fos = new FileOutputStream ( filename , true);
+//			
+//			/** retrieve the client's IP address */
+//			String clientIP = client.getInetAddress().getHostAddress();
+//			
+//		
+//			/** append complete entry */
+//			data = data + clientIP + " " + data + HTTPData.CRLF;
+//
+//
+//			//System.out.println(data);
+//			fos.write(data.getBytes());
+//			fos.flush();
+//			fos.close();
+//			
+//			if(out!=null) {
+//				/** send 404 message in order to complete the request */
+//				SocketData.send404 (out);
+//			}
+//
+//    	}
+//    	catch ( FileNotFoundException e ) { 
+//    		/** If log file doesn't exist, send 404 message. */
+//        	System.err.println("\nAn ERROR occured: log file not found:\n"
+//									+ e );
+//        	
+//        	/** Send 404 error message to client */
+//			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
+//			outPrint.println("HTTP/1.0 404 ");            /** version and status code */
+//			outPrint.println();                           /** blank line */
+//			outPrint.flush();
         }
         
         catch ( IOException ie ) { 	

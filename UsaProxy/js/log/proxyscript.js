@@ -8,16 +8,16 @@ var _old_alert;
 
 
 function includeJquery(){
-	
-	if (typeof jQuery != 'undefined') {
- 
-    alert("jQuery library is correctly loaded!");
- 
-}else{
- 
-    alert("jQuery library is not found!");
- 
-}
+//	
+//	if (typeof jQuery != 'undefined') {
+// 
+//    alert("jQuery library is correctly loaded!");
+// 
+//}else{
+// 
+//    alert("jQuery library is not found!");
+// 
+//}
 
 		var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
 		
@@ -29,7 +29,7 @@ function includeJquery(){
 
 		document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
 		
-		alert("jQuery was added");
+		//alert("jQuery was added");
 }
 
 /** Core UsaProxy JavaScript part.
@@ -524,7 +524,7 @@ function processMouseover_UsaProxy(e) {
 		 	// IE
 		 	if(target.attachEvent) { 
 				/* first, remove existent event listener
-				 * detachEvent doesn’t give any errors if the listener 
+				 * detachEvent doesnï¿½t give any errors if the listener 
 				 * to be removed has not been added to target */
 				// change listener
 				target.detachEvent('onchange', processChange_UsaProxy);
@@ -1282,9 +1282,11 @@ function getPageXY(element) {
 
 
 function recordCurrentDOM(){
-	console.log($(document.body).html());
-	
-	writeLog_UsaProxy("domchange&domContent=" + $(document.body).html());
+	//console.log(document.getElementsByTagName("body")[0].innerHTML);
+	alert("recording DOM");
+	writeLog_UsaProxy("domchange&domContent=" +encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML));
+	//$(document.body).html()));
+	//+encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML); 
 	
 }
 
