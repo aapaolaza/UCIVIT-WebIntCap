@@ -1,3 +1,37 @@
+/**CHANGES!!! This is not the original proxyscript, it was modified to allow developers to copypaste a script initialitation instead of a proxy approach. All the changes are tagged "CHANGE"**/
+
+//CHANGE!! I added jquery to use certain interesting functions
+//<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+
+//I need this variable to be global, it's the original alert value that is changed in order to use it as a listener for advanced search
+var _old_alert;
+
+
+function includeJquery(){
+	
+	if (typeof jQuery != 'undefined') {
+ 
+    alert("jQuery library is correctly loaded!");
+ 
+}else{
+ 
+    alert("jQuery library is not found!");
+ 
+}
+
+		var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
+		
+		//we add the script dinamically
+		var jQueryScriptNode = document.createElement('script');
+		jQueryScriptNode.id='proxyScript_jQuery';
+		jQueryScriptNode.type = 'text/javascript';
+		jQueryScriptNode.src = jQuerySrc;
+
+		document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
+		
+		alert("jQuery was added");
+}
+
 /** Core UsaProxy JavaScript part.
 	This proxyscript.js is used for pure logging of user activity
 	without any collaboration functionality */
@@ -66,24 +100,17 @@ function init_UsaProxy() {
 	FLG_keyPress_UsaProxy 		= true;
 	FLG_comb_UsaProxy 			= false;
 	combMembers_UsaProxy 		= 0;
-	
+
 	/* retrieve reference string URL parameters */
-	var par_start			= document.getElementById("proxyScript_UsaProxy").src.indexOf("?");
-	var pars_UsaProxy   	= document.getElementById("proxyScript_UsaProxy").src.substring(par_start);
-	/* retrieve current httptrafficindex which is specified by the parameter sd */
-	par_start				= 4;
-	var par_end				= pars_UsaProxy.indexOf("&");
-	serverdataId_UsaProxy	= pars_UsaProxy.substring(par_start, par_end);
-	/* initialize start date specified by parameter ts */
-	par_start				= pars_UsaProxy.indexOf("&ts=") + 4;
-	var par_end				= pars_UsaProxy.indexOf("&", par_start);
-	if (par_end==-1) par_end = pars_UsaProxy.length;
-	startDate_UsaProxy		= date_UsaProxy(pars_UsaProxy.substring(par_start, par_end));
-	/* initialize UsaProxy instance ID specified by parameter id */
-	par_start				= pars_UsaProxy.indexOf("&id=") + 4;
-	var par_end				= pars_UsaProxy.indexOf("&", par_start);
-	if (par_end==-1) par_end = pars_UsaProxy.length;
-	id_UsaProxy				= pars_UsaProxy.substring(par_start, par_end);		
+	
+	/* GETTING PARAMETERS FROM URL IS DEPRECATED FOR COPYPASTE APPROACH!!*/
+	//CHANGES: we get all data from our global variables (the inclussion of a port number breaks the parsing so the code didn't work)
+	
+	serverdataId_UsaProxy	= window.webpageIndex;
+	set_date_UsaProxy();
+	startDate_UsaProxy=date_UsaProxy(window.usaProxyDate);
+		
+	id_UsaProxy=window.usaProxyId;
 	
 	/* log load event */
 	processLoad_UsaProxy();
@@ -171,8 +198,49 @@ function init_UsaProxy() {
 if(document.attachEvent) window.attachEvent('onload', init_UsaProxy);
 if(document.addEventListener) window.addEventListener('load', init_UsaProxy, false);
 
+/*I have to imitate these events to add the jQuery function*/
+if(document.attachEvent) window.attachEvent('onload', includeJquery);
+else if (document.addEventListener) window.addEventListener('load', includeJquery, false);
+
+
+/*document.addEventListener("DOMSubtreeModified", function() {
+    alert("DOMSubtreeModified fired!");
+}, false);*/
+//if(document.attachEvent) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
+//if(document.addEventListener) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
+//$("element-root").bind(DOMSubtreeModified,"domChangeListener");
+
+
+//CHANGE: function added to calculate the date
+function set_date_UsaProxy(){
+	var today = new Date();
+	var cDate = today.getDate();
+	var cMonth = today.getMonth()+1;//JavaScript counts the months from 0 to 11
+	var cYear = today.getFullYear();
+	var cHour = today.getHours();
+	var cMin = today.getMinutes();
+	var cSec = today.getSeconds();
+	var cMilliSec = today.getMilliseconds();
+
+	//the time format must include 2 digits each, so we'll modify them
+	if (cDate < 10)
+	  cDate = "0" + cDate
+	if (cMonth < 10)
+	  cMonth = "0" + cMonth
+	if (cHour < 10)
+	  cHour = "0" + cHour
+	if (cMin < 10)
+	  cMin = "0" + cMin
+	if (cSec < 10)
+	  cSec = "0" + cSec
+		  
+	//Server configuration parameters
+	window.usaProxyDate=cYear+"-"+cMonth+"-"+cDate+","+cHour+":"+cMin+":"+cSec;
+}
+
 // Returns a Date object computed from a given datestamp string
 function date_UsaProxy(datestamp /*string*/) {
+
 	var datestampTail 	= datestamp;
 	var year 			= Number(datestampTail.substring(0,datestampTail.indexOf("-")));
 	datestampTail 		= datestampTail.substring(datestampTail.indexOf("-")+1);
@@ -191,6 +259,8 @@ function date_UsaProxy(datestamp /*string*/) {
 /* Returns a timestamp string of the form "2004-12-31,23:59:59".
  * Takes UsaProxy's httptraffic log entry time as start time and adds
  * the difference between load time and current time */
+ 
+ //CHANGE: now it returns the date with milliseconds
 function datestamp_UsaProxy() {
 	if (loadDate_UsaProxy==null) loadDate_UsaProxy = new Date();
 	var currentDate 	= new Date();
@@ -202,7 +272,8 @@ function datestamp_UsaProxy() {
 	return currentUPDate.getFullYear() + "-" + completeDateVals(currentUPDate.getMonth()) + "-"
 	  + completeDateVals(currentUPDate.getDate()) + "," + completeDateVals(currentUPDate.getHours())
 	  + ":" + completeDateVals(currentUPDate.getMinutes())
-	  + ":" + completeDateVals(currentUPDate.getSeconds());
+	  + ":" + completeDateVals(currentUPDate.getSeconds())
+	  + ":" + completeDateVals(currentUPDate.getMilliseconds());
 }
 
 /** Completes single-digit numbers by a "0"-prefix */
@@ -219,10 +290,15 @@ function writeLog_UsaProxy(text) {
 	// if function is already being executed, defer writeLog_UsaProxy for 50ms
 	if(FLG_writingLogVal_UsaProxy) { window.setTimeout("writeLog_UsaProxy(" + text + ")",50); return false;}
 	
+		//CHANGE! added additional parameters after "text"
+	
+	var url=window.location.href;
+	url=url.replace("#","");
+	
 	// generate and append log entry
 	var logline;
-	logLine = datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
-	+ sessionID_UsaProxy + "&event=" + text;
+	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
+	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + url;
 	
 	// set synchronization flag (block function)
 	FLG_writingLogVal_UsaProxy = true;
@@ -231,6 +307,7 @@ function writeLog_UsaProxy(text) {
 	FLG_writingLogVal_UsaProxy = false;
 }
 
+//CHANGE!!! now this function returns textContent as well, it will be useful!!
 /* Returns all available node information such as the DOM path, an image name, href, etc. */
 function generateEventString_UsaProxy(node /*DOM element*/) {
 	var eventString = "";
@@ -263,6 +340,9 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 		}
 	}
 	
+	//Get textContent of the variable
+	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + node.textContent + "&textValue=" + node.value;
+		
 	return eventString;
 }
 
@@ -350,10 +430,11 @@ function xmlhttpChange_UsaProxy(pos /*number*/, callback_function /*string*/) {
 /** end of AJAX code */
 
 /** Sends tracked usage data (if available) to UsaProxy */
+/**CHANGES: this method was changed. In the proxy approach no IP adress is required, but when using a copypaste approach the IP of the server running the UsaProxy server needs to be specified here **/
 function saveLog_UsaProxy() {
 
 	if(logVal_UsaProxy!="") {
-		xmlreqGET_UsaProxy("/usaproxylolo/log?" + logVal_UsaProxy, "");
+		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + logVal_UsaProxy, "");
 		logVal_UsaProxy = ""; // reset log data
 	}
 }
@@ -541,6 +622,11 @@ function processMousedown_UsaProxy(e) {
 	}
 	// log middle and right button events, continue if left button was clicked
 	if (mbutton!="left") {
+
+		////DEBUG START
+			//alert("TEST");
+			recordCurrentDOM();
+		////DEBUG END
 		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 		return;
@@ -567,6 +653,7 @@ function processMousedown_UsaProxy(e) {
 			writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
+	
 	//saveLog_UsaProxy();
 }
 
@@ -1067,10 +1154,15 @@ function processSelectionNS_UsaProxy(e) {
 
 /* Returns the DOM path of the specified DOM node beginning with the first
  * corresponding child node of the document node (i.e. HTML) */
+ 
+ //CHANGE!!! Now this function returns the XPATH
 function getDOMPath(node /*DOM element*/) {
-	/* if nodeType==9 same as nodetype==Node.DOCUMENT_NODE, IE doesn't speak constants */
-	if(node.parentNode.nodeType==9) return getDOMIndex(node);
-	else return getDOMPath(node.parentNode) + getDOMIndex(node);
+
+	return getPathTo(node)
+	
+	/*if nodeType==9 same as nodetype==Node.DOCUMENT_NODE, IE doesn't speak constants*/
+	//~ if(node.parentNode.nodeType==9) return getDOMIndex(node);
+	//~ else return getDOMPath(node.parentNode) + getDOMIndex(node);
 }
 
 /** Returns the position of the specified node 
@@ -1136,3 +1228,130 @@ function absTop(element) {
      	return (element.offsetParent)? 
      	element.offsetTop + absTop(element.offsetParent) : element.offsetTop;
 }
+
+
+
+/*
+///TEST!!!!
+document.onclick= function(event) {
+    if (event===undefined) event= window.event;                     // IE hack
+    var target= 'target' in event? event.target : event.srcElement; // another IE hack
+
+alert(target.textContent);
+
+    //var root= document.compatMode==='CSS1Compat'? document.documentElement : document.body;
+    //var mxy= [event.clientX+root.scrollLeft, event.clientY+root.scrollTop];
+
+    //var path= getPathTo(target);
+    //var txy= getPageXY(target);
+    //alert('Clicked element '+path+' offset '+(mxy[0]-txy[0])+', '+(mxy[1]-txy[1]));
+}*/
+
+function getPathTo(element) {
+    if (element.id!=='')
+        return 'id("'+element.id+'")';
+    if (element===document.body)
+        return element.tagName;
+
+    var ix= 0;
+    var siblings= element.parentNode.childNodes;
+    for (var i= 0; i<siblings.length; i++) {
+        var sibling= siblings[i];
+        if (sibling===element)
+            return getPathTo(element.parentNode)+'/'+element.tagName+'['+(ix+1)+']';
+        if (sibling.nodeType===1 && sibling.tagName===element.tagName)
+            ix++;
+    }
+}
+
+function getPageXY(element) {
+    var x= 0, y= 0;
+    while (element) {
+        x+= element.offsetLeft;
+        y+= element.offsetTop;
+        element= element.offsetParent;
+    }
+    return [x, y];
+}
+
+
+
+
+///////////////////////////////////DOM RECORDING FUNCTIONS/////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+
+function recordCurrentDOM(){
+	console.log($(document.body).html());
+	
+	writeLog_UsaProxy("domchange&domContent=" + $(document.body).html());
+	
+}
+
+/////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
+/////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
+//////////////////////////////////////////////////////////////////////////
+
+//This function consider if the element's colour has been defined to transparent in order to omit it.
+//I had to fix the code as it was using "jqueryElement.css("background-color");" type of functions instead of "$(jqueryElement).css("
+//The first function also returns information about the "colour parent" that is responsible for the colour change of the element
+
+//Source:http://stackoverflow.com/questions/4259815/how-do-i-detect-the-inherited-background-color-of-an-element-using-jquery-js
+function getBackgroundColourWithColourParent(jqueryElement) {
+    // Is current element's background color set?
+    var color = $(jqueryElement).css("background-color");
+    
+    if ((color !== 'rgba(0, 0, 0, 0)') && (color !== 'transparent')) {
+        // if so then return that color
+        return (jqueryElement.html() + "," + jqueryElement.textContent+":" + color);
+    }
+
+    // if not: are you at the body element?
+    if ($(jqueryElement).is("body")) {
+        // return known 'false' value
+        return false;
+    } else {
+        // call getBackground with parent item
+        return getBackgroundColourWithColourParent($(jqueryElement).parent());
+    }
+}
+
+function getBackgroundColour(jqueryElement) {
+    // Is current element's background color set?
+    var color = $(jqueryElement).css("background-color");
+    
+    if ((color !== 'rgba(0, 0, 0, 0)') && (color !== 'transparent')) {
+        // if so then return that color
+        return (color);
+    }
+
+    // if not: are you at the body element?
+    if ($(jqueryElement).is("body")) {
+        // return known 'false' value
+        return false;
+    } else {
+        // call getBackground with parent item
+        return getBackgroundColour($(jqueryElement).parent());
+    }
+}
+
+
+
+////////////////////USEFUL FUNCTIONS FOR DEBUGGING
+//It's pretty useful to put calls to specific nodes in the mousedown function,
+//when the right or middle button gets activated
+
+//Function that prints all CSS values of an element
+	
+	/*var computedStyle = window.getComputedStyle(node);
+	var stringedStyle = "";
+	
+	//looping through the vector we get the value names
+	for (i=0; i<computedStyle.length; i++) {
+		
+		var cssValue = $(node).css(computedStyle[i]);//jQuery will get us the value of those fields
+		stringedStyle+= computedStyle[i] + ":" + cssValue +"||||\n";
+	}
+	
+	alert(stringedStyle);
+*/

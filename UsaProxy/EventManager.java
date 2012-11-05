@@ -119,6 +119,13 @@ public class EventManager {
      */
 	public synchronized void log (OutputStream out, String data, Socket client, String filename) {
     	
+		/*"data" is the equivalent to "requestURL.getQuery()" so we can use HTTPData.getValue 
+		 * to get some information*/
+		
+		String sid = HTTPData.getValue(data, "sid");
+		String sd = HTTPData.getValue(data, "sd");
+		String time = HTTPData.getValue(data, "time");
+		
     	/** if client log request (else: serverdata log-request from proxy)*/
     	if(out!=null)
     		out = new DataOutputStream(out);
@@ -137,6 +144,7 @@ public class EventManager {
 			dataArray = data.split("&xX");
 			data = "";
 			
+			
 			/** append each entry to the final log String together with the related IP address */
 			for (int m=0; m<dataArray.length; m++) {
 				
@@ -145,6 +153,14 @@ public class EventManager {
 					
 					/** replace separators ("&") with spaces, leave attribute values escaped */
 					dataArray[m] = dataArray[m].replaceAll("&", " ");
+					System.out.println("Treating regular event");
+					//TODO I will have to check if the event is "domchange" is being recorded in order to send it to logDOMChange
+					if (dataArray[m].contains("domchange"))
+					{
+						System.out.println("There was a dom CHANGE!!!");
+						logDOMChange(out, data, client, sd, sid, time);
+						
+					}
 					
 					/** append complete entry */
 					data = data + clientIP + " " + dataArray[m] + HTTPData.CRLF;
@@ -338,4 +354,70 @@ public class EventManager {
 		}
 	}
 
+	/** Records the specific event of DOM change, the folder and name of file will depend on the values
+	 * of sid and sd. A timestamped file will hold a screenshot of the current DOM 
+	 *  
+	 *  @param event is the string to be examined
+	 *  @param parameter is the attribute to be searched for in the event string
+	 */
+	
+	public void logDOMChange(OutputStream out, String data, Socket client, String sd, String sid, String time){
+		
+		
+		/** if client log request (else: serverdata log-request from proxy)*/
+    	if(out!=null)
+    		out = new DataOutputStream(out);
+    	
+    	try {
+    		
+    		/** Create a folder with the session ID if it doesn't exist */ 
+    		File dir = new File(sid);
+    		if (!dir.exists()) {
+    			dir.mkdir();
+    		}
+    		File filename = new File(dir, sd + ";" + time);
+    		
+    		/** Open a stream to the log file. */
+			FileOutputStream fos = new FileOutputStream ( filename , true);
+			
+			/** retrieve the client's IP address */
+			String clientIP = client.getInetAddress().getHostAddress();
+			
+		
+			/** append complete entry */
+			data = data + clientIP + " " + data + HTTPData.CRLF;
+
+
+			//System.out.println(data);
+			fos.write(data.getBytes());
+			fos.flush();
+			fos.close();
+			
+			if(out!=null) {
+				/** send 404 message in order to complete the request */
+				SocketData.send404 (out);
+			}
+
+    	}
+    	catch ( FileNotFoundException e ) { 
+    		/** If log file doesn't exist, send 404 message. */
+        	System.err.println("\nAn ERROR occured: log file not found:\n"
+									+ e );
+        	
+        	/** Send 404 error message to client */
+			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
+			outPrint.println("HTTP/1.0 404 ");            /** version and status code */
+			outPrint.println();                           /** blank line */
+			outPrint.flush();
+        }
+        
+        catch ( IOException ie ) { 	
+        	System.err.println("\nAn ERROR occured while logging:\n"
+							+ ie );
+        }
+        
+        /** notify waiting clients that log file is accessible */
+		notifyAll();
+	}
+	
 }

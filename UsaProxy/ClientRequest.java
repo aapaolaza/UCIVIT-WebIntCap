@@ -1432,7 +1432,7 @@ public class ClientRequest extends Thread {
 						/** store data to indexed txt-file */
 		            	usaProxy.getHttpTraffic().store(httpTrafficIndex, response, 0, responseLength);
 		            	//TEST-REMOVAL } 
-		        }
+				}
 			}
 		} catch (IOException e) {
 			if (client.getSocket() != null) {
@@ -1444,7 +1444,7 @@ public class ClientRequest extends Thread {
         					+ "\n"
 							+ e );
         	}
-		}		
+		}
     }
     
     /** Returns a timestamp string of the form "2004-12-31,23:59:59"
