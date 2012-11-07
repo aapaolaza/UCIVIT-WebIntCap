@@ -288,7 +288,15 @@ function completeDateVals(dateVal) {
  * and the current timestamp to logVal_UsaProxy */
 function writeLog_UsaProxy(text) {
 	// if function is already being executed, defer writeLog_UsaProxy for 50ms
-	if(FLG_writingLogVal_UsaProxy) { window.setTimeout("writeLog_UsaProxy(" + text + ")",50); return false;}
+	////DEBUG TEST
+	
+	
+	if(FLG_writingLogVal_UsaProxy) {
+		window.setTimeout("writeLog_UsaProxy(" + text + ")",50);
+		console.log("writeLog was deferred, its content were: " + text.substring(0,20));
+		return false;}
+	
+	console.log("The following event will be written, its content are: " + text.substring(0,20));
 	
 		//CHANGE! added additional parameters after "text"
 	
@@ -341,7 +349,7 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	}
 	
 	//Get textContent of the variable
-	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + node.textContent + "&textValue=" + node.value;
+	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(node.textContent) + "&textValue=" + encodeURIComponent(node.value);
 		
 	return eventString;
 }
@@ -1283,7 +1291,7 @@ function getPageXY(element) {
 
 function recordCurrentDOM(){
 	//console.log(document.getElementsByTagName("body")[0].innerHTML);
-	alert("recording DOM");
+	//alert("recording DOM");
 	writeLog_UsaProxy("domchange&domContent=" +encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML));
 	//$(document.body).html()));
 	//+encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML); 

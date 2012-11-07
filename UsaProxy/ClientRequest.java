@@ -135,12 +135,22 @@ public class ClientRequest extends Thread {
             if (url == null) return; // In case headers are empty
             
             /** display request besides the specified ones */
-	        if(url.indexOf("getusers")==-1 && url.indexOf("getstatus")==-1
+	        int debugIndex = 0;
+			if(url.indexOf("getusers")==-1 && url.indexOf("getstatus")==-1
             && url.indexOf("chat")==-1
             && url.indexOf("getproposals")==-1 && url.indexOf("getproposalAck")==-1
             /*&& url.indexOf("log")==-1*/
             && url.indexOf("getevents")==-1)
-	        	System.out.println(url);
+	        	
+				
+				
+				//DEBUG
+	        	//System.out.println(url);
+	        	debugIndex = 200;
+	        	if (debugIndex > url.length())
+	        		debugIndex = url.length();
+	        	
+	        	System.out.println(url.substring(0, debugIndex));
 	        	//client.getHeaders().printHeaders();
 	        
 	        /** iterative request-line detection in case url doesn't contain it */
@@ -494,6 +504,15 @@ public class ClientRequest extends Thread {
 	 		 * the new usage data is appended by the EventManager instance
 	 		 * */
 			else if (requestURL.getPath().equals("/usaproxylolo/log")) {
+				
+				
+				///DEBUG TEST	
+				String[] dataArray = requestURL.getQuery().split("&xX");
+			
+				//DEBUG
+				System.out.println("\n\n\n\n\n\nClientRequest processRequest log  Received new data"
+						+"Parsing a total of " + dataArray.length + "elements");
+				//System.out.println(requestURL.getQuery() + "\n\n\n\n\n\n");
 				
 				/** retrieve both collaborators' session ID query parameters */
 				String sid	= HTTPData.getValue(requestURL.getQuery(), "sid");

@@ -135,10 +135,19 @@ public class EventManager {
 			
 			String[] dataArray;
 			
-			/** split data String into single event entries (entry seperator "&xX") */
+			/** split data String into single event entries (entry separator "&xX") */
 			dataArray = data.split("&xX");
-			data = "";
 			
+			
+			
+			//DEBUG
+			System.out.println("EventManager/log  Received new data Parsing a total of "
+			+ dataArray.length + "elements");
+//			System.out.println(data);
+			System.out.println("\n\n\n\n\n\n");
+			
+			
+			data = "";
 			
 			/** append each entry to the final log String together with the related IP address */
 			for (int m=0; m<dataArray.length; m++) {
@@ -148,13 +157,17 @@ public class EventManager {
 					
 					/** replace separators ("&") with spaces, leave attribute values escaped */
 					dataArray[m] = dataArray[m].replaceAll("&", " ");
-					System.out.println(dataArray[m]);
+					
 					//TODO I will have to check if the event is "domchange" is being recorded in order to send it to logDOMChange
-					if (dataArray[m].contains("domchange"))
-					{//domContent
-						System.out.println("There was a dom CHANGE!!!");
-						logDOMChange(dataArray[m], clientIP);
+					if (isEventDOMChange(dataArray[m]))
+					{
 						
+						System.out.println("There was a dom CHANGE");
+						logDOMChange(dataArray[m], clientIP);
+						//If it's a DOM change event, then we need to remove the information from the traditional log
+						//I will use regex with the information obtained from: http://stackoverflow.com/questions/4026685/regex-to-get-text-between-two-characters
+						//This regex will delete everything after domchange
+						dataArray[m] = dataArray[m].replaceAll("(?<=domchange)[^$]*","");
 					}
 					
 					/** append complete entry */
@@ -348,6 +361,31 @@ public class EventManager {
 			return null;
 		}
 	}
+	
+	/** Simple function that tells if the current event string is a domchange event 
+	 *  
+	 *  @param data is the string to be examined, which will contain a single event
+	 *  
+	 */
+	
+	public boolean isEventDOMChange(String data){
+		
+		//The input should be in this format:
+		// time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7 event=domchange domContent= ”encodedDOM”
+				
+		String[] paramList = data.split(" ");
+		
+		for(int i =0; i < paramList.length ; i++){
+			String[] paramItemPair = paramList[i].split("=");
+			if (paramItemPair[0].equals("event") && paramItemPair[1].equals("domchange"))
+					return true;
+			
+		}
+		//we have analysed all items in the event string and none of them told us it was a domchange
+		return false;
+		
+	}
+	
 
 	/** Records the specific event of DOM change, the folder and name of file will depend on the values
 	 * of sid and sd. A timestamped file will hold a screenshot of the current DOM 
@@ -363,7 +401,7 @@ public class EventManager {
     		//time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7 event=domchange domContent= ”encodedDOM”
 
     		String[] paramList = data.split(" ");
-    		String time = "", sd = "", sid = "", domContent = "";
+    		String time = "", sd = "", sid = "", domContent = "", event = "";
     		
     		for(int i =0; i < paramList.length ; i++){
     			String[] paramItemPair = paramList[i].split("=");
@@ -381,65 +419,53 @@ public class EventManager {
     			  case "domContent": 
     				  domContent = paramItemPair[1];
     				  break;
+    			  case "event":
+    				  event = paramItemPair[1];
     			  default: 
-    			    //this case should be when the item corresponds to "event"
+    			    //this case should not happen
     			}
     		}
     		//At this point we should have all the information we need to record the event
     		//Testing the data we have:
-    		System.out.println("time = " + time);
-    		System.out.println("sd = " + sd);
-    		System.out.println("sid = " + sid);
-    		System.out.println("domContent = " + URLDecoder.decode(domContent, "UTF-8"));
+//    		System.out.println("time = " + time);
+//    		System.out.println("sd = " + sd);
+//    		System.out.println("sid = " + sid);
+//    		System.out.println("domContent = " + URLDecoder.decode(domContent, "UTF-8"));
     		
-//    		/** Create a folder with the session ID if it doesn't exist */ 
-//    		File dir = new File(sid);
-//    		if (!dir.exists()) {
-//    			dir.mkdir();
-//    		}
-//    		File filename = new File(dir, sd + ";" + time);
-//    		
-//    		/** Open a stream to the log file. */
-//			FileOutputStream fos = new FileOutputStream ( filename , true);
-//			
-//			/** retrieve the client's IP address */
-//			String clientIP = client.getInetAddress().getHostAddress();
-//			
-//		
-//			/** append complete entry */
-//			data = data + clientIP + " " + data + HTTPData.CRLF;
-//
-//
-//			//System.out.println(data);
-//			fos.write(data.getBytes());
-//			fos.flush();
-//			fos.close();
-//			
-//			if(out!=null) {
-//				/** send 404 message in order to complete the request */
-//				SocketData.send404 (out);
-//			}
-//
-//    	}
-//    	catch ( FileNotFoundException e ) { 
-//    		/** If log file doesn't exist, send 404 message. */
-//        	System.err.println("\nAn ERROR occured: log file not found:\n"
-//									+ e );
-//        	
-//        	/** Send 404 error message to client */
-//			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
-//			outPrint.println("HTTP/1.0 404 ");            /** version and status code */
-//			outPrint.println();                           /** blank line */
-//			outPrint.flush();
+    		domContent = URLDecoder.decode(domContent, "UTF-8");
+    		
+    		/** Create a folder with the session ID if it doesn't exist */ 
+    		File dir = new File("DOMchanges",sid);
+    		if (!dir.exists()) {
+    			dir.mkdir();
+    		}
+    		File filename = new File(dir, sd + ";" + time);
+    		
+    		/** Open a stream to the log file. */
+			FileOutputStream fos = new FileOutputStream (filename , true);
+			
+			/** append complete entry */
+			data = "IP="+clientIP + " " + "time=" + time + " " + "sd=" + sd + " " + "sid=" + sid + " " + "event=" + event 
+					+ " " + "domContent=" + domContent + HTTPData.CRLF;
+
+
+			//System.out.println(data);
+			fos.write(data.getBytes());
+			fos.flush();
+			fos.close();
+			
+    	}
+    	catch ( FileNotFoundException e ) { 
+    		/** If log file doesn't exist, send 404 message. */
+        	System.err.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
+									+ e );
         }
         
         catch ( IOException ie ) { 	
-        	System.err.println("\nAn ERROR occured while logging:\n"
+        	System.err.println("\nAn ERROR occured while logging DOM change event data:\n"
 							+ ie );
         }
-        
-        /** notify waiting clients that log file is accessible */
-		notifyAll();
+
 	}
 	
 }
