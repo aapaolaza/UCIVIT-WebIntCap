@@ -1,3 +1,4 @@
+package usaproxy;
 /** 
  *  Class <code>HTTPData</code> contains HTTP protocol and message context constants. 
  *  Furthermore, it provides methods for the retrieval of specific header and 

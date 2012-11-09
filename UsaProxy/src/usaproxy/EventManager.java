@@ -1,8 +1,22 @@
-import java.io.*;
+package usaproxy;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
+
+import usaproxy.domchanges.DOMdiff;
 
 /** 
  *  Class EventManager manages the exchange of interactions occured in one of the
@@ -390,17 +404,17 @@ public class EventManager {
 	/** Records the specific event of DOM change, the folder and name of file will depend on the values
 	 * of sid and sd. A timestamped file will hold a screenshot of the current DOM 
 	 *  
-	 *  @param data is the string to be examined, which will include the complete encoded DOM
+	 *  @param newdomData is the string to be examined, which will include the complete encoded DOM
 	 *  @param clientIP is the client's machine IP address
 	 */
 	
-	public void logDOMChange(String data, String clientIP){
+	public void logDOMChange(String newdomData, String clientIP){
 		
     	try {
     		///First we need to get all the data, it should arrive in the following format, and we have already tested it is a "domchange" event
     		//time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7 event=domchange domContent= ”encodedDOM”
 
-    		String[] paramList = data.split(" ");
+    		String[] paramList = newdomData.split(" ");
     		String time = "", sd = "", sid = "", domContent = "", event = "";
     		
     		for(int i =0; i < paramList.length ; i++){
@@ -434,26 +448,53 @@ public class EventManager {
     		
     		domContent = URLDecoder.decode(domContent, "UTF-8");
     		
+    		boolean saveEntireDOM = false;
     		/** Create a folder with the session ID if it doesn't exist */ 
     		File dir = new File("DOMchanges",sid);
     		if (!dir.exists()) {
     			dir.mkdir();
+    			//If the folder doesn't exist, that means this will be the first DOM to log.
+    			//We need to store the entire DOM, and the successive recordings will be modifications to this DOM
+    			saveEntireDOM = true;
     		}
-    		File filename = new File(dir, sd + ";" + time);
+    		
+    		//The name of the file where the dom/changes will be stored
+    		File filename = new File(dir, time + ";" + sd);
+    		
+    		File latestDOM = new File(dir, "currentStateDOM");
     		
     		/** Open a stream to the log file. */
 			FileOutputStream fos = new FileOutputStream (filename , true);
 			
 			/** append complete entry */
-			data = "IP="+clientIP + " " + "time=" + time + " " + "sd=" + sd + " " + "sid=" + sid + " " + "event=" + event 
+			newdomData = "IP="+clientIP + " " + "time=" + time + " " + "sd=" + sd + " " + "sid=" + sid + " " + "event=" + event 
 					+ " " + "domContent=" + domContent + HTTPData.CRLF;
-
-
-			//System.out.println(data);
-			fos.write(data.getBytes());
-			fos.flush();
-			fos.close();
 			
+			
+			
+			// if it's the first file then we store the entire DOM,
+			//including the temporal copy representing the latest DOM
+			if (saveEntireDOM){
+				fos.write(newdomData.getBytes());
+				fos.flush();
+				fos.close();
+			}
+			//otherwise we store the differences with the current last DOM
+			else{
+				String latestDOMString = getStringFromFile(latestDOM);
+				String domChangesString = DOMdiff.getChangesLogJSON(latestDOMString, newdomData, clientIP,  time,  sd,  sid);
+				
+				fos.write(domChangesString.getBytes());
+				fos.flush();
+				fos.close();
+			}
+			
+			FileOutputStream latestDOMOutput = new FileOutputStream (latestDOM , true);
+			
+			latestDOMOutput.write(newdomData.getBytes());
+			latestDOMOutput.flush();
+			latestDOMOutput.close();
+
     	}
     	catch ( FileNotFoundException e ) { 
     		/** If log file doesn't exist, send 404 message. */
@@ -466,6 +507,23 @@ public class EventManager {
 							+ ie );
         }
 
+	}
+	
+	public String getStringFromFile(File filename){
+		List<String> lineList;
+		try {
+			lineList = Files.readAllLines(Paths.get(filename.getPath()),  StandardCharsets.UTF_8);
+		
+		String fileString="";
+		for (int i = 0; i < lineList.size(); i++){
+			fileString += lineList.get(i);
+		}
+		return fileString;
+		} catch (IOException e) {
+			System.out.println("EventManager.java/getStringFromFile: ERROR accessing the following file:" + filename.getPath());
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 }

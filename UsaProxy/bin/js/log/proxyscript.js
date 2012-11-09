@@ -238,6 +238,7 @@ function set_date_UsaProxy(){
 	window.usaProxyDate=cYear+"-"+cMonth+"-"+cDate+","+cHour+":"+cMin+":"+cSec;
 }
 
+
 // Returns a Date object computed from a given datestamp string
 function date_UsaProxy(datestamp /*string*/) {
 
@@ -280,6 +281,15 @@ function datestamp_UsaProxy() {
 function completeDateVals(dateVal) {
 	var dateVal = "" + dateVal;
 	if (dateVal.length<2) return "0" + dateVal;
+	else return dateVal;
+}
+
+/** Completes single-digit numbers by a "0"-prefix
+ * This is a special case for milliseconds, in which we will add up to two zeros */
+function completeDateValsMilliseconds(dateVal) {
+	var dateVal = "" + dateVal;
+	if (dateVal.length<2) return "00" + dateVal;
+	if (dateVal.length<3) return "0" + dateVal;
 	else return dateVal;
 }
   

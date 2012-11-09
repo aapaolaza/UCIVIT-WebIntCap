@@ -1,3 +1,4 @@
+package usaproxy;
 import java.net.*; 
 
 /** Interface <code>Mode</code> provides deployment-independent methods 
