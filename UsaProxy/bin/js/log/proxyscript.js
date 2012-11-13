@@ -124,7 +124,12 @@ function init_UsaProxy() {
 	
 	// NS explicit event capturing
 	if(window.Event) {
-		document.captureEvents(Event.CHANGE | Event.MOUSEUP | Event.KEYPRESS | Event.KEYDOWN | Event.KEYUP | Event.MOUSEMOVE | Event.MOUSEOVER | Event.FOCUS | Event.BLUR | Event.SELECT);
+		document.captureEvents(Event.CHANGE | Event.MOUSEUP | Event.KEYPRESS | Event.KEYDOWN | Event.KEYUP | Event.MOUSEMOVE | Event.MOUSEOVER | Event.FOCUS | Event.BLUR | Event.SELECT
+				| Event.DBCLICK | Event.DRAGDROP | Event.ERROR | Event.KEYUP | Event.MOUSEOUT | Event.MOUSEUP | Event.SELECT | Event.UNLOAD
+				| Event.CONTEXTMENU | Event.CUT | Event.COPY | Event.PASTE | Event.HASHCHANGE | Event.MOUSEWHEEL
+		);
+		//We add the extra events
+
 		window.captureEvents(Event.RESIZE);
 	}
 	
@@ -142,6 +147,28 @@ function init_UsaProxy() {
 		document.attachEvent('onmousemove', processMousemove_UsaProxy);
 		document.attachEvent('onmouseover', processMouseover_UsaProxy);
 		window.attachEvent('onresize', processResize_UsaProxy);
+		
+		//////////////////////////////////////////////////////////
+		//////////////////ADDITION OF NEW EVENTS//////////////////
+		//////////////////////////////////////////////////////////
+		document.attachEvent('onmouseout', processMouseOut_ExtraEvent);
+		document.attachEvent('onmouseup',  processMouseup_ExtraEvent);
+		document.attachEvent('oncontextmenu', processContextMenu_ExtraEvent);
+		document.attachEvent('oncut', processCut_ExtraEvent);
+		document.attachEvent('oncopy', processCopy_ExtraEvent);
+		document.attachEvent('onpaste', processPaste_ExtraEvent);
+		document.attachEvent('ondblclick', processDblClick_ExtraEvent);
+		document.attachEvent('onerror', processError_ExtraEvent);
+		document.attachEvent('onhashchange', processhashChange_ExtraEvent);
+		document.attachEvent('onkeyup', processKeyUp_ExtraEvent);
+		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
+		document.attachEvent('onselect', processSelect_ExtraEvent);
+		document.attachEvent('onunload', processUnload_ExtraEvent);
+		//////////////////////////////////////////////////////////
+		//////////////////END OF ADDITION OF NEW EVENTS///////////
+		//////////////////////////////////////////////////////////
+
+		
 		
 		/* change, focus, and blur handler for each relevant element
 		 * dropdowns, lists, text fields/areas, file fields, password fields, and checkboxes*/
@@ -170,6 +197,32 @@ function init_UsaProxy() {
 		document.addEventListener('mousemove', processMousemove_UsaProxy, false);
 		document.addEventListener('mouseover', processMouseover_UsaProxy, false);
 		window.addEventListener('resize', processResize_UsaProxy, false);
+		
+		
+		//////////////////////////////////////////////////////////
+		//////////////////ADDITION OF NEW EVENTS//////////////////
+		//////////////////////////////////////////////////////////
+		
+		document.addEventListener('mouseout', processMouseOut_ExtraEvent, false);
+		document.addEventListener('mouseup',  processMouseup_ExtraEvent, false);
+		document.addEventListener('contextmenu', processContextMenu_ExtraEvent, false);
+		document.addEventListener('cut', processCut_ExtraEvent, false);
+		document.addEventListener('copy', processCopy_ExtraEvent, false);
+		document.addEventListener('paste', processPaste_ExtraEvent, false);
+		document.addEventListener('dblclick', processDblClick_ExtraEvent, false);
+		document.addEventListener('error', processError_ExtraEvent, false);
+		document.addEventListener('hashchange', processhashChange_ExtraEvent, false);
+		document.addEventListener('keyup', processKeyUp_ExtraEvent, false);
+		document.addEventListener('mousewheel', processMousewheel_ExtraEvent, false);
+		document.addEventListener('select', processSelect_ExtraEvent, false);
+		document.addEventListener('unload', processUnload_ExtraEvent, false);
+		
+	
+		//////////////////////////////////////////////////////////
+		//////////////////END OF ADDITION OF NEW EVENTS///////////
+		//////////////////////////////////////////////////////////
+		
+		
 		
 		/* change, focus, and blur handler for each relevant element
 		 * dropdowns, lists, text fields/areas, file fields, password fields, and checkboxes*/
@@ -359,7 +412,11 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	}
 	
 	//Get textContent of the variable
-	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(node.textContent) + "&textValue=" + encodeURIComponent(node.value);
+	var textContent ="null";
+	if (node.firstChild!=null)
+		textContent = node.firstChild.nodeValue;    
+
+	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
 		
 	return eventString;
 }
@@ -1308,6 +1365,148 @@ function recordCurrentDOM(){
 	
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////NEW EVENTS HANDLERS////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+function processMouseOut_ExtraEvent(e) {
+
+	/* get event target
+	 * NS: first case (window.Event available); IE: second case */
+	var ev = (window.Event) ? e : window.event;
+	var target = (window.Event) ? ev.target : ev.srcElement;
+	
+	// log mouseout coordinates and all available target attributes
+	// if element has an id attribute
+	if (target.id) 	writeLog_UsaProxy("mouseoout&id=" + target.id + generateEventString_UsaProxy(target));
+	else {
+		// if element has a name attribute
+		if(target.name) writeLog_UsaProxy("mouseoout&name=" + target.name + generateEventString_UsaProxy(target));
+		else {
+			// if element has an href or src attribute
+			if (target.href || target.src)
+				writeLog_UsaProxy("mouseoout" + generateEventString_UsaProxy(target));
+		}
+	}
+}
+
+
+function processMouseup_ExtraEvent(e) {
+	
+	//alert("mouseUP event");
+	
+/* get event target, x, and y value of mouse position
+	 * NS: first case (window.Event available); IE: second case */
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var x 		= (window.Event) ? ev.pageX : ev.clientX;
+	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	
+	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+	
+	/** mouse button detection: was middle or right mouse button clicked ?*/
+	var mbutton = "left";
+	if (ev.which) {  		// NS
+		switch(ev.which) {
+			case 2: mbutton = "m"; break;	// middle button
+			case 3: mbutton = "r"; break;	// right button
+		}
+	} else if (ev.button) {		// IE
+		switch(ev.button) {
+			case 4: mbutton = "m"; break;
+			case 2: mbutton = "r"; break;
+		}
+	}
+	
+	// log middle and right button events, continue if left button was clicked
+	if (mbutton!="left") {
+
+		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
+		return;
+	}
+	// end mouse button detection 
+	
+	/* if regular click, log click coordinates relative to the clicked element
+	   and all available target properties */
+	// if element has an id attribute
+	if (target.id) 	writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	else {
+		// if element has a name attribute
+		if(target.name) writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		else {
+			writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+		}
+	}
+}
+
+function processContextMenu_ExtraEvent(e) {
+	
+/* get event target, x, and y value of mouse position
+	 * NS: first case (window.Event available); IE: second case */
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var x 		= (window.Event) ? ev.pageX : ev.clientX;
+	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	
+	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+	
+	// if element has an id attribute
+	if (target.id) 	writeLog_UsaProxy("oncontextmenu&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	else {
+		// if element has a name attribute
+		if(target.name) writeLog_UsaProxy("oncontextmenu&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		else {
+			writeLog_UsaProxy("oncontextmenu&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+		}
+	}
+}
+
+function processCut_ExtraEvent(e) {
+	writeLog_UsaProxy("cut");
+}
+
+function processCopy_ExtraEvent(e) {
+	writeLog_UsaProxy("copy");
+}
+
+function processPaste_ExtraEvent(e) {
+	writeLog_UsaProxy("paste");
+}
+
+function processDblClick_ExtraEvent(e) {
+	writeLog_UsaProxy("ondblclick");
+}
+
+function processError_ExtraEvent(e) {
+	writeLog_UsaProxy("javascripterror");
+}
+
+function processhashChange_ExtraEvent(e) {
+	writeLog_UsaProxy("hashChange");
+}
+
+function processKeyUp_ExtraEvent(e) {
+	writeLog_UsaProxy("KeyUp");
+}
+
+function processMousewheel_ExtraEvent(e) {
+	writeLog_UsaProxy("mousewheel");
+}
+
+function processSelect_ExtraEvent(e) {
+	writeLog_UsaProxy("Select");
+}
+		
+function processUnload_ExtraEvent(e) {
+	writeLog_UsaProxy("Unload");
+}
+		
+		
 /////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
 /////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
 //////////////////////////////////////////////////////////////////////////
