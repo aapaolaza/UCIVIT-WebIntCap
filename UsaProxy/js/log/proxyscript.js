@@ -126,7 +126,7 @@ function init_UsaProxy() {
 	if(window.Event) {
 		document.captureEvents(Event.CHANGE | Event.MOUSEUP | Event.KEYPRESS | Event.KEYDOWN | Event.KEYUP | Event.MOUSEMOVE | Event.MOUSEOVER | Event.FOCUS | Event.BLUR | Event.SELECT
 				| Event.DBCLICK | Event.DRAGDROP | Event.ERROR | Event.KEYUP | Event.MOUSEOUT | Event.MOUSEUP | Event.SELECT | Event.UNLOAD
-				| Event.CONTEXTMENU | Event.CUT | Event.COPY | Event.PASTE | Event.HASHCHANGE | Event.MOUSEWHEEL
+				| Event.CONTEXTMENU | Event.CUT | Event.COPY | Event.PASTE | Event.HASHCHANGE | Event.MOUSEWHEEL | Event.WHEEL
 		);
 		//We add the extra events
 
@@ -163,7 +163,7 @@ function init_UsaProxy() {
 		document.attachEvent('onkeyup', processKeyUp_ExtraEvent);
 		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
 		document.attachEvent('onselect', processSelect_ExtraEvent);
-		document.attachEvent('onunload', processUnload_ExtraEvent);
+		window.attachEvent('onbeforeunload', processUnload_ExtraEvent);
 		//////////////////////////////////////////////////////////
 		//////////////////END OF ADDITION OF NEW EVENTS///////////
 		//////////////////////////////////////////////////////////
@@ -213,9 +213,13 @@ function init_UsaProxy() {
 		document.addEventListener('error', processError_ExtraEvent, false);
 		document.addEventListener('hashchange', processhashChange_ExtraEvent, false);
 		document.addEventListener('keyup', processKeyUp_ExtraEvent, false);
-		document.addEventListener('mousewheel', processMousewheel_ExtraEvent, false);
+		
+		//Firefox doesn't recognise 'mousewheel' as an event so we have to use 'DOMMouseScroll' instead.
+		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll":"mousewheel"
+		
+		document.addEventListener(mousewheelevt, processMousewheel_ExtraEvent, false);
 		document.addEventListener('select', processSelect_ExtraEvent, false);
-		document.addEventListener('unload', processUnload_ExtraEvent, false);
+		window.addEventListener('beforeunload', processUnload_ExtraEvent, false);
 		
 	
 		//////////////////////////////////////////////////////////
@@ -251,7 +255,7 @@ function init_UsaProxy() {
 if(document.attachEvent) window.attachEvent('onload', init_UsaProxy);
 if(document.addEventListener) window.addEventListener('load', init_UsaProxy, false);
 
-/*I have to imitate these events to add the jQuery function*/
+/*I have to imitate the previous statements to add the jQuery function*/
 if(document.attachEvent) window.attachEvent('onload', includeJquery);
 else if (document.addEventListener) window.addEventListener('load', includeJquery, false);
 
@@ -1425,7 +1429,7 @@ function processMouseup_ExtraEvent(e) {
 	// log middle and right button events, continue if left button was clicked
 	if (mbutton!="left") {
 
-		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("mouseup&but=" + mbutton + generateEventString_UsaProxy(target));
 		return;
 	}
 	// end mouse button detection 
@@ -1433,12 +1437,12 @@ function processMouseup_ExtraEvent(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 }
@@ -1504,8 +1508,27 @@ function processSelect_ExtraEvent(e) {
 		
 function processUnload_ExtraEvent(e) {
 	writeLog_UsaProxy("Unload");
+	saveLog_UsaProxy();
+	console.log("UNLOAD RECORDED");
+	//pausecomp(3000);
+	//alert("logging unload");
 }
-		
+
+
+//////////////////////////////////////////////////////////////////////////
+////////////////USEFUL FUNCTIONS//////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+/*
+ * Dirty function to make the browser wait
+ * 
+ */
+
+function pausecomp(ms) {
+	ms += new Date().getTime();
+	while (new Date() < ms){}
+} 
+
 		
 /////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
 /////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
