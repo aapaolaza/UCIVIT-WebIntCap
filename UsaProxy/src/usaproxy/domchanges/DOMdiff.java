@@ -24,7 +24,7 @@ public class DOMdiff {
 
 
 	/**
-	 * Returns a JSON string with a element of type DOMChangesLogList with the
+	 * Returns a JSON string with an element of type DOMChangesLogList with the
 	 * list of differences between the two strings 
 	 * @param origDOM, the original DOM
 	 * @param newDOM, the new DOM from which the changes will be calculated
@@ -41,13 +41,13 @@ public class DOMdiff {
 
 		LinkedList<Diff> diffList = dmp.diff_main(origDOM, newDOM);
 
-		System.out.println("Differences:" + diffList);
+		System.out.println("DOMdiff.java/getChangesLogJSON: Amount of differences:" + diffList.size());
 
 		dmp.diff_cleanupSemantic(diffList);
 
-		System.out.println("Semantic differences:" + diffList);
+		System.out.println("DOMdiff.java/getChangesLogJSON: Amount of semantic differences:" + diffList.size());
 
-		System.out.println(dmp.diff_prettyHtml(diffList));
+		//System.out.println(dmp.diff_prettyHtml(diffList));
 
 		DOMChangesLogList domChangesLogList = new DOMChangesLogList();
 
@@ -209,6 +209,11 @@ public class DOMdiff {
 		return domString;
 	}
 
+	/**
+	 * Main program that tests the functions in this file.
+	 * It compares the files named "a" and "b" and returns the differences 
+	 */
+	
 	public static void main(String[] args) throws IOException{
 
 		Path path = Paths.get("a");

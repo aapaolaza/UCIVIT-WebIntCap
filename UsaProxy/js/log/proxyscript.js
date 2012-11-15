@@ -373,7 +373,7 @@ function writeLog_UsaProxy(text) {
 	// generate and append log entry
 	var logline;
 	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
-	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + url;
+	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + encodeURIComponent(url);
 	
 	// set synchronization flag (block function)
 	FLG_writingLogVal_UsaProxy = true;

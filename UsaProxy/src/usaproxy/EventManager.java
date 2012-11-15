@@ -482,6 +482,9 @@ public class EventManager {
 			//otherwise we store the differences with the current last DOM
 			else{
 				String latestDOMString = getStringFromFile(latestDOM);
+				System.out.println("The original DOM was: " + latestDOMString);
+				System.out.println();
+				System.out.println("The new DOM is: " + newdomData);
 				String domChangesString = DOMdiff.getChangesLogJSON(latestDOMString, newdomData, clientIP,  time,  sd,  sid);
 				
 				fos.write(domChangesString.getBytes());
@@ -489,7 +492,7 @@ public class EventManager {
 				fos.close();
 			}
 			
-			FileOutputStream latestDOMOutput = new FileOutputStream (latestDOM , true);
+			FileOutputStream latestDOMOutput = new FileOutputStream (latestDOM , false);
 			
 			latestDOMOutput.write(newdomData.getBytes());
 			latestDOMOutput.flush();
@@ -517,6 +520,7 @@ public class EventManager {
 		String fileString="";
 		for (int i = 0; i < lineList.size(); i++){
 			fileString += lineList.get(i);
+			fileString += "\n";
 		}
 		return fileString;
 		} catch (IOException e) {
