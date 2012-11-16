@@ -162,7 +162,7 @@ function init_UsaProxy() {
 		document.attachEvent('onhashchange', processhashChange_ExtraEvent);
 		document.attachEvent('onkeyup', processKeyUp_ExtraEvent);
 		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
-		document.attachEvent('onselect', processSelect_ExtraEvent);
+		document.attachEvent('onselect', processSelectText_ExtraEvent);
 		window.attachEvent('onbeforeunload', processUnload_ExtraEvent);
 		//////////////////////////////////////////////////////////
 		//////////////////END OF ADDITION OF NEW EVENTS///////////
@@ -218,7 +218,7 @@ function init_UsaProxy() {
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll":"mousewheel"
 		
 		document.addEventListener(mousewheelevt, processMousewheel_ExtraEvent, false);
-		document.addEventListener('select', processSelect_ExtraEvent, false);
+		document.addEventListener('select', processSelectText_ExtraEvent, false);
 		window.addEventListener('beforeunload', processUnload_ExtraEvent, false);
 		
 	
@@ -639,12 +639,13 @@ function processMouseover_UsaProxy(e) {
 					target.removeEventListener('blur', processBlur_UsaProxy, false);
 					target.addEventListener('blur', processBlur_UsaProxy, false);
 				 }
-				 if (target.type=="text" 
+				
+				/* if (target.type=="text" 
 		 		  || target.type=="textarea" ) {
 				 	// select listener: only for NS
 					target.removeEventListener('select', processSelectionNS_UsaProxy, false);
 				 	target.addEventListener('select', processSelectionNS_UsaProxy, false);
-				 }
+				 }*/
 			}
 		}
 	}
@@ -1445,6 +1446,9 @@ function processMouseup_ExtraEvent(e) {
 			writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
+	
+	//Was this mouose event employed to select something?
+	processIfHtmlIsSelected("mouse", target);
 }
 
 function processContextMenu_ExtraEvent(e) {
@@ -1471,6 +1475,12 @@ function processContextMenu_ExtraEvent(e) {
 }
 
 function processCut_ExtraEvent(e) {
+	
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var data 	= (window.Event) ? ev.data : ev.data;
+	console.log(ev);
+	alert("CUT EVENT VALUE IS: " +data);
 	writeLog_UsaProxy("cut");
 }
 
@@ -1494,24 +1504,89 @@ function processhashChange_ExtraEvent(e) {
 	writeLog_UsaProxy("hashChange");
 }
 
+/*
+ * Keyup event, we don't take into account any combination of keys detector flag.
+ */ 
 function processKeyUp_ExtraEvent(e) {
-	writeLog_UsaProxy("KeyUp");
+	/* get keycode
+	 * IE: first case (window.event available); NS: second case */
+	var evtobj 	= window.event ? window.event : e;
+	var KeyID 	= evtobj.which ? evtobj.which : evtobj.keyCode;
+	//keyName_UsaProxy = String.fromCharCode(KeyID);
+	keyName_UsaProxy = String.fromKeyCode(KeyID);
+
+	writeLog_UsaProxy("keyup&key=" + keyName_UsaProxy);
+	//saveLog_UsaProxy();
+	keyName_UsaProxy = "";
+
 }
 
+/*
+ * Piece of code adapted from http://www.adomas.org/javascript-mouse-wheel/
+ */ 
 function processMousewheel_ExtraEvent(e) {
-	writeLog_UsaProxy("mousewheel");
+	var event = (window.Event) ? e : window.event;
+	var target = (window.Event) ? event.target : event.srcElement;
+	var delta = 0;
+	
+	if (!event) /* For IE. */
+		event = window.event;
+	if (event.wheelDelta) { /* IE/Opera. */
+		delta = event.wheelDelta/120;
+	} else if (event.detail) { /** Mozilla case. */
+		/** In Mozilla, sign of delta is different than in IE.
+		 * Also, delta is multiple of 3.
+		 */
+		delta = -event.detail/3;
+	}
+	/** If delta is nonzero, handle it.
+	 * Basically, delta is now positive if wheel was scrolled up,
+	 * and negative, if wheel was scrolled down.
+	 */
+	//if (delta)
+		//handle(delta);
+	/** Prevent default actions caused by mouse wheel.
+	 * That might be ugly, but we handle scrolls somehow
+	 * anyway, so don't bother here..
+	 */
+	//if (event.preventDefault)
+		//event.preventDefault();
+	//event.returnValue = false;
+	
+	writeLog_UsaProxy("mousewheel&delta="+delta+generateEventString_UsaProxy(target));
 }
 
-function processSelect_ExtraEvent(e) {
-	writeLog_UsaProxy("Select");
+function processSelectText_ExtraEvent(e) {
+	
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	
+	// if selection is not empty, log select event with the selected text
+	if (target.selectionStart!=target.selectionEnd) {
+		writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		//saveLog_UsaProxy();
+	}
 }
-		
+
 function processUnload_ExtraEvent(e) {
 	writeLog_UsaProxy("Unload");
 	saveLog_UsaProxy();
 	console.log("UNLOAD RECORDED");
 	//pausecomp(3000);
 	//alert("logging unload");
+}
+ 
+/*
+ * Returns true if it detects that something has been selected in the web page.
+ * If it's true, then it records the content of the selection as a selection event
+ * The usual functions that will call this function are mouse up and keyup
+ */
+function processIfHtmlIsSelected(selectionTool, target){
+	var selectedContent = getSelectionHtml();
+	
+	if (selectedContent != "")
+		writeLog_UsaProxy("selectextra&selectiontool="+ selectionTool + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(selectedContent));
+	
 }
 
 
@@ -1527,9 +1602,40 @@ function processUnload_ExtraEvent(e) {
 function pausecomp(ms) {
 	ms += new Date().getTime();
 	while (new Date() < ms){}
-} 
+}
 
+
+/*
+ * Returns currently selected (highlighted) text in the web page
+ */ 
+function getSelectionHtml() {
+	 
+	if (typeof window.getSelection != "undefined") {
+		console.log("window");
+		alert(window.getSelection());
 		
+	} else if (typeof document.selection != "undefined") {
+		console.log("document");
+		alert(document.selection.type);
+	}
+	
+    var html = "";
+    if (typeof window.getSelection != "undefined") {
+        var sel = window.getSelection();
+        if (sel.rangeCount) {
+            var container = document.createElement("div");
+            for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                container.appendChild(sel.getRangeAt(i).cloneContents());
+            }
+            html = container.innerHTML;
+        }
+    } else if (typeof document.selection != "undefined") {
+        if (document.selection.type == "Text") {
+            html = document.selection.createRange().htmlText;
+        }
+    }
+    return(html);
+}
 /////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
 /////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
 //////////////////////////////////////////////////////////////////////////
