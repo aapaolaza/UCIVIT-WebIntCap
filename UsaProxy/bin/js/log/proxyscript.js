@@ -3,9 +3,6 @@
 //CHANGE!! I added jquery to use certain interesting functions
 //<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
 
-//I need this variable to be global, it's the original alert value that is changed in order to use it as a listener for advanced search
-var _old_alert;
-
 
 function includeJquery(){
 //	
@@ -72,6 +69,32 @@ var FLG_comb_UsaProxy;			// Boolean: flag indicates a key combination
 var combMembers_UsaProxy;		// Integer: number of remaining unreleased keys if a key combination was pressed
 
 var lastSelection_UsaProxy;		// String: last selected text
+
+////////////////////////////////////
+////New Constants
+
+////////////WHEEL VARIABLES
+////This variables are needed globally to record the amount of "delta" scrolled with the mouse wheel
+
+//wheelGranularity will determine how close the wheel events should be to be considered part of the same event
+//The smaller this value, the finer the recording will be.
+// eg. instead of recording one wheel movement of 14, it may record 2 of 7
+var wheelGranularity=400;
+
+//wheelQueryFrequency will determine how often we query the wheel function to see if it's time to log it
+//It will basically determine how precise we will be from the moment the granularity time ends
+var wheelQueryFrequency=100; 
+
+
+var wheelLastEventTimestampGlobal = new Date();    //Timestamp storing the last wheel interaction
+var wheelNodeGlobal = null;
+var wheelDeltaGlobal = 0;
+
+var wheelTimeOutFunction = null; //This function will be used
+
+////End of New Constants
+////////////////////////////////////
+
 
 /* Initializes all variables, event handlers, and interval functions and
  * invokes the logging of the load event 
@@ -141,9 +164,9 @@ function init_UsaProxy() {
 	if(document.attachEvent) { 
 	
 		document.attachEvent('onmousedown', processMousedown_UsaProxy);
-		document.attachEvent('onkeypress', processKeypress_UsaProxy);
-		document.attachEvent('onkeydown', processKeydown_UsaProxy);
-		document.attachEvent('onkeyup', processKeyup_UsaProxy);
+		//document.attachEvent('onkeypress', processKeypress_UsaProxy);
+		//document.attachEvent('onkeydown', processKeydown_UsaProxy);
+		//document.attachEvent('onkeyup', processKeyup_UsaProxy);
 		document.attachEvent('onmousemove', processMousemove_UsaProxy);
 		document.attachEvent('onmouseover', processMouseover_UsaProxy);
 		window.attachEvent('onresize', processResize_UsaProxy);
@@ -160,10 +183,18 @@ function init_UsaProxy() {
 		document.attachEvent('ondblclick', processDblClick_ExtraEvent);
 		document.attachEvent('onerror', processError_ExtraEvent);
 		document.attachEvent('onhashchange', processhashChange_ExtraEvent);
-		document.attachEvent('onkeyup', processKeyUp_ExtraEvent);
 		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
 		document.attachEvent('onselect', processSelectText_ExtraEvent);
 		window.attachEvent('onbeforeunload', processUnload_ExtraEvent);
+		
+		document.attachEvent('keydown', processKeydown_ExtraEvent);
+		document.attachEvent('keyup', processKeyUp_ExtraEvent);
+		document.attachEvent('keypress', processKeypress_ExtraEvent);
+		
+		document.attachEvent('mousewheel', processMousewheel_ExtraEvent);
+		document.attachEvent('select', processSelectText_ExtraEvent);
+		window.addEventListener('beforeunload', processUnload_ExtraEvent);
+		
 		//////////////////////////////////////////////////////////
 		//////////////////END OF ADDITION OF NEW EVENTS///////////
 		//////////////////////////////////////////////////////////
@@ -191,9 +222,9 @@ function init_UsaProxy() {
 	// NS
 	if(document.addEventListener) {
 		document.addEventListener('mousedown', processMousedown_UsaProxy, false);
-		document.addEventListener('keypress', processKeypress_UsaProxy, false);
-		document.addEventListener('keydown', processKeydown_UsaProxy, false);
-		document.addEventListener('keyup', processKeyup_UsaProxy, false);
+		//document.addEventListener('keypress', processKeypress_UsaProxy, false);
+		//document.addEventListener('keydown', processKeydown_UsaProxy, false);
+		//document.addEventListener('keyup', processKeyup_UsaProxy, false);
 		document.addEventListener('mousemove', processMousemove_UsaProxy, false);
 		document.addEventListener('mouseover', processMouseover_UsaProxy, false);
 		window.addEventListener('resize', processResize_UsaProxy, false);
@@ -212,7 +243,11 @@ function init_UsaProxy() {
 		document.addEventListener('dblclick', processDblClick_ExtraEvent, false);
 		document.addEventListener('error', processError_ExtraEvent, false);
 		document.addEventListener('hashchange', processhashChange_ExtraEvent, false);
+		
+		document.addEventListener('keydown', processKeydown_ExtraEvent, false);
 		document.addEventListener('keyup', processKeyUp_ExtraEvent, false);
+		document.addEventListener('keypress', processKeypress_ExtraEvent, false);
+
 		
 		//Firefox doesn't recognise 'mousewheel' as an event so we have to use 'DOMMouseScroll' instead.
 		var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll":"mousewheel"
@@ -1134,7 +1169,7 @@ function processKeyup_UsaProxy(e) {
  * If keyPress flag is enabled (in case no control key is clicked at the same time)
  * the keyPress event returns for regular char keys the correct small case key code. */
 function processKeypress_UsaProxy(e) {
-	if(FLG_keyPress_UsaProxy) {
+	//if(FLG_keyPress_UsaProxy) {
 		/* get keycode
 		 * IE: first case (window.event available); NS: second case */
 		var evtobj 	= window.event ? window.event : e;
@@ -1146,7 +1181,7 @@ function processKeypress_UsaProxy(e) {
 			//saveLog_UsaProxy();
 			keyName_UsaProxy = "";
 		}
-	}
+	//}
 }
 
 /* Processes blur event */
@@ -1479,21 +1514,84 @@ function processCut_ExtraEvent(e) {
 	var ev 		= (window.Event) ? e : window.event;
 	var target 	= (window.Event) ? ev.target : ev.srcElement;
 	var data 	= (window.Event) ? ev.data : ev.data;
-	console.log(ev);
-	alert("CUT EVENT VALUE IS: " +data);
-	writeLog_UsaProxy("cut");
+	
+	// if selection is not empty, log select event with the selected text
+	if (target.selectionStart!=target.selectionEnd) {
+		writeLog_UsaProxy("cut" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		//saveLog_UsaProxy();
+	}
 }
 
 function processCopy_ExtraEvent(e) {
-	writeLog_UsaProxy("copy");
+		
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var data 	= (window.Event) ? ev.data : ev.data;
+	
+	// if selection is not empty, log select event with the selected text
+	if (target.selectionStart!=target.selectionEnd) {
+		writeLog_UsaProxy("copy" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		//saveLog_UsaProxy();
+	}
 }
 
 function processPaste_ExtraEvent(e) {
-	writeLog_UsaProxy("paste");
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var data 	= (window.Event) ? ev.data : ev.data;
+	
+	// if selection is not empty, log select event with the selected text
+	if (target.selectionStart!=target.selectionEnd) {
+		writeLog_UsaProxy("paste" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		//saveLog_UsaProxy();
+	}
 }
 
 function processDblClick_ExtraEvent(e) {
-	writeLog_UsaProxy("ondblclick");
+	/* get event target, x, and y value of mouse position
+	 * NS: first case (window.Event available); IE: second case */
+	var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var x 		= (window.Event) ? ev.pageX : ev.clientX;
+	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	
+	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+	
+	/** mouse button detection: was middle or right mouse button clicked ?*/
+	var mbutton = "left";
+	if (ev.which) {  		// NS
+		switch(ev.which) {
+			case 2: mbutton = "m"; break;	// middle button
+			case 3: mbutton = "r"; break;	// right button
+		}
+	} else if (ev.button) {		// IE
+		switch(ev.button) {
+			case 4: mbutton = "m"; break;
+			case 2: mbutton = "r"; break;
+		}
+	}
+	
+	// log middle and right button events, continue if left button was clicked
+	if (mbutton!="left") {
+
+		writeLog_UsaProxy("dblclick&but=" + mbutton + generateEventString_UsaProxy(target));
+		return;
+	}
+	// end mouse button detection 
+	
+	/* if regular click, log click coordinates relative to the clicked element
+	   and all available target properties */
+	// if element has an id attribute
+	if (target.id) 	writeLog_UsaProxy("dblclick&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	else {
+		// if element has a name attribute
+		if(target.name) writeLog_UsaProxy("dblclick&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		else {
+			writeLog_UsaProxy("dblclick&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+		}
+	}
+	
 }
 
 function processError_ExtraEvent(e) {
@@ -1504,6 +1602,32 @@ function processhashChange_ExtraEvent(e) {
 	writeLog_UsaProxy("hashChange");
 }
 
+function processKeydown_ExtraEvent(e) {
+
+	/* get keycode
+	 * IE: first case (window.event available); NS: second case */
+	var evtobj 				= window.event ? window.event : e;
+	var KeyID 				= evtobj.which ? evtobj.which : evtobj.keyCode;
+
+	keyName_UsaProxy = returnKeyValue(KeyID);
+	
+	writeLog_UsaProxy("keydownEXTRA&key=" + keyName_UsaProxy);
+	//saveLog_UsaProxy();
+	keyName_UsaProxy = "";
+}
+
+/* Logs all regular single key presses. are logged
+ */ 
+function processKeypress_ExtraEvent(e) {
+	/* get keycode
+	 * IE: first case (window.event available); NS: second case */
+	var evtobj 	= window.event ? window.event : e;
+	var KeyID 	= evtobj.which ? evtobj.which : evtobj.keyCode;
+	
+	writeLog_UsaProxy("keypressEXTRA&key=" + String.fromCharCode(KeyID));
+}
+
+
 /*
  * Keyup event, we don't take into account any combination of keys detector flag.
  */ 
@@ -1513,9 +1637,10 @@ function processKeyUp_ExtraEvent(e) {
 	var evtobj 	= window.event ? window.event : e;
 	var KeyID 	= evtobj.which ? evtobj.which : evtobj.keyCode;
 	//keyName_UsaProxy = String.fromCharCode(KeyID);
-	keyName_UsaProxy = String.fromKeyCode(KeyID);
+	//keyName_UsaProxy = String.fromKeyCode(KeyID);
+	keyName_UsaProxy = returnKeyValue(KeyID);
 
-	writeLog_UsaProxy("keyup&key=" + keyName_UsaProxy);
+	writeLog_UsaProxy("keyupEXTRA&key=" + keyName_UsaProxy);
 	//saveLog_UsaProxy();
 	keyName_UsaProxy = "";
 
@@ -1539,22 +1664,99 @@ function processMousewheel_ExtraEvent(e) {
 		 */
 		delta = -event.detail/3;
 	}
-	/** If delta is nonzero, handle it.
-	 * Basically, delta is now positive if wheel was scrolled up,
-	 * and negative, if wheel was scrolled down.
-	 */
-	//if (delta)
-		//handle(delta);
-	/** Prevent default actions caused by mouse wheel.
-	 * That might be ugly, but we handle scrolls somehow
-	 * anyway, so don't bother here..
-	 */
-	//if (event.preventDefault)
-		//event.preventDefault();
-	//event.returnValue = false;
 	
-	writeLog_UsaProxy("mousewheel&delta="+delta+generateEventString_UsaProxy(target));
+	handleWheelEvents(delta, target);	
 }
+
+/**
+ * This function will accummulate the mouse wheel movement in order to record it periodically 
+ */
+function handleWheelEvents(delta, node){
+	
+	var currentTime = new Date();
+
+	//If it's the same node, we check the time to see if it's time to record it or to program next timeout function
+	if (node.isEqualNode(wheelNodeGlobal)){
+		//console.log("WHEEL: same node as before");
+		
+		//If the time expired for the event, just record the event, and the next time user uses the wheel, it will be recorded as a different event
+		if (currentTime.getTime() - wheelLastEventTimestampGlobal.getTime() > wheelGranularity){
+			//console.log("WHEEL: it's time to write it. time before: " + wheelLastEventTimestampGlobal.getTime() + " and current time is:" + currentTime.getTime());
+			//console.log("WHEEL: Last time was: " + wheelLastEventTimestampGlobal + " and current time is:" + currentTime);
+			
+			wheelDeltaGlobal += delta;
+			writeLog_UsaProxy("mousewheel&delta="+wheelDeltaGlobal+generateEventString_UsaProxy(node));
+			
+			//We set the variables ready for the next event, resetting delta counter, and setting the node to null
+			wheelDeltaGlobal=0;
+			wheelNodeGlobal=null;
+			
+			//we also have to remove the timeouts
+			if (wheelTimeOutFunction != null)
+				window.clearTimeout(wheelTimeOutFunction);
+		}
+		
+		//if it's not time, but delta is 0, that means it's just the timeout function.
+		//Recall the function without altering the "wheelLastEventTimestampGlobal"
+		else if (delta == 0){
+			if (wheelTimeOutFunction != null)
+				window.clearTimeout(wheelTimeOutFunction);
+			
+			wheelTimeOutFunction = setTimeout("handleWheelEvents(0, wheelNodeGlobal)", wheelQueryFrequency);
+		}
+		//if it's not time, but we have delta values
+		else{
+			//console.log("WHEEL: Last time was: " + wheelLastEventTimestampGlobal.getTime() + " and current time is:" + currentTime.getTime());
+			//console.log("WHEEL: Last time was: " + wheelLastEventTimestampGlobal + " and current time is:" + currentTime);
+			
+			wheelDeltaGlobal += delta;
+			wheelLastEventTimestampGlobal = currentTime;
+			
+			//console.log("WHEEL: it's not time so just accumulate delta:" + wheelDeltaGlobal);
+						
+			//START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
+			if (wheelTimeOutFunction != null)
+				window.clearTimeout(wheelTimeOutFunction);
+				
+			wheelTimeOutFunction = setTimeout("handleWheelEvents(0, wheelNodeGlobal)", wheelQueryFrequency);
+		}
+	}
+	
+	//if node is null, we have to store this event as a new one. Store the delta value and start the timer
+	else if (wheelNodeGlobal==null){
+		//console.log("WHEEL: node was null, program next event");
+		wheelDeltaGlobal += delta; //wheelDeltaGlobal should be 'zero' here anyway
+		wheelNodeGlobal = node;
+		wheelLastEventTimestampGlobal = new Date();
+		
+		//START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
+		if (wheelTimeOutFunction != null)
+			window.clearTimeout(wheelTimeOutFunction);//This timeout should be cancelled already anyway
+		wheelTimeOutFunction = setTimeout("handleWheelEvents(0, wheelNodeGlobal)", wheelQueryFrequency);
+
+	}
+
+	//if globalNode is neither the same nor null, the user must be using the wheel in another DOM element!! record the previous one and start recording this one
+	else{
+		//console.log("WHEEL: node was neither null nor the same as before so it's a new one, time to write");
+		writeLog_UsaProxy("mousewheel&delta="+wheelDeltaGlobal+generateEventString_UsaProxy(node));
+		
+		//We "restart" the counters with the new event we received
+		wheelDeltaGlobal = delta;
+		wheelNodeGlobal = node;
+		wheelLastEventTimestampGlobal = currentTime;
+		
+		//START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
+		if (wheelTimeOutFunction != null)
+			window.clearTimeout(wheelTimeOutFunction);
+		wheelTimeOutFunction = setTimeout("handleWheelEvents(0, wheelNodeGlobal)", wheelQueryFrequency);
+	}
+
+	//If last interaction was more than half a second ago
+
+}
+
+
 
 function processSelectText_ExtraEvent(e) {
 	
@@ -1568,6 +1770,11 @@ function processSelectText_ExtraEvent(e) {
 	}
 }
 
+/**
+ * This function is never called, as we don't have time to process it before the window closes.
+ * The end of the interaction (last interaction event recorded) will be considered the end of the session instead
+ * 
+ * */
 function processUnload_ExtraEvent(e) {
 	writeLog_UsaProxy("Unload");
 	saveLog_UsaProxy();
@@ -1612,11 +1819,11 @@ function getSelectionHtml() {
 	 
 	if (typeof window.getSelection != "undefined") {
 		console.log("window");
-		alert(window.getSelection());
+		//alert(window.getSelection());
 		
 	} else if (typeof document.selection != "undefined") {
 		console.log("document");
-		alert(document.selection.type);
+		//alert(document.selection.type);
 	}
 	
     var html = "";
@@ -1682,6 +1889,85 @@ function getBackgroundColour(jqueryElement) {
         return getBackgroundColour($(jqueryElement).parent());
     }
 }
+
+/*
+ * Returns the string representation of the corresponding key code.
+ * I got this code from the web page, although is slightly modified: http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+ * 
+ */ 
+
+function returnKeyValue(keyCode)
+{
+	var stringValue = String.fromCharCode(keyCode);
+	
+	if (keyCode == 8) stringValue = "backspace"; //  backspace
+	if (keyCode == 9) stringValue = "tab"; //  tab
+	if (keyCode == 13) stringValue = "enter"; //  enter
+	if (keyCode == 16) stringValue = "shift"; //  shift
+	if (keyCode == 17) stringValue = "ctrl"; //  ctrl
+	if (keyCode == 18) stringValue = "alt"; //  alt
+	if (keyCode == 19) stringValue = "pause/break"; //  pause/break
+	if (keyCode == 20) stringValue = "caps lock"; //  caps lock
+	if (keyCode == 27) stringValue = "escape"; //  escape
+	if (keyCode == 33) stringValue = "page up"; // page up, to avoid displaying alternate character and confusing people	         
+	if (keyCode == 34) stringValue = "page down"; // page down
+	if (keyCode == 35) stringValue = "end"; // end
+	if (keyCode == 36) stringValue = "home"; // home
+	if (keyCode == 37) stringValue = "left arrow"; // left arrow
+	if (keyCode == 38) stringValue = "up arrow"; // up arrow
+	if (keyCode == 39) stringValue = "right arrow"; // right arrow
+	if (keyCode == 40) stringValue = "down arrow"; // down arrow
+	if (keyCode == 45) stringValue = "insert"; // insert
+	if (keyCode == 46) stringValue = "delete"; // delete
+	if (keyCode == 91) stringValue = "left window"; // left window
+	if (keyCode == 92) stringValue = "right window"; // right window
+	if (keyCode == 93) stringValue = "select key"; // select key
+	if (keyCode == 96) stringValue = "numpad 0"; // numpad 0
+	if (keyCode == 97) stringValue = "numpad 1"; // numpad 1
+	if (keyCode == 98) stringValue = "numpad 2"; // numpad 2
+	if (keyCode == 99) stringValue = "numpad 3"; // numpad 3
+	if (keyCode == 100) stringValue = "numpad 4"; // numpad 4
+	if (keyCode == 101) stringValue = "numpad 5"; // numpad 5
+	if (keyCode == 102) stringValue = "numpad 6"; // numpad 6
+	if (keyCode == 103) stringValue = "numpad 7"; // numpad 7
+	if (keyCode == 104) stringValue = "numpad 8"; // numpad 8
+	if (keyCode == 105) stringValue = "numpad 9"; // numpad 9
+	if (keyCode == 106) stringValue = "multiply"; // multiply
+	if (keyCode == 107) stringValue = "add"; // add
+	if (keyCode == 109) stringValue = "subtract"; // subtract
+	if (keyCode == 110) stringValue = "decimal point"; // decimal point
+	if (keyCode == 111) stringValue = "divide"; // divide
+	if (keyCode == 112) stringValue = "F1"; // F1
+	if (keyCode == 113) stringValue = "F2"; // F2
+	if (keyCode == 114) stringValue = "F3"; // F3
+	if (keyCode == 115) stringValue = "F4"; // F4
+	if (keyCode == 116) stringValue = "F5"; // F5
+	if (keyCode == 117) stringValue = "F6"; // F6
+	if (keyCode == 118) stringValue = "F7"; // F7
+	if (keyCode == 119) stringValue = "F8"; // F8
+	if (keyCode == 120) stringValue = "F9"; // F9
+	if (keyCode == 121) stringValue = "F10"; // F10
+	if (keyCode == 122) stringValue = "F11"; // F11
+	if (keyCode == 123) stringValue = "F12"; // F12
+	if (keyCode == 144) stringValue = "num lock"; // num lock
+	if (keyCode == 145) stringValue = "scroll lock"; // scroll lock
+	if (keyCode == 186) stringValue = ";"; // semi-colon
+	if (keyCode == 187) stringValue = "="; // equal-sign
+	if (keyCode == 188) stringValue = ","; // comma
+	if (keyCode == 189) stringValue = "-"; // dash
+	if (keyCode == 190) stringValue = "."; // period
+	if (keyCode == 191) stringValue = "/"; // forward slash
+	if (keyCode == 192) stringValue = "`"; // grave accent
+	if (keyCode == 219) stringValue = "["; // open bracket
+	if (keyCode == 220) stringValue = "\\"; // back slash
+	if (keyCode == 221) stringValue = "]"; // close bracket
+	if (keyCode == 222) stringValue = "'"; // single quote
+	
+	return stringValue;
+
+}
+
+
 
 
 
