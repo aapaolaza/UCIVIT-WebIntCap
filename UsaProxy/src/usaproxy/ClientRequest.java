@@ -511,8 +511,8 @@ public class ClientRequest extends Thread {
 				String[] dataArray = requestURL.getQuery().split("&xX");
 			
 				//DEBUG
-				System.out.println("\n\n\n\n\n\nClientRequest processRequest log  Received new data"
-						+"Parsing a total of " + dataArray.length + "elements");
+				//System.out.println("\n\n\n\n\n\nClientRequest processRequest log  Received new data"
+					//	+"Parsing a total of " + dataArray.length + "elements");
 				//System.out.println(requestURL.getQuery() + "\n\n\n\n\n\n");
 				
 				/** retrieve both collaborators' session ID query parameters */

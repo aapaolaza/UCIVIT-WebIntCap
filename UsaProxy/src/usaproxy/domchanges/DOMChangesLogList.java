@@ -128,7 +128,9 @@ public class DOMChangesLogList{
 
 	public void fromGson(String json){
 		Gson gson = new Gson();
+		System.out.println(json);
 		this.list = gson.fromJson(json, DOMChangesLogList.class).list;
+		System.out.println("Deserializing from json this many elements: "+ this.list.size());
 	}
 
 }

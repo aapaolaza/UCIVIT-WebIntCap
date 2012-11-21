@@ -563,6 +563,9 @@ function processLoad_UsaProxy(e) {
 	loadHeight 	= (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;  // innerHeight=NS
 	writeLog_UsaProxy("load&size=" + loadWidth + "x" + loadHeight);
 	//saveLog_UsaProxy();
+
+	recordCurrentDOM();
+
 }
 
 /* Processes window resize event (logs resize event together with the page size) */
@@ -738,8 +741,8 @@ function processMousedown_UsaProxy(e) {
 	if (mbutton!="left") {
 
 		////DEBUG START
-			//alert("TEST");
-			recordCurrentDOM();
+		//alert("TEST");
+		
 		////DEBUG END
 		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
@@ -768,6 +771,7 @@ function processMousedown_UsaProxy(e) {
 		}
 	}
 	
+	recordCurrentDOM();
 	//saveLog_UsaProxy();
 }
 
