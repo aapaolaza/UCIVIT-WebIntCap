@@ -604,7 +604,9 @@ public class EventManager {
 						
 				//WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will leave an empty file
 				// The name of the file where the dom/changes will be stored
-				File filename = new File(dir, time + ";" + sd);
+				
+				//we need to replace : in time for - so it doens't provoke any error in windows file systems
+				File filename = new File(dir, time.replace(":","-") + ";" + sd);
 				/** Open a stream to the log file. */
 				FileOutputStream fos = new FileOutputStream(filename, false);
 				
@@ -617,16 +619,15 @@ public class EventManager {
 			// We will only save it IF there were any, if not we don't save
 			// anything
 			else {
-				
-				
-				
+
 				String latestDOMString = getStringFromFile(latestDOM);
+				
 				// System.out.println("The original DOM was: " +
 				// latestDOMString);
 				// System.out.println();
 				// System.out.println("The new DOM is: " + newdomData);
 				String domChangesString = DOMdiff.getChangesLogJSON(
-						latestDOMString, newdomData, clientIP, time, sd, sid);
+						removeNewLines(latestDOMString), removeNewLines(newdomData), clientIP, time, sd, sid);
 
 				numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
 
@@ -692,5 +693,13 @@ public class EventManager {
 			return null;
 		}
 	}
+	
+	/*
+	 * this function will just remove the useless "newline" tags for comparison
+	 * 
+	 */
+	public String removeNewLines(String input){
+		return(input.replaceAll("\n", ""));
+	  }
 
 }

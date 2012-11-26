@@ -143,11 +143,10 @@ public class DOMdiff {
 	 *         sesionIDE
 	 */
 	public static String computeLastDOM(String sessionID, Date timestamp) {
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd,HH:mm:ss:SSS");
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd,HH-mm-ss-SSS");
 		// dateFormat.format(parseFormat.parse(timestampTest))
 
-		File sessionFolder = new File("DOMchanges/" + sessionID);// , sd + ";" +
-																	// time
+		File sessionFolder = new File("DOMchanges/" + sessionID);
 
 		File[] filesInFolder = sessionFolder.listFiles();
 

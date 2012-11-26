@@ -69,27 +69,32 @@ var combMembers_UsaProxy;		// Integer: number of remaining unreleased keys if a 
 
 var lastSelection_UsaProxy;		// String: last selected text
 
-////////////////////////////////////
-////New Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////New Constants////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-////////////WHEEL VARIABLES
+////////////WHEEL VARIABLES////////////////////////////////////////////////////////////////////////
 ////This variables are needed globally to record the amount of "delta" scrolled with the mouse wheel
 
 //wheelGranularity will determine how close the wheel events should be to be considered part of the same event
 //The smaller this value, the finer the recording will be.
 // eg. instead of recording one wheel movement of 14, it may record 2 of 7
-var wheelGranularity=400;
+var wheelGranularity=100;
 
 //wheelQueryFrequency will determine how often we query the wheel function to see if it's time to log it
 //It will basically determine how precise we will be from the moment the granularity time ends
-var wheelQueryFrequency=100; 
-
+var wheelQueryFrequency=50; 
 
 var wheelLastEventTimestampGlobal = new Date();    //Timestamp storing the last wheel interaction
 var wheelNodeGlobal = null;
 var wheelDeltaGlobal = 0;
 
 var wheelTimeOutFunction = null; //This function will be used
+
+
+////////////////////////////////////Mouse constants////////////////////////////////////
+
+var mouseTimeout = 150;
 
 ////End of New Constants
 ////////////////////////////////////
@@ -324,6 +329,12 @@ function set_date_UsaProxy(){
 	  cMin = "0" + cMin
 	if (cSec < 10)
 	  cSec = "0" + cSec
+	  
+	//we want milliseconds to have three digits
+	if (cMilliSec < 10)
+	  cMilliSec = "00" + cMilliSec
+	else if (cMilliSec < 100)
+	  cMilliSec = "0" + cMilliSec
 		  
 	//Server configuration parameters
 	window.usaProxyDate=cYear+"-"+cMonth+"-"+cDate+","+cHour+":"+cMin+":"+cSec;
@@ -365,7 +376,7 @@ function datestamp_UsaProxy() {
 	  + completeDateVals(currentUPDate.getDate()) + "," + completeDateVals(currentUPDate.getHours())
 	  + ":" + completeDateVals(currentUPDate.getMinutes())
 	  + ":" + completeDateVals(currentUPDate.getSeconds())
-	  + ":" + completeDateVals(currentUPDate.getMilliseconds());
+	  + ":" + completeDateValsMilliseconds(currentUPDate.getMilliseconds());
 }
 
 /** Completes single-digit numbers by a "0"-prefix */
@@ -604,7 +615,7 @@ function processMousemove_UsaProxy(e) {
 			
 			writeLog_UsaProxy("mousemove&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 			//saveLog_UsaProxy();
-			window.setTimeout('setInaktiv_UsaProxy()',150);
+			window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
 	}
 }
 
