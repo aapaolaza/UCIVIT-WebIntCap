@@ -289,9 +289,11 @@ function init_UsaProxy() {
 	IVL_scrollCheck_UsaProxy 	= window.setInterval("processScroll_UsaProxy()",1000);
 	IVL_saveLog_UsaProxy 		= window.setInterval("saveLog_UsaProxy()",3000);
 	
-	//We infer browser's version only at the start
-	inferBrowserInfo();
+
 }
+
+//We infer browser's version only at the start, we want it to be the first thing it does
+inferBrowserInfo();
 
 /* Invoke init_UsaProxy on load */
 if(document.attachEvent) window.attachEvent('onload', init_UsaProxy);
@@ -1832,6 +1834,10 @@ function processIfHtmlIsSelected(selectionTool, target){
  */
   function appendBrowserName(text){
 	  
+	if (browserName=="undefined"){
+		inferBrowserInfo();
+	}
+	
 	return text + "&browser=" + browserName;
   }
 
@@ -1841,12 +1847,12 @@ function processIfHtmlIsSelected(selectionTool, target){
 var nVer, nAgt, browserName, fullVersion, majorVersion, nameOffset, verOffset, ix;
 	
 function inferBrowserInfo(){
-	var nVer = navigator.appVersion;
-	var nAgt = navigator.userAgent;
-	var browserName  = navigator.appName;
-	var fullVersion  = ''+parseFloat(navigator.appVersion); 
-	var majorVersion = parseInt(navigator.appVersion,10);
-	var nameOffset,verOffset,ix;
+	nVer = navigator.appVersion;
+	nAgt = navigator.userAgent;
+	browserName  = navigator.appName;
+	fullVersion  = ''+parseFloat(navigator.appVersion); 
+	majorVersion = parseInt(navigator.appVersion,10);
+	nameOffset,verOffset,ix;
 	
 	// In Opera, the true version is after "Opera" or after "Version"
 	if ((verOffset=nAgt.indexOf("Opera"))!=-1) {
@@ -1898,7 +1904,7 @@ function inferBrowserInfo(){
 	 fullVersion  = ''+parseFloat(navigator.appVersion); 
 	 majorVersion = parseInt(navigator.appVersion,10);
 	}
-	
+
 	//document.write(''
 	 //+'Browser name  = '+browserName+'<br>'
 	 //+'Full version  = '+fullVersion+'<br>'
