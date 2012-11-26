@@ -635,7 +635,7 @@ public class EventManager {
 					
 					//WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will leave an empty file
 					// The name of the file where the dom/changes will be stored
-					File filename = new File(dir, time + ";" + sd);
+					File filename = new File(dir, time.replace(":","-") + ";" + sd);
 					/** Open a stream to the log file. */
 					FileOutputStream fos = new FileOutputStream(filename, false);
 					
