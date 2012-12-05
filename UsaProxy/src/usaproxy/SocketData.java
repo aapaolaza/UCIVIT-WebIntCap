@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 /** 
@@ -180,6 +181,27 @@ public class SocketData {
 			StringBuffer headers = new StringBuffer();
 				
 			headers.append("HTTP/1.1 404 Not Found").append(HTTPData.CRLF);
+			headers.append(HTTPData.CRLF);
+			
+			/** send headers */
+			dout.writeBytes(headers.toString());
+			dout.flush();
+    }
+	
+	
+	/**
+     *  Sends a HTTP 200 "OK" status to the client.
+     *  
+     *  @param out is the client's <code>OutputStream</code>
+     */
+	public static void send200 (OutputStream out) throws IOException {
+		
+			DataOutputStream dout = new DataOutputStream(out);
+			
+			/** new headers StringBuffer */
+			StringBuffer headers = new StringBuffer();
+				
+			headers.append("HTTP/1.1 200 OK").append(HTTPData.CRLF);
 			headers.append(HTTPData.CRLF);
 			
 			/** send headers */

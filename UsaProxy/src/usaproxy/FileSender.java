@@ -92,12 +92,20 @@ public class FileSender {
 			 *  additonal code and parameters */
 			if(filename.equals("proxyscript.js")) {
 				
-				/** session ID cookie */
-				String cookieText = "";
-				if(sessionID!=null && !(sessionID.equals(""))) cookieText = sessionID;
-				else cookieText = "hallowelthal";
-				String sessionSetter = "var sessionID_UsaProxy='" + cookieText + "';" + HTTPData.CRLF;
-				cookieText = "userUsaProxy=" + cookieText;
+				
+				////We got rid of the cookie, instead the user will store it and send it back to us in the request
+//				/** session ID cookie */
+//				String cookieText = "";
+//				if(sessionID!=null && !(sessionID.equals(""))) cookieText = sessionID;
+//				else cookieText = "hallowelthal";
+//				String sessionSetter = "var sessionID_UsaProxy='" + cookieText + "';" + HTTPData.CRLF;
+//				cookieText = "userUsaProxy=" + cookieText;
+				
+				//New cookie code
+				String sessionIDText = "";
+				if(sessionID!=null && !(sessionID.equals(""))) sessionIDText = sessionID;
+				else sessionIDText = "hallowelthal";
+				String sessionSetter = "var sessionID_Proxy='" + sessionIDText + "';" + HTTPData.CRLF;
 				
 				/** define additional fields which are pasted
 				 *  into proxyscript.js according to the launched mode */
@@ -176,13 +184,16 @@ public class FileSender {
 				 *  add Cache-Control header so that the response won't be cached by the client,
 				 *  assign a application/x-javascript type since advanced JavaScript is delivered,
 				 *  append "Set-Cookie" header */
+
 				
 				headers.append("HTTP/1.1 200 OK").append(HTTPData.CRLF);
 				headers.append("Content-Type: application/x-javascript").append(HTTPData.CRLF);
 				headers.append("Content-Length: " + contentLength).append(HTTPData.CRLF);
 				/** browser requires loading proxyscript.js each time */
 				headers.append("Cache-Control: no-cache, must-revalidate").append(HTTPData.CRLF);
-				headers.append("Set-Cookie: " + cookieText).append(HTTPData.CRLF);
+
+				//We don't append the cookie anymore
+//				headers.append("Set-Cookie: " + cookieText).append(HTTPData.CRLF);
 				headers.append(HTTPData.CRLF);
 				
 				/** send headers */

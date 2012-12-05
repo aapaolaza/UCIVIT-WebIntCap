@@ -15,17 +15,18 @@ function includeJquery(){
 // 
 //}
 
-		var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
-		
-		//we add the script dinamically
-		var jQueryScriptNode = document.createElement('script');
-		jQueryScriptNode.id='proxyScript_jQuery';
-		jQueryScriptNode.type = 'text/javascript';
-		jQueryScriptNode.src = jQuerySrc;
+	var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
+	
+	//we add the script dinamically
+	var jQueryScriptNode = document.createElement('script');
+	jQueryScriptNode.id='proxyScript_jQuery';
+	jQueryScriptNode.type = 'text/javascript';
+	jQueryScriptNode.src = jQuerySrc;
 
-		document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
-		
-		//alert("jQuery was added");
+	document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
+	
+	//alert("jQuery was added");
+	//jQueryListeners();
 }
 
 /** Core UsaProxy JavaScript part.
@@ -92,12 +93,55 @@ var wheelDeltaGlobal = 0;
 var wheelTimeOutFunction = null; //This function will be used
 
 
+//////////////////////BROWSER VARIABLE
+
+///////This variable will be used to discern if the browser is IE or not
+var isNotOldIE;
+
 ////////////////////////////////////Mouse constants////////////////////////////////////
 
 var mouseTimeout = 150;
 
+////////////////////////////Session ID////////////////////
+var sessionID = null;
+
+////////////////////////////Cookie lifespan////////////////////
+//Will determine the lifespan of the cookie, in days
+var cookieLife = 10000;
+
 ////End of New Constants
 ////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////STARTING FUNCTIONS//////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+//We infer browser's version only at the start, we want it to be the first thing it does
+inferBrowserInfo();
+
+//Initializing the array of log requests
+var xmlreqs_UsaProxy = new Array();	/** contains the currently used XMLHttpRequest objects */
+
+
+/* Now init_UsaProxy is called from handleCookieButton and getSessionFromCookie
+ * This way we make sure we don't record information from users who don't want to be recorded.*/
+ 
+ 
+if(document.attachEvent)
+	isNotOldIE = false;
+else
+	isNotOldIE = true;
+ 
+//if(document.attachEvent) window.attachEvent('onload', askForCookiePermission);
+//if(document.addEventListener) window.addEventListener('load', askForCookiePermission, false);
+
+if (isNotOldIE) window.addEventListener('load', askForCookiePermission, false);
+else window.attachEvent('onload', askForCookiePermission);
+
+/*I have to imitate the previous statements to add the jQuery function*/
+if (isNotOldIE) window.addEventListener('load', includeJquery, false);
+else window.attachEvent('onload', includeJquery);
 
 
 /* Initializes all variables, event handlers, and interval functions and
@@ -114,8 +158,8 @@ function init_UsaProxy() {
 	lastMousePosY_UsaProxy 		= 0;
 	
 	/* initialize lastScrollPos_UsaProxy with current top/left offset */
-	lastScrollPosY_UsaProxy 	= (window.Event) ? window.pageYOffset : document.body.scrollTop;
-	lastScrollPosX_UsaProxy 	= (window.Event) ? window.pageXOffset : document.body.scrollLeft;
+	lastScrollPosY_UsaProxy 	= (isNotOldIE) ? window.pageYOffset : document.body.scrollTop;
+	lastScrollPosX_UsaProxy 	= (isNotOldIE) ? window.pageXOffset : document.body.scrollLeft;
 	
 	lastSelection_UsaProxy 		= "";
 	
@@ -150,7 +194,7 @@ function init_UsaProxy() {
 	 * captured at the target element */
 	
 	// NS explicit event capturing
-	if(window.Event) {
+	/*if(window.Event) {
 		document.captureEvents(Event.CHANGE | Event.MOUSEUP | Event.KEYPRESS | Event.KEYDOWN | Event.KEYUP | Event.MOUSEMOVE | Event.MOUSEOVER | Event.FOCUS | Event.BLUR | Event.SELECT
 				| Event.DBCLICK | Event.DRAGDROP | Event.ERROR | Event.KEYUP | Event.MOUSEOUT | Event.MOUSEUP | Event.SELECT | Event.UNLOAD
 				| Event.CONTEXTMENU | Event.CUT | Event.COPY | Event.PASTE | Event.HASHCHANGE | Event.MOUSEWHEEL | Event.WHEEL
@@ -158,19 +202,22 @@ function init_UsaProxy() {
 		//We add the extra events
 
 		window.captureEvents(Event.RESIZE);
-	}
+	}*/
 	
 	/* attach event handlers to avoid overwriting
 	 * IE: attachEvent
 	 * NS: addEventListener */
 	 
 	// IE
-	if(document.attachEvent) { 
+	if(document.attachEvent) {
+		
+		alert("you are IE");
 	
 		document.attachEvent('onmousedown', processMousedown_UsaProxy);
 		//document.attachEvent('onkeypress', processKeypress_UsaProxy);
 		//document.attachEvent('onkeydown', processKeydown_UsaProxy);
 		//document.attachEvent('onkeyup', processKeyup_UsaProxy);
+		
 		document.attachEvent('onmousemove', processMousemove_UsaProxy);
 		document.attachEvent('onmouseover', processMouseover_UsaProxy);
 		window.attachEvent('onresize', processResize_UsaProxy);
@@ -191,13 +238,13 @@ function init_UsaProxy() {
 		document.attachEvent('onselect', processSelectText_ExtraEvent);
 		window.attachEvent('onbeforeunload', processUnload_ExtraEvent);
 		
-		document.attachEvent('keydown', processKeydown_ExtraEvent);
-		document.attachEvent('keyup', processKeyUp_ExtraEvent);
-		document.attachEvent('keypress', processKeypress_ExtraEvent);
+		document.attachEvent('onkeydown', processKeydown_ExtraEvent);
+		document.attachEvent('onkeyup', processKeyUp_ExtraEvent);
+		document.attachEvent('onkeypress', processKeypress_ExtraEvent);
 		
-		document.attachEvent('mousewheel', processMousewheel_ExtraEvent);
-		document.attachEvent('select', processSelectText_ExtraEvent);
-		window.addEventListener('beforeunload', processUnload_ExtraEvent);
+		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
+		document.attachEvent('onselect', processSelectText_ExtraEvent);
+		window.addEventListener('onbeforeunload', processUnload_ExtraEvent);
 		
 		//////////////////////////////////////////////////////////
 		//////////////////END OF ADDITION OF NEW EVENTS///////////
@@ -224,11 +271,13 @@ function init_UsaProxy() {
 	}
 	
 	// NS
-	if(document.addEventListener) {
+	else {
+		
 		document.addEventListener('mousedown', processMousedown_UsaProxy, false);
 		//document.addEventListener('keypress', processKeypress_UsaProxy, false);
 		//document.addEventListener('keydown', processKeydown_UsaProxy, false);
 		//document.addEventListener('keyup', processKeyup_UsaProxy, false);
+		
 		document.addEventListener('mousemove', processMousemove_UsaProxy, false);
 		document.addEventListener('mouseover', processMouseover_UsaProxy, false);
 		window.addEventListener('resize', processResize_UsaProxy, false);
@@ -289,20 +338,41 @@ function init_UsaProxy() {
 	IVL_scrollCheck_UsaProxy 	= window.setInterval("processScroll_UsaProxy()",1000);
 	IVL_saveLog_UsaProxy 		= window.setInterval("saveLog_UsaProxy()",3000);
 	
+	//We ask for implicit permission for logging
+	//askForCookiePermission();
 
 }
 
-//We infer browser's version only at the start, we want it to be the first thing it does
-inferBrowserInfo();
-
-/* Invoke init_UsaProxy on load */
-if(document.attachEvent) window.attachEvent('onload', init_UsaProxy);
-if(document.addEventListener) window.addEventListener('load', init_UsaProxy, false);
-
-/*I have to imitate the previous statements to add the jQuery function*/
-if(document.attachEvent) window.attachEvent('onload', includeJquery);
-else if (document.addEventListener) window.addEventListener('load', includeJquery, false);
-
+////This function will be called when DOM is ready, we will include all events that we want to handle with jQuery to maximize compatibility
+//function jQueryListeners(){
+	//$(document).ready(function(){
+		//alert("registering jQuery events");
+		//$(document).mousemove(function(ev){
+			//alert("mousemoved");
+			//$('#status').html(e.pageX +', '+ e.pageY);
+			//var target 	= ev.target;
+			//var x 		= ev.pageX;
+			//var y 		= ev.pageY;
+		
+			//var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+			//var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+			
+			//// if log mousemove flag is false, set it true and log a mousemove event
+			//if (!FLG_LogMousemove_UsaProxy
+				//// if mouse pointer actually moved 
+				//&& !(x==lastMousePosX_UsaProxy && y==lastMousePosY_UsaProxy) ) {
+					//FLG_LogMousemove_UsaProxy = true;
+					//lastMousePosX_UsaProxy = x;
+					//lastMousePosY_UsaProxy = y;
+					
+					//writeLog_UsaProxy("jQuerymousemove&coords=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+					////saveLog_UsaProxy();
+					//window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
+			//}
+		   //});
+	   
+	//})
+//}
 
 /*document.addEventListener("DOMSubtreeModified", function() {
     alert("DOMSubtreeModified fired!");
@@ -428,7 +498,7 @@ function writeLog_UsaProxy(text) {
 	// generate and append log entry
 	var logline;
 	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
-	+ sessionID_UsaProxy + "&event=" + text+ "&url=" + encodeURIComponent(url);
+	+ sessionID + "&event=" + text+ "&url=" + encodeURIComponent(url);
 	
 	// set synchronization flag (block function)
 	FLG_writingLogVal_UsaProxy = true;
@@ -477,7 +547,8 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 
 	//We are adding also browser's information
 
-	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
+	//eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
+	eventString = eventString + "&nodeType=" + node.tagName + "&textValue=" + encodeURIComponent(node.value);
 		
 	return eventString;
 }
@@ -492,8 +563,6 @@ function getFileName(path /*string*/) {
 /***** AJAX code.
 	   Used with each logging request  */
 
-var xmlreqs_UsaProxy = new Array();	/** contains the currently used XMLHttpRequest objects */
-
 /* Creates a new XMLHttpRequest object with a freed parameter 
    which indicates whether the object is currently operating 
    (e.g. expecting a UsaProxy response) */
@@ -501,19 +570,27 @@ function OBJ_XHR_UsaProxy(freed /*number*/){
 	this.freed = freed;
 	this.newReq = false;
 	// NS
-	if(window.XMLHttpRequest) {
+	//if(window.XMLHttpRequest) {
+	if(isNotOldIE) {
 	  	try { this.newReq = new XMLHttpRequest(); }
 	  	catch(e) { this.newReq = false; }
 	}
 	// IE
-	else if(window.ActiveXObject) {
-	  try { this.newReq = new ActiveXObject("Microsoft.XMLHTTP"); }
-	  catch(e) {
-		try { this.newReq = new ActiveXObject("Msxml2.XMLHTTP"); }
-		catch(e) {
-		  this.newReq = false;
+	//else if(window.ActiveXObject) {
+	else if(!isNotOldIE) {
+		if (window.XDomainRequest) // Check whether the browser supports XDR. 
+		{
+			this.newReq = new XDomainRequest(); // Create a new XDR object.
+        }
+        else{
+			try { this.newReq = new ActiveXObject("Microsoft.XMLHTTP"); }
+			catch(e) {
+				try { this.newReq = new ActiveXObject("Msxml2.XMLHTTP"); }
+				catch(e) {
+					this.newReq = false;
+				}
+			}
 		}
-	  }
 	}
 }
 
@@ -609,10 +686,13 @@ function processMousemove_UsaProxy(e) {
 	
 	/* get event target, x, and y value of mouse position
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	var x 		= (window.Event) ? ev.pageX : ev.clientX;
-	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
+	
+	
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -625,7 +705,7 @@ function processMousemove_UsaProxy(e) {
 			lastMousePosX_UsaProxy = x;
 			lastMousePosY_UsaProxy = y;
 			
-			writeLog_UsaProxy("mousemove&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("mousemove&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 			//saveLog_UsaProxy();
 			window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
 	}
@@ -644,9 +724,11 @@ function setInaktiv_UsaProxy() {
 function processMouseover_UsaProxy(e) {
 	
 	/* get event target
-	 * NS: first case (window.Event available); IE: second case */
-	var ev = (window.Event) ? e : window.event;
-	var target = (window.Event) ? ev.target : ev.srcElement;
+	 * NS: first case (window.Event available); IE: second case 
+	 * */
+	
+	var ev = (isNotOldIE) ? e : window.event;
+	var target = (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	/* add appliable event listeners to hovered element */
 	/* first, check if element has a type property.
@@ -739,10 +821,16 @@ function processMousedown_UsaProxy(e) {
 	
 	/* get event target, x, and y value of mouse position
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
+	 
+	/*var ev 		= (window.Event) ? e : window.event;
 	var target 	= (window.Event) ? ev.target : ev.srcElement;
 	var x 		= (window.Event) ? ev.pageX : ev.clientX;
-	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	var y 		= (window.Event) ? ev.pageY : ev.clientY; */
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -765,7 +853,7 @@ function processMousedown_UsaProxy(e) {
 
 		////DEBUG START
 		//alert("TEST");
-		
+		//printCookiesOnConsole();
 		////DEBUG END
 		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
@@ -807,8 +895,11 @@ function processChange_UsaProxy(e) {
 	
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	/*var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;*/
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	// if select list, log the selected entry's value
 	if (target.type=="select-multiple") {
@@ -1215,8 +1306,11 @@ function processBlur_UsaProxy(e) {
 
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	/*var ev 		= (window.Event) ? e : window.event;
+	var target 	= (window.Event) ? ev.target : ev.srcElement;*/
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	// log all available target attributes
 	// if element has an id attribute
@@ -1236,8 +1330,12 @@ function processFocus_UsaProxy(e) {
 
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
+	/*var ev 		= (window.Event) ? e : window.event;
 	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	*/
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	// log all available target attributes
 	// if element has an id attribute
@@ -1281,8 +1379,12 @@ function processSelectionNS_UsaProxy(e) {
 
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case (not necessary) */
-	var ev 		= (window.Event) ? e : window.event;
+	/*var ev 		= (window.Event) ? e : window.event;
 	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	*/
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
@@ -1355,7 +1457,7 @@ function mapToAlph(position /*number*/) {
 /* Computes the element's offset from the left edge
    of the browser window */
 function absLeft(element) {
-	if (element.pageX) return element.pageX;
+	if (isNotOldIE) return element.pageX;
 	else
     	return (element.offsetParent)? 
      	element.offsetLeft + absLeft(element.offsetParent) : element.offsetLeft;
@@ -1442,8 +1544,12 @@ function processMouseOut_ExtraEvent(e) {
 
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case */
-	var ev = (window.Event) ? e : window.event;
+	/*var ev = (window.Event) ? e : window.event;
 	var target = (window.Event) ? ev.target : ev.srcElement;
+	*/
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	// log mouseout coordinates and all available target attributes
 	// if element has an id attribute
@@ -1466,10 +1572,16 @@ function processMouseup_ExtraEvent(e) {
 	
 /* get event target, x, and y value of mouse position
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
+	/*var ev 		= (window.Event) ? e : window.event;
 	var target 	= (window.Event) ? ev.target : ev.srcElement;
 	var x 		= (window.Event) ? ev.pageX : ev.clientX;
 	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	*/
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -1516,10 +1628,11 @@ function processContextMenu_ExtraEvent(e) {
 	
 /* get event target, x, and y value of mouse position
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	var x 		= (window.Event) ? ev.pageX : ev.clientX;
-	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -1537,9 +1650,10 @@ function processContextMenu_ExtraEvent(e) {
 
 function processCut_ExtraEvent(e) {
 	
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	var data 	= (window.Event) ? ev.data : ev.data;
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var data 	= (isNotOldIE) ? ev.data : ev.data;
+	
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
@@ -1550,9 +1664,9 @@ function processCut_ExtraEvent(e) {
 
 function processCopy_ExtraEvent(e) {
 		
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	var data 	= (window.Event) ? ev.data : ev.data;
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var data 	= (isNotOldIE) ? ev.data : ev.data;
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
@@ -1562,9 +1676,9 @@ function processCopy_ExtraEvent(e) {
 }
 
 function processPaste_ExtraEvent(e) {
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	var data 	= (window.Event) ? ev.data : ev.data;
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var data 	= (isNotOldIE) ? ev.data : ev.data;
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
@@ -1576,10 +1690,10 @@ function processPaste_ExtraEvent(e) {
 function processDblClick_ExtraEvent(e) {
 	/* get event target, x, and y value of mouse position
 	 * NS: first case (window.Event available); IE: second case */
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	var x 		= (window.Event) ? ev.pageX : ev.clientX;
-	var y 		= (window.Event) ? ev.pageY : ev.clientY; 
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -1676,8 +1790,8 @@ function processKeyUp_ExtraEvent(e) {
  * Piece of code adapted from http://www.adomas.org/javascript-mouse-wheel/
  */ 
 function processMousewheel_ExtraEvent(e) {
-	var event = (window.Event) ? e : window.event;
-	var target = (window.Event) ? event.target : event.srcElement;
+	var event = (isNotOldIE) ? e : window.event;
+	var target = (isNotOldIE) ? event.target : event.srcElement;
 	var delta = 0;
 	
 	if (!event) /* For IE. */
@@ -1700,9 +1814,23 @@ function processMousewheel_ExtraEvent(e) {
 function handleWheelEvents(delta, node){
 	
 	var currentTime = new Date();
+	
+	//if node is null, we have to store this event as a new one. Store the delta value and start the timer
+	if (wheelNodeGlobal==null){
+		//console.log("WHEEL: node was null, program next event");
+		wheelDeltaGlobal += delta; //wheelDeltaGlobal should be 'zero' here anyway
+		wheelNodeGlobal = node;
+		wheelLastEventTimestampGlobal = new Date();
+		
+		//START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
+		if (wheelTimeOutFunction != null)
+			window.clearTimeout(wheelTimeOutFunction);//This timeout should be cancelled already anyway
+		wheelTimeOutFunction = setTimeout("handleWheelEvents(0, wheelNodeGlobal)", wheelQueryFrequency);
 
+	}
+	
 	//If it's the same node, we check the time to see if it's time to record it or to program next timeout function
-	if (node.isEqualNode(wheelNodeGlobal)){
+	else if (node.isEqualNode(wheelNodeGlobal)){
 		//console.log("WHEEL: same node as before");
 		
 		//If the time expired for the event, just record the event, and the next time user uses the wheel, it will be recorded as a different event
@@ -1748,19 +1876,7 @@ function handleWheelEvents(delta, node){
 		}
 	}
 	
-	//if node is null, we have to store this event as a new one. Store the delta value and start the timer
-	else if (wheelNodeGlobal==null){
-		//console.log("WHEEL: node was null, program next event");
-		wheelDeltaGlobal += delta; //wheelDeltaGlobal should be 'zero' here anyway
-		wheelNodeGlobal = node;
-		wheelLastEventTimestampGlobal = new Date();
-		
-		//START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
-		if (wheelTimeOutFunction != null)
-			window.clearTimeout(wheelTimeOutFunction);//This timeout should be cancelled already anyway
-		wheelTimeOutFunction = setTimeout("handleWheelEvents(0, wheelNodeGlobal)", wheelQueryFrequency);
-
-	}
+	
 
 	//if globalNode is neither the same nor null, the user must be using the wheel in another DOM element!! record the previous one and start recording this one
 	else{
@@ -1786,8 +1902,8 @@ function handleWheelEvents(delta, node){
 
 function processSelectText_ExtraEvent(e) {
 	
-	var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
+	var ev 		= (isNotOldIE) ? e : window.event;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
@@ -1845,7 +1961,8 @@ function processIfHtmlIsSelected(selectionTool, target){
 //code obtained from http://www.javascripter.net/faq/browsern.htm
 
 var nVer, nAgt, browserName, fullVersion, majorVersion, nameOffset, verOffset, ix;
-	
+
+
 function inferBrowserInfo(){
 	nVer = navigator.appVersion;
 	nAgt = navigator.userAgent;
@@ -1864,7 +1981,7 @@ function inferBrowserInfo(){
 	// In MSIE, the true version is after "MSIE" in userAgent
 	else if ((verOffset=nAgt.indexOf("MSIE"))!=-1) {
 	 browserName = "Microsoft Internet Explorer";
-	 fullVersion = nAgt.substring(verOffset+5);
+	 fullVersion = nAgt.substring(verOffset+5);	 
 	}
 	// In Chrome, the true version is after "Chrome" 
 	else if ((verOffset=nAgt.indexOf("Chrome"))!=-1) {
@@ -1956,6 +2073,168 @@ function getSelectionHtml() {
     }
     return(html);
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////
+////////////////////////COOKIE HANDLER////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+function getCookie(c_name)
+{
+	var i,x,y,ARRcookies=document.cookie.split(";");
+	for (i=0;i<ARRcookies.length;i++)
+	{
+		x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+		y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+		x=x.replace(/^\s+|\s+$/g,"");
+		if (x==c_name)
+		{
+			return unescape(y);
+		}
+	}
+	
+	//we didn't find the cookie, so we return null
+	return "null";
+}
+
+function setCookie(c_name,value,exdays)
+{
+	var exdate=new Date();
+	exdate.setDate(exdate.getDate() + exdays);
+	var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+	
+	//We want the cookie to be available through all pages in the domain, to do that we have to remove the www from the start
+	var domain = document.domain;
+	if (domain.substring(0, 3) == "www"){
+		domain = domain.substring(3, domain.length);
+	}
+	
+	c_value += "; path=/; domain="+domain;
+
+	document.cookie=c_name + "=" + c_value;
+}
+
+
+function printCookiesOnConsole(){
+	
+	var i,x,y,ARRcookies=document.cookie.split(";");
+	for (i=0;i<ARRcookies.length;i++)
+	{
+		x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+		y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+		x=x.replace(/^\s+|\s+$/g,"");
+		
+		console.log(x);
+		/*if (x==c_name)
+		{
+			return unescape(y);
+		}*/
+	}
+	
+	alert(document.cookie);
+}
+
+/*
+ * This function will check if the cookie is available, if not it shows a disclaimer with a button
+ * when that button is pressed, a new session ID is created and stored in a cookie
+ * 
+ */ 
+function askForCookiePermission(){
+		
+	//If we can get the Session ID from the cookie, we finish
+	if (getSessionFromCookie()){
+		return true;
+	}
+	
+	//if not, we show the disclaimer
+	alert("showing cookie disclaimer");
+	
+//	htmlDivContent = "<div style=\"text-align:center;border: 1px solid black;background-color:silver\">	<h3>This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site</h3><button  align=\"center\">I don't want to use cookies</button></div>"
+	
+	var htmlDivContent = document.createElement("div");
+	
+	htmlDivContent.id = "proxyCookieDiscalimer";
+	htmlDivContent.style.backgroundColor = "silver";
+	htmlDivContent.style.border = "1px solid black";
+	
+	//htmlDivContent.style.height="50px"
+	htmlDivContent.style.width="500px"
+	
+	//htmlDivContent.style.border.style="";
+	//htmlDivContent.style.border.color="";
+	htmlDivContent.style.textAlign = "center";
+	htmlDivContent.style.margin = "0px auto 0px auto";
+	
+	var textDiv = document.createElement("div");
+
+	var disclaimerText = document.createTextNode("This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site");
+	textDiv.appendChild(disclaimerText);
+	htmlDivContent.appendChild(textDiv);
+	
+	var htmlButton = document.createElement("button");
+	
+	htmlButton.onclick=handleCookieButton;
+	
+	var buttonText = document.createTextNode("I don't mind using cookies");
+	htmlButton.appendChild(buttonText);
+	
+	htmlDivContent.appendChild(htmlButton);
+	
+	//document.getElementsByTagName('body')[0].appendChild(htmlDivContent);
+	
+	if (document.body.firstChild){
+      	document.body.insertBefore(htmlDivContent, document.body.firstChild);
+	} else {
+      	document.body.appendChild(htmlDivContent);
+	}
+}
+
+/*
+ * If the user clicks, then we generate the ID, set the cookie and store the ID
+ * 
+ */ 
+function handleCookieButton(){
+	console.log("getSessionFromCookie");
+	setCookie("proxyUserID", sessionID_Proxy, cookieLife);
+	sessionID = getCookie("proxyUserID");
+	document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
+    
+	init_UsaProxy();
+}
+
+
+/* The rational for this function is that if there are more cookies
+ * then we should be able to put our cookie.
+ * From javascript we can only access domain cookies, so if there is any
+ * then the web page took the necessary measure to make the user accept the cookie
+ * 
+ * IMPORTANT: For now, and because there are always cookies, it will always return false, requiring us to ask for permission for the cookie
+ */ 
+function getSessionFromCookie(){
+	console.log("getSessionFromCookie");
+	
+	if (document.cookie.split(";").length > 0)
+	{
+		sessionID = getCookie("proxyUserID");
+		
+		if (sessionID == "null")
+			return false;
+			
+		init_UsaProxy();
+		return true;
+	}
+	else
+		sessionID = null;
+		return false;
+}
+      
+      
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+
+
 /////////////////KUPB BROWSER EVENT COLLECTION////////////////////////////
 /////THEY WERE DELETED BUT SOME POSSIBLY USEFUL FUNCTIONS ARE REMAINING///
 //////////////////////////////////////////////////////////////////////////
@@ -2080,10 +2359,6 @@ function returnKeyValue(keyCode)
 
 }
 
-
-
-
-
 ////////////////////USEFUL FUNCTIONS FOR DEBUGGING
 //It's pretty useful to put calls to specific nodes in the mousedown function,
 //when the right or middle button gets activated
@@ -2102,3 +2377,44 @@ function returnKeyValue(keyCode)
 	
 	alert(stringedStyle);
 */
+
+
+
+
+////This function will be called when DOM is ready, we will include all events that we want to handle with jQuery to maximize compatibility
+//function jQueryListeners(){
+	//$(document).ready(function(){
+		//alert("registering jQuery events");
+		//$(document).mousemove(function(ev){
+			//alert("mousemoved");
+			//$('#status').html(e.pageX +', '+ e.pageY);
+			//var target 	= ev.target;
+			//var x 		= ev.pageX;
+			//var y 		= ev.pageY;
+		
+			//var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+			//var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+			
+			//// if log mousemove flag is false, set it true and log a mousemove event
+			//if (!FLG_LogMousemove_UsaProxy
+				//// if mouse pointer actually moved 
+				//&& !(x==lastMousePosX_UsaProxy && y==lastMousePosY_UsaProxy) ) {
+					//FLG_LogMousemove_UsaProxy = true;
+					//lastMousePosX_UsaProxy = x;
+					//lastMousePosY_UsaProxy = y;
+					
+					//writeLog_UsaProxy("jQuerymousemove&coords=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+					////saveLog_UsaProxy();
+					//window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
+			//}
+		   //});
+	   
+	//})
+//}
+
+/*document.addEventListener("DOMSubtreeModified", function() {
+    alert("DOMSubtreeModified fired!");
+}, false);*/
+//if(document.attachEvent) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
+//if(document.addEventListener) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
+//$("element-root").bind(DOMSubtreeModified,"domChangeListener");

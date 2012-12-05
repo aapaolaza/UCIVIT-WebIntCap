@@ -121,7 +121,7 @@ public class DOMChangesLogList{
 		String json = gson.toJson(this);
 		return json;
 	}
-
+ 
 	/** Deserialise given JSON and assigns the resulting class list to "domChangesLogList"
 	 * @param serialised class in JSON
 	 */

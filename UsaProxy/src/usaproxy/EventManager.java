@@ -245,7 +245,8 @@ public class EventManager {
 
 			if (out != null) {
 				/** send 404 message in order to complete the request */
-				SocketData.send404(out);
+				//Changed to 200 message
+				SocketData.send200(out);
 			}
 
 		} catch (FileNotFoundException e) {
@@ -699,7 +700,9 @@ public class EventManager {
 	 * 
 	 */
 	public String removeNewLines(String input){
-		return(input.replaceAll("\n", ""));
+		input = input.replaceAll("\n", "");
+		input = input.replaceAll("\r", "");
+		return(input);
 	  }
 
 }
