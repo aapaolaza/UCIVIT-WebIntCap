@@ -1,0 +1,41 @@
+<!-- usaProxy script start-->
+	<script type="text/javascript">
+		
+		window.webpageIndex = '10001';
+		//window.usaProxyServerIP = '130.88.193.26:2727';
+		window.usaProxyServerIP = '130.88.193.26:2727';
+		window.usaProxyId = '';
+		window.sessionId = getCookie("proxyUserID");
+		
+		window.usaProxySrc = "http://"+window.usaProxyServerIP+"/usaproxylolo/file/proxyscript.js?sd="+window.webpageIndex+"&ts=&id=&sid="+window.sessionId
+
+		//window.usaProxySrc = "http://130.88.193.26:2727/usaproxylolo/file/proxyscript.js?sd=10000&amp;ts=2012-05-20,18:19:30&amp;id="
+
+		//we add the script dinamically
+		var usaProxyScriptNode = document.createElement('script');
+		usaProxyScriptNode.id = 'proxyScript_UsaProxy';
+		usaProxyScriptNode.type = 'text/javascript';
+		usaProxyScriptNode.src = window.usaProxySrc;
+
+		document.getElementsByTagName('head')[0].appendChild(usaProxyScriptNode);
+		
+		function getCookie(c_name)
+		{
+			var i,x,y,ARRcookies=document.cookie.split(";");
+			for (i=0;i<ARRcookies.length;i++)
+			{
+				x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+				y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+				x=x.replace(/^\s+|\s+$/g,"");
+				if (x==c_name)
+				{
+					return unescape(y);
+				}
+			}
+			
+			//we didn't find the cookie, so we return null
+			return "null";
+		}
+		
+	</script>
+<!-- usaProxy script end -->
