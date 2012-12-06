@@ -244,7 +244,12 @@ function init_UsaProxy() {
 		
 		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
 		document.attachEvent('onselect', processSelectText_ExtraEvent);
-		window.addEventListener('onbeforeunload', processUnload_ExtraEvent);
+		window.attachEvent('onbeforeunload', processUnload_ExtraEvent);
+		
+		
+		document.attachEvent ("onfocusin", processFocus_UsaProxy);
+		document.attachEvent ("onfocusout", processBlur_UsaProxy);			
+		
 		
 		//////////////////////////////////////////////////////////
 		//////////////////END OF ADDITION OF NEW EVENTS///////////
@@ -262,8 +267,8 @@ function init_UsaProxy() {
 					var elType = document.forms[i].elements[j].type;
 					if (elType=="select-one" || elType=="select-multiple" || elType=="text" || elType=="textarea" || elType=="file" || elType=="checkbox" || elType=="password" || elType=="radio") {
 						document.forms[i].elements[j].attachEvent('onchange', processChange_UsaProxy);
-						document.forms[i].elements[j].attachEvent('onblur', processBlur_UsaProxy);
-						document.forms[i].elements[j].attachEvent('onfocus', processFocus_UsaProxy);
+						//document.forms[i].elements[j].attachEvent('onblur', processBlur_UsaProxy);
+						//document.forms[i].elements[j].attachEvent('onfocus', processFocus_UsaProxy);
 					}
 				}
 			}
@@ -309,7 +314,8 @@ function init_UsaProxy() {
 		document.addEventListener('select', processSelectText_ExtraEvent, false);
 		window.addEventListener('beforeunload', processUnload_ExtraEvent, false);
 		
-	
+		document.addEventListener ("focusin", processFocus_UsaProxy, false);	
+		document.addEventListener ("focusout", processBlur_UsaProxy, false);
 		//////////////////////////////////////////////////////////
 		//////////////////END OF ADDITION OF NEW EVENTS///////////
 		//////////////////////////////////////////////////////////
@@ -326,8 +332,8 @@ function init_UsaProxy() {
 					var elType = document.forms[i].elements[j].type;
 					if (elType=="select-one" || elType=="select-multiple" || elType=="text" || elType=="textarea" || elType=="file" || elType=="checkbox" || elType=="password" || elType=="radio") {
 						document.forms[i].elements[j].addEventListener('change', processChange_UsaProxy, false);
-						document.forms[i].elements[j].addEventListener('blur', processBlur_UsaProxy, false);
-						document.forms[i].elements[j].addEventListener('focus', processFocus_UsaProxy, false);
+						//document.forms[i].elements[j].addEventListener('blur', processBlur_UsaProxy, false);
+						//document.forms[i].elements[j].addEventListener('focus', processFocus_UsaProxy, false);
 					}
 				}
 			}

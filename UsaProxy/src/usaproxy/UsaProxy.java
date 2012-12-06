@@ -87,6 +87,10 @@ public class UsaProxy {
 		} catch (UnknownHostException e) {
 			System.err.println("\nAn ERROR occured while retrieving UsaProxy IP address:\n"
 					+ e );
+			
+        	ErrorLogging.logError("UsaProxy.java: UsaProxy()",
+        			"ERROR occured while retrieving UsaProxy IP address",e.toString());
+        	
             System.exit(1);
 		}
 		
@@ -141,7 +145,10 @@ public class UsaProxy {
 		} catch (IOException e) {
         	System.err.println("\nAn ERROR occured while starting UsaProxy:\n"
 							+ e );
-			System.exit(1);
+        	
+        	ErrorLogging.logError("UsaProxy.java: proxyStart()","ERROR occured while starting UsaProxy", e.toString());
+			
+        	System.exit(1);
 		}
     }
 

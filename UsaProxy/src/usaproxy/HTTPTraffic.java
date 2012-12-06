@@ -61,6 +61,7 @@ public class HTTPTraffic {
         	/** If httpTraffic file doesn't exist, display error message. */
         	System.err.println("\nAn ERROR occured: httpTraffic file not found:\n");
 									e.printStackTrace() ;
+			ErrorLogging.logError("HTTPTraffic.java: getHttpTrafficIndex()", "httpTraffic file not found", e.toString());
 									
 			try{
 				/** Create new httpTraffic file. */
@@ -138,6 +139,9 @@ public class HTTPTraffic {
 			catch ( IOException ie ) { 	
         		System.err.println("\nAn ERROR occured while creating httpTraffic:\n"
 							+ ie );
+        		
+				ErrorLogging.logError("HTTPTraffic.java: retrieveIsCachingEnabled()",
+	        			"ERROR occured while creating httpTraffic",e.toString());
         	}	
 			
         }
@@ -145,6 +149,9 @@ public class HTTPTraffic {
         catch ( IOException ie ) { 	
         	System.err.println("\nAn ERROR occured while getting HTTPTraffic index:\n"
 							+ ie );
+        	
+        	ErrorLogging.logError("HTTPTraffic.java: retrieveIsCachingEnabled()",
+        			"ERROR occured while getting HTTPTraffic index",ie.toString());
         }
     	
     }
@@ -167,11 +174,15 @@ public class HTTPTraffic {
         	/** If httpTraffic file doesn't exist, display error message. */
         	System.err.println("\nAn ERROR occured: httpTraffic file not found:\n"
 									+ e );
+        	ErrorLogging.logError("HTTPTraffic.java: increaseHttpTrafficIndex()",
+        			"httpTraffic file not found",e.toString());
         }
         
         catch ( IOException ie ) { 	
         	System.err.println("\nAn ERROR occured while increasing httpTraffic index:\n"
 							+ ie );
+        	ErrorLogging.logError("HTTPTraffic.java: increaseHttpTrafficIndex()",
+        			"ERROR occured while increasing httpTraffic index",ie.toString());
         }
     	
     }
@@ -198,11 +209,17 @@ public class HTTPTraffic {
     	catch ( FileNotFoundException e ) { 
         	System.err.println("\nAn ERROR occured: txt file with index " + index + " not found:\n"
 									+ e );
+        	
+        	ErrorLogging.logError("FileSender.java: store()",
+        			"ERROR occured: txt file with index " + index + " not found",e.toString());
         }
         
         catch ( IOException ie ) { 	
         	System.err.println("\nAn ERROR occured while storing data to file with index " + index + ":\n"
 							+ ie );
+        	
+        	ErrorLogging.logError("FileSender.java: store()",
+        			"ERROR occured while storing data to file with index " + index + " not found",ie.toString());
         }
     	
     }
@@ -231,11 +248,17 @@ public class HTTPTraffic {
     	catch ( FileNotFoundException e ) { 
         	System.err.println("\nAn ERROR occured: txt file with index " + index + " not found:\n"
 									+ e );
+        	
+        	ErrorLogging.logError("FileSender.java: store()",
+        			"ERROR occured: txt file with index " + index + " not found",e.toString());
         }
         
         catch ( IOException ie ) { 	
         	System.err.println("\nAn ERROR occured while storing data to file with index " + index + ":\n"
 							+ ie );
+        	
+        	ErrorLogging.logError("FileSender.java: store()",
+        			"ERROR occured while storing data to file with index " + index, ie.toString());
         }
     	
     }
@@ -293,6 +316,10 @@ public class HTTPTraffic {
     		System.err.println("\nAn ERROR occured while retrieving HTTPTraffic response: "
 					+ "\n"
 					+ e );
+    		
+    		ErrorLogging.logError("HTTPTraffic.java: getResponseData())",
+    				"ERROR occured while retrieving HTTPTraffic response", e.toString());
+    				
 		}
 		
 		if(responseStarted) {

@@ -252,6 +252,9 @@ public class EventManager {
 		} catch (FileNotFoundException e) {
 			/** If log file doesn't exist, send 404 message. */
 			System.err.println("\nAn ERROR occured: log file not found:\n" + e);
+			
+			ErrorLogging.logError("Event Manager.java: log()","log file not found while trying to write the following data"
+						+ data, e.toString());
 
 			/** Send 404 error message to client */
 			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
@@ -596,21 +599,23 @@ public class EventManager {
 			/** append complete entry */
 			newdomData = domContent;
 
-			//We need to read the previous state of the DOM
+			// We need to read the previous state of the DOM
 			File latestDOM = new File(dir, "currentStateDOM");
-			
+
 			// if it's the first file then we store the entire DOM,
 			// including the temporal copy representing the latest DOM
 			if (saveEntireDOM) {
-						
-				//WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will leave an empty file
+
+				// WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will
+				// leave an empty file
 				// The name of the file where the dom/changes will be stored
-				
-				//we need to replace : in time for - so it doens't provoke any error in windows file systems
-				File filename = new File(dir, time.replace(":","-") + ";" + sd);
+
+				// we need to replace : in time for - so it doens't provoke any
+				// error in windows file systems
+				File filename = new File(dir, time.replace(":", "-") + ";" + sd);
 				/** Open a stream to the log file. */
 				FileOutputStream fos = new FileOutputStream(filename, false);
-				
+
 				numberOfDomChanges = 0;
 				fos.write(newdomData.getBytes());
 				fos.flush();
@@ -622,31 +627,35 @@ public class EventManager {
 			else {
 
 				String latestDOMString = getStringFromFile(latestDOM);
-				
+
 				// System.out.println("The original DOM was: " +
 				// latestDOMString);
 				// System.out.println();
 				// System.out.println("The new DOM is: " + newdomData);
 				String domChangesString = DOMdiff.getChangesLogJSON(
-						removeNewLines(latestDOMString), removeNewLines(newdomData), clientIP, time, sd, sid);
+						removeNewLines(latestDOMString),
+						removeNewLines(newdomData), clientIP, time, sd, sid);
 
 				numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
 
 				if (numberOfDomChanges > 0) {
-					
-					//WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will leave an empty file
+
+					// WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will
+					// leave an empty file
 					// The name of the file where the dom/changes will be stored
-					File filename = new File(dir, time.replace(":","-") + ";" + sd);
+					File filename = new File(dir, time.replace(":", "-") + ";"
+							+ sd);
 					/** Open a stream to the log file. */
 					FileOutputStream fos = new FileOutputStream(filename, false);
-					
+
 					fos.write(domChangesString.getBytes());
 					fos.flush();
 					fos.close();
 				}
 			}
 
-			FileOutputStream latestDOMOutput = new FileOutputStream(latestDOM,false);
+			FileOutputStream latestDOMOutput = new FileOutputStream(latestDOM,
+					false);
 
 			latestDOMOutput.write(newdomData.getBytes());
 			latestDOMOutput.flush();
@@ -659,12 +668,18 @@ public class EventManager {
 			System.err
 					.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
 							+ e);
+			
+			ErrorLogging.logError("EventManager.java: logDOMChange()",
+        			"ERROR occured: problems accessing the log file for DOM change",e.toString());
 		}
 
 		catch (IOException ie) {
 			System.err
 					.println("\nAn ERROR occured while logging DOM change event data:\n"
 							+ ie);
+			
+			ErrorLogging.logError("EventManager.java: logDOMChange()",
+        			"ERROR occured while logging DOM change event data",ie.toString());
 		}
 		return -1;
 
@@ -681,11 +696,12 @@ public class EventManager {
 				fileString += lineList.get(i);
 				fileString += "\n";
 			}
-			
-			//Cutting out the last "\n" to avoid different files from the one in the system
-			fileString = fileString.substring(0, fileString.length()-1);
+
+			// Cutting out the last "\n" to avoid different files from the one
+			// in the system
+			fileString = fileString.substring(0, fileString.length() - 1);
 			return fileString;
-			
+
 		} catch (IOException e) {
 			System.out
 					.println("EventManager.java/getStringFromFile: ERROR accessing the following file:"
@@ -694,15 +710,14 @@ public class EventManager {
 			return null;
 		}
 	}
-	
+
 	/*
 	 * this function will just remove the useless "newline" tags for comparison
-	 * 
 	 */
-	public String removeNewLines(String input){
+	public String removeNewLines(String input) {
 		input = input.replaceAll("\n", "");
 		input = input.replaceAll("\r", "");
-		return(input);
-	  }
+		return (input);
+	}
 
 }

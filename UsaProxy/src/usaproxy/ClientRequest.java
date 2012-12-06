@@ -97,6 +97,9 @@ public class ClientRequest extends Thread {
 					.println("\nAn ERROR occured while negotiating with the server:\n"
 							+ e);
 			e.printStackTrace();
+			
+			ErrorLogging.logError("ClientRequest.java: run()",
+        			"ERROR occured while negotiating with the server",e.toString());
 
 		} finally {
 
@@ -302,6 +305,8 @@ public class ClientRequest extends Thread {
 						System.err
 								.println("\nAn ERROR occured while opening UsaProxy server socket:\n"
 										+ err);
+						
+						ErrorLogging.logError("ClientRequest.java","ERROR occured while opening UsaProxy server socket", err.toString());
 					}
 
 					/**
@@ -688,7 +693,6 @@ public class ClientRequest extends Thread {
 					usaProxy.getEventManager().log(client.getOut(),
 							requestURL.getQuery(), client.getSocket(),
 							"log.txt");
-				
 			}
 
 			/*********************************************************************
@@ -1022,121 +1026,123 @@ public class ClientRequest extends Thread {
 			 * processResponse()
 			 * */
 			else {
-
-				/**
-				 * other undefined "usaproxylolo" requests: Reject request
-				 */
-				if (requestURL.getPath().startsWith("/usaproxylolo")) {
-					SocketData.send403(new DataOutputStream(client.getOut()),
-							"Forbidden usaproxylolo request !");
-					return;
-				}
-
-				/** Display message: Client and requested URL */
-				if (UsaProxy.DEBUG)
-					System.out.println("New REQUEST:");
-				if (UsaProxy.DEBUG)
-					System.out.println("From client "
-							+ client.getSocket().getInetAddress().getHostName()
-							+ " ("
-							+ client.getSocket().getInetAddress()
-									.getHostAddress() + ") with request GET "
-							+ url + "\n");
-
-				/** HTTP headers processing */
-
-				/**
-				 * add X-Forwarded-For header to ensure the server gets the
-				 * client IP
-				 */
-				client.getHeaders().put(HTTPData.HEADER_X_FORWARDED_FOR,
-						client.getSocket().getInetAddress().getHostAddress());
-
-				/**
-				 * add accept-encoding header value "identity" to avoid gzip
-				 * content-encoding
-				 */
-				client.getHeaders().put(HTTPData.HEADER_ACCEPT_ENCODING,
-						"identity");
-
-				/** add connection header value "close" */
-				client.getHeaders().put(HTTPData.HEADER_CONNECTION, "close");
-
-				/** remove proxy-connection and keep-alive header */
-				if (client.getHeaders().containsKey(
-						HTTPData.HEADER_PROXY_CONNECTION))
-					client.getHeaders()
-							.remove(HTTPData.HEADER_PROXY_CONNECTION);
-				if (client.getHeaders().containsKey(
-						HTTPData.HEADER_CONNECTION_KEEPALIVE))
-					client.getHeaders().remove(
-							HTTPData.HEADER_CONNECTION_KEEPALIVE);
-
-				/** add UsaProxy header for Apache mod_rewrite */
-				client.getHeaders().put(HTTPData.HEADER_X_USAPROXY, "client");
-
-				// client.getHeaders().printHeaders();
-				// requestURL.toString();
-
-				/** end HTTP headers processing */
-
-				/** connect with the web server depending on the proxy mode */
-				try {
-					this.server = new SocketData(usaProxy.getMode()
-							.getServerConnect());
-				}
-				/** if server could not be detected or didn't respond */
-				catch (Exception err) {
-
-					System.err
-							.println("\nAn ERROR occured while connecting to the server:\n"
-									+ err);
-					err.printStackTrace();
-
-					/**
-					 * send error message to client with the error, the
-					 * requested url, and the host
-					 */
-					SocketData.send403(new DataOutputStream(client.getOut()),
-							err.getMessage());
-
-					/** Close streams and sockets */
-					client.closeInputStream();
-					client.closeOutputStream();
-					client.closeSocket();
-					if (server != null)
-						server.closeSocket();
-
-					/** End of run */
-					return;
-				}
-
-				if (method.equals("POST"))
-					client.setIn(in);
-				else
-					client.setIn(null);
-
-				/** Create server streams */
-				/** Create client streams */
-				server.bindInputStream();
-				server.bindOutputStream();
-
-				/**
-				 * retrieve new httptraffic index for the storage of request and
-				 * response
-				 */
-				if (usaProxy.getHttpTraffic().isCachingEnabled())
-					httpTrafficIndex = usaProxy.getHttpTraffic()
-							.getHttpTrafficIndex(true);
-
-				/**
-				 * Create new Thread that manages the posting of the client
-				 * request to the web server
-				 */
-				new ServerRequest(client, server, this);
-
-				/** Receive server response and process it */
-				processResponse(server.getIn());
+				
+				/////////We removed the possibility of acting as a Proxy, minimizing the overload the server will have
+//
+//				/**
+//				 * other undefined "usaproxylolo" requests: Reject request
+//				 */
+//				if (requestURL.getPath().startsWith("/usaproxylolo")) {
+//					SocketData.send403(new DataOutputStream(client.getOut()),
+//							"Forbidden usaproxylolo request !");
+//					return;
+//				}
+//
+//				/** Display message: Client and requested URL */
+//				if (UsaProxy.DEBUG)
+//					System.out.println("New REQUEST:");
+//				if (UsaProxy.DEBUG)
+//					System.out.println("From client "
+//							+ client.getSocket().getInetAddress().getHostName()
+//							+ " ("
+//							+ client.getSocket().getInetAddress()
+//									.getHostAddress() + ") with request GET "
+//							+ url + "\n");
+//
+//				/** HTTP headers processing */
+//
+//				/**
+//				 * add X-Forwarded-For header to ensure the server gets the
+//				 * client IP
+//				 */
+//				client.getHeaders().put(HTTPData.HEADER_X_FORWARDED_FOR,
+//						client.getSocket().getInetAddress().getHostAddress());
+//
+//				/**
+//				 * add accept-encoding header value "identity" to avoid gzip
+//				 * content-encoding
+//				 */
+//				client.getHeaders().put(HTTPData.HEADER_ACCEPT_ENCODING,
+//						"identity");
+//
+//				/** add connection header value "close" */
+//				client.getHeaders().put(HTTPData.HEADER_CONNECTION, "close");
+//
+//				/** remove proxy-connection and keep-alive header */
+//				if (client.getHeaders().containsKey(
+//						HTTPData.HEADER_PROXY_CONNECTION))
+//					client.getHeaders()
+//							.remove(HTTPData.HEADER_PROXY_CONNECTION);
+//				if (client.getHeaders().containsKey(
+//						HTTPData.HEADER_CONNECTION_KEEPALIVE))
+//					client.getHeaders().remove(
+//							HTTPData.HEADER_CONNECTION_KEEPALIVE);
+//
+//				/** add UsaProxy header for Apache mod_rewrite */
+//				client.getHeaders().put(HTTPData.HEADER_X_USAPROXY, "client");
+//
+//				// client.getHeaders().printHeaders();
+//				// requestURL.toString();
+//
+//				/** end HTTP headers processing */
+//
+//				/** connect with the web server depending on the proxy mode */
+//				try {
+//					this.server = new SocketData(usaProxy.getMode()
+//							.getServerConnect());
+//				}
+//				/** if server could not be detected or didn't respond */
+//				catch (Exception err) {
+//
+//					System.err
+//							.println("\nAn ERROR occured while connecting to the server:\n"
+//									+ err);
+//					err.printStackTrace();
+//
+//					/**
+//					 * send error message to client with the error, the
+//					 * requested url, and the host
+//					 */
+//					SocketData.send403(new DataOutputStream(client.getOut()),
+//							err.getMessage());
+//
+//					/** Close streams and sockets */
+//					client.closeInputStream();
+//					client.closeOutputStream();
+//					client.closeSocket();
+//					if (server != null)
+//						server.closeSocket();
+//
+//					/** End of run */
+//					return;
+//				}
+//
+//				if (method.equals("POST"))
+//					client.setIn(in);
+//				else
+//					client.setIn(null);
+//
+//				/** Create server streams */
+//				/** Create client streams */
+//				server.bindInputStream();
+//				server.bindOutputStream();
+//
+//				/**
+//				 * retrieve new httptraffic index for the storage of request and
+//				 * response
+//				 */
+//				if (usaProxy.getHttpTraffic().isCachingEnabled())
+//					httpTrafficIndex = usaProxy.getHttpTraffic()
+//							.getHttpTrafficIndex(true);
+//
+//				/**
+//				 * Create new Thread that manages the posting of the client
+//				 * request to the web server
+//				 */
+//				new ServerRequest(client, server, this);
+//
+//				/** Receive server response and process it */
+//				processResponse(server.getIn());
 			}
 
 		} catch (IOException e) {
@@ -1273,10 +1279,16 @@ public class ClientRequest extends Thread {
 								+ "from server "
 								+ server.getSocket().getInetAddress()
 										.getHostName() + ":\n" + e);
+				
+				ErrorLogging.logError("ClientRequest.java: processResponse()",
+	        			"ERROR occured while reading response headers",e.toString());
 			} else {
 				System.err
 						.println("\nAn ERROR occured while reading response headers: "
 								+ "\n" + e);
+				
+				ErrorLogging.logError("ClientRequest.java: processResponse()",
+	        			"ERROR occured while reading response headers",e.toString());
 			}
 		}
 
@@ -1613,10 +1625,18 @@ public class ClientRequest extends Thread {
 								+ "from server "
 								+ server.getSocket().getInetAddress()
 										.getHostName() + ":\n" + e);
+				
+				ErrorLogging.logError("ClientRequest.java: insertJavaScript()",
+	        			"ERROR occured while enhancing response" + "from server "
+								+ server.getSocket().getInetAddress()
+								.getHostName(), e.toString());
 			} else {
 				System.err
 						.println("\nAn ERROR occured while enhancing response: "
 								+ "\n" + e);
+				
+				ErrorLogging.logError("ClientRequest.java: insertJavaScript()",
+	        			"ERROR occured while enhancing response",e.toString());
 			}
 		}
 
