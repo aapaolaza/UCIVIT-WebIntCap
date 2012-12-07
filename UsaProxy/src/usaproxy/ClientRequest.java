@@ -691,8 +691,7 @@ public class ClientRequest extends Thread {
 						&& !usaProxy.getLogMode().equals("pagereq")
 						&& requestURL.getQuery().indexOf("lastId=") == -1)
 					usaProxy.getEventManager().log(client.getOut(),
-							requestURL.getQuery(), client.getSocket(),
-							"log.txt");
+							requestURL.getQuery(), client.getSocket());
 			}
 
 			/*********************************************************************
@@ -1717,7 +1716,7 @@ public class ClientRequest extends Thread {
 					String logData = timeStamp() + " usaproxyload url="
 							+ requestURL;
 					usaProxy.getEventManager().log(null, logData,
-							client.getSocket(), "log.txt");
+							client.getSocket());
 				}
 			}
 
@@ -1734,7 +1733,7 @@ public class ClientRequest extends Thread {
 					String logData = timeStamp + " httptraffic url="
 							+ requestURL + " sd=" + httpTrafficIndex;
 					usaProxy.getEventManager().log(null, logData,
-							client.getSocket(), "log.txt");
+							client.getSocket());
 				}
 
 				/** store headers to indexed txt-file */

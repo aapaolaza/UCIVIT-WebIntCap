@@ -13,9 +13,13 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
+
+import org.apache.commons.io.FileUtils;
 
 import usaproxy.domchanges.DOMdiff;
 
@@ -41,6 +45,37 @@ public class EventManager {
 	 * corresponding partners list.
 	 */
 	private UsaProxy usaProxy;
+
+	/**
+	 * Name of the folder in which to put the log files
+	 */
+	private final static String logFolder = "logFiles";
+
+	/**
+	 * Name of the file in which to record the logged data
+	 */
+	private final static String logFilename = "log.txt";
+
+	/**
+	 * Maximum size of the log file in bytes. If bigger than this, it will
+	 * create a new file The first value will be 5MB, to not make the file too
+	 * heavy for text editors, and also to check it's working. that should be 5
+	 * * 1024 *1024 = 5242880
+	 */
+	private final static int maxLogSize = 5242880;//I will test with 100kb to see if it's working
+
+	/**
+	 * Reference value of the default value of the variable
+	 * recordingsLeftToCheckSize, so it can get reseted
+	 */
+	private final static int recordingsLeftToCheckSizeDefault = 100;
+
+	/**
+	 * Number of iterations left before we check for the size of the file again.
+	 * As the increases in size are very small, there is no point in checking
+	 * the size every time we log something
+	 */
+	private int recordingsLeftToCheckSize = recordingsLeftToCheckSizeDefault;
 
 	/**
 	 * Constructor: creates an <code>EventManager</code> instance and a new
@@ -163,11 +198,10 @@ public class EventManager {
 	 *            is the event string to be logged.
 	 * @param client
 	 *            is the client's <code>Socket</code>.
-	 * @param filename
+	 * @param logFilename
 	 *            specifies the log file.
 	 */
-	public synchronized void log(OutputStream out, String data, Socket client,
-			String filename) {
+	public synchronized void log(OutputStream out, String data, Socket client) {
 
 		int numberOfDomChanges;
 
@@ -176,9 +210,6 @@ public class EventManager {
 			out = new DataOutputStream(out);
 
 		try {
-
-			/** Open a stream to the log file. */
-			FileOutputStream fos = new FileOutputStream(filename, true);
 
 			/** retrieve the client's IP address */
 			String clientIP = client.getInetAddress().getHostAddress();
@@ -238,23 +269,19 @@ public class EventManager {
 				}
 			}
 
-			// System.out.println(data);
-			fos.write(data.getBytes());
-			fos.flush();
-			fos.close();
-
-			if (out != null) {
+			if(writeToLogFile(data) && out != null){
 				/** send 404 message in order to complete the request */
-				//Changed to 200 message
+				// Changed to 200 message
 				SocketData.send200(out);
 			}
 
 		} catch (FileNotFoundException e) {
 			/** If log file doesn't exist, send 404 message. */
 			System.err.println("\nAn ERROR occured: log file not found:\n" + e);
-			
-			ErrorLogging.logError("Event Manager.java: log()","log file not found while trying to write the following data"
-						+ data, e.toString());
+
+			ErrorLogging.logError("Event Manager.java: log()",
+					"log file not found while trying to write the following data:\n"
+							+ data, e.toString());
 
 			/** Send 404 error message to client */
 			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
@@ -272,6 +299,67 @@ public class EventManager {
 		/** notify waiting clients that log file is accessible */
 		notifyAll();
 
+	}
+
+	/**
+	 * This function writes the data given as an input into the log file. It
+	 * will also handle situations in which log file gets too big. In that case
+	 * it will backup the current log file and create a new one.
+	 * 
+	 * @param data
+	 *            is the data to write to the log file.
+	 * @return boolean indicating if the writing was successfull or not
+	 */
+	public boolean writeToLogFile(String data) throws IOException {
+
+		boolean returnValue = false;
+		/** Open a stream to the log file. */
+		File logFile = new File(logFolder, logFilename);
+		
+		//System.out.println("recordingsLeftToCheckSize: " + recordingsLeftToCheckSize +", and log file size:" + logFile.length());
+
+		// if it's time to check the size
+		if (recordingsLeftToCheckSize == 0) {
+			// we restart the "time to check" counter
+			recordingsLeftToCheckSize = recordingsLeftToCheckSizeDefault;
+
+			// If the size is bigger than the allowed one, create a new log file
+			// and add a timestamp to the old one
+			if (logFile.length() > maxLogSize) {
+
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd,HH-mm-ss-SSS");
+				Date dt = new Date();
+				String timeStamp = sdf.format(dt);
+
+				File oldLogFile = new File(logFolder, timeStamp + "_" + logFilename);
+
+				// if the rename function works we create a new log file
+				// and writes the new data to it
+				try{
+					FileUtils.moveFile(logFile, oldLogFile);
+					File newLog = new File(logFolder, logFilename);
+					FileOutputStream fos = new FileOutputStream(newLog, true);
+					fos.write(data.getBytes());
+					fos.flush();
+					fos.close();
+					returnValue = true;
+				}
+				catch(Exception e){
+					//There was a problem with the rename function, we record the error
+					ErrorLogging.logError("EventManager.java:writeToLogFile()", "Trying to rename the old log file failed", e.toString());
+					returnValue = false;
+				}
+			}
+		} else {
+			// We record it like we normally would
+			recordingsLeftToCheckSize--;
+			FileOutputStream fos = new FileOutputStream(logFile, true);
+			fos.write(data.getBytes());
+			fos.flush();
+			fos.close();
+			returnValue = true;
+		}
+		return returnValue;
 	}
 
 	/**
@@ -668,18 +756,22 @@ public class EventManager {
 			System.err
 					.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
 							+ e);
-			
-			ErrorLogging.logError("EventManager.java: logDOMChange()",
-        			"ERROR occured: problems accessing the log file for DOM change",e.toString());
+
+			ErrorLogging
+					.logError(
+							"EventManager.java: logDOMChange()",
+							"ERROR occured: problems accessing the log file for DOM change",
+							e.toString());
 		}
 
 		catch (IOException ie) {
 			System.err
 					.println("\nAn ERROR occured while logging DOM change event data:\n"
 							+ ie);
-			
+
 			ErrorLogging.logError("EventManager.java: logDOMChange()",
-        			"ERROR occured while logging DOM change event data",ie.toString());
+					"ERROR occured while logging DOM change event data",
+					ie.toString());
 		}
 		return -1;
 

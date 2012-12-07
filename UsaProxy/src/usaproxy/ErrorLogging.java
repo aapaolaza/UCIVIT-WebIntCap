@@ -3,6 +3,8 @@ package usaproxy;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Class ErrorLogging receives errors occurred throughout the project and logs
@@ -12,7 +14,7 @@ public class ErrorLogging {
 
 	private final static String filename = "errorLog.txt";
 
-	private final static String errorSeparator = "---------------------------------------------------------------";
+	private final static String errorSeparator = "\n---------------------------------------------------------------\n";
 
 	/**
 	 * Logs and error message in a text file so it doesn't get lost among the
@@ -39,7 +41,13 @@ public class ErrorLogging {
 			FileOutputStream fos = new FileOutputStream(new File(filename), true);
 
 			String errorToLog = errorSeparator;
-			errorToLog += sourceFuntion + ":\n" + errorComment
+			
+			SimpleDateFormat sdf = new SimpleDateFormat(
+					"MM/dd/yyyy HH:mm:ss.SSS");
+			Date dt = new Date();
+			String timeStamp = sdf.format(dt);
+			
+			errorToLog += timeStamp + ": " + sourceFuntion + ":\n" + errorComment
 					+ "\n The system error message was:\n" + errorSystemMessage;
 			errorToLog += errorSeparator;
 

@@ -2200,7 +2200,7 @@ function askForCookiePermission(){
  * 
  */ 
 function handleCookieButton(){
-	console.log("getSessionFromCookie");
+	//console.log("getSessionFromCookie");
 	setCookie("proxyUserID", sessionID_Proxy, cookieLife);
 	sessionID = getCookie("proxyUserID");
 	document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
@@ -2217,15 +2217,20 @@ function handleCookieButton(){
  * IMPORTANT: For now, and because there are always cookies, it will always return false, requiring us to ask for permission for the cookie
  */ 
 function getSessionFromCookie(){
-	console.log("getSessionFromCookie");
+	//console.log("getSessionFromCookie");
 	
+	//We check if there are cookies in the Web page
 	if (document.cookie.split(";").length > 0)
 	{
 		sessionID = getCookie("proxyUserID");
 		
 		if (sessionID == "null")
-			return false;
-			
+		{
+			//We don't have our cookie deployed, but there were other cookies, so we should be able to create one
+			setCookie("proxyUserID", sessionID_Proxy, cookieLife);
+			sessionID = getCookie("proxyUserID");
+			//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
+		}
 		init_UsaProxy();
 		return true;
 	}
