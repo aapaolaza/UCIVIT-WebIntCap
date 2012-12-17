@@ -1,6 +1,15 @@
 package usaproxy;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.util.Date;
 
 /**
  * Class <code>FileSender</code> is used for the forwarding of JavaScript files,
@@ -124,6 +133,13 @@ public class FileSender {
 					sessionIDText = "hallowelthal";
 				String sessionSetter = "var sessionID_Proxy='" + sessionIDText
 						+ "';" + HTTPData.CRLF;
+				
+				/*
+				 * We also add the server time as a variable
+				 */
+				String startDate = "var startDate_UsaProxy='" + new Date().getTime()
+						+ "';" + HTTPData.CRLF;
+				
 
 				/**
 				 * define additional fields which are pasted into proxyscript.js
@@ -146,7 +162,7 @@ public class FileSender {
 				 */
 				if (!isRM && !isSB && logMode.equals("all")) {
 
-					contentLength = sessionSetter.length()
+					contentLength = sessionSetter.length() + startDate.length()
 							+ (int) file.length();
 
 				}
@@ -264,6 +280,9 @@ public class FileSender {
 
 				/** paste sessionID variable into proxyscript.js */
 				out.writeBytes(sessionSetter);
+				
+				/** paste timestamp variable*/
+				out.writeBytes(startDate);
 
 				/**
 				 * in either of the collaboration modes paste the additional

@@ -44,8 +44,12 @@ var serverdataId_UsaProxy;      /* String: contains related serverdata ID define
 var id_UsaProxy;				// String: contains String identifying the current UsaProxy instance
 								 
 /* timestamp objects */
-var startDate_UsaProxy;			/* Date: Initialised by UsaProxy. Load completion timestamp is  
-								   calculated relative to this timestamp */
+
+/* Date: Initialised by UsaProxy. Load completion timestamp is  
+   calculated relative to this timestamp.
+   * Doesn't need to be created as the server add it with its corresponding value*/
+//var startDate_UsaProxy;			
+
 var loadDate_UsaProxy;			// Date: Initialised on load. All further timestamps are calculated
 								// by adding the ms passed since page load completion to this
 								//  relative timestamp.
@@ -178,9 +182,11 @@ function init_UsaProxy() {
 	//CHANGES: we get all data from our global variables (the inclussion of a port number breaks the parsing so the code didn't work)
 	
 	serverdataId_UsaProxy	= window.webpageIndex;
-	set_date_UsaProxy();
-	startDate_UsaProxy=date_UsaProxy(window.usaProxyDate);
-		
+	//set_date_UsaProxy();
+	//startDate_UsaProxy=date_UsaProxy(window.usaProxyDate);
+	
+	startDate_UsaProxy = parseInt(startDate_UsaProxy);
+	
 	id_UsaProxy=window.usaProxyId;
 	
 	/* log load event */
@@ -211,7 +217,7 @@ function init_UsaProxy() {
 	// IE
 	if(document.attachEvent) {
 		
-		alert("you are IE");
+		//alert("you are IE");
 	
 		document.attachEvent('onmousedown', processMousedown_UsaProxy);
 		//document.attachEvent('onkeypress', processKeypress_UsaProxy);
@@ -389,7 +395,8 @@ function init_UsaProxy() {
 
 
 //CHANGE: function added to calculate the date
-function set_date_UsaProxy(){
+//DEPRECATED: The time comes from the server now
+/*function set_date_UsaProxy(){
 	var today = new Date();
 	var cDate = today.getDate();
 	var cMonth = today.getMonth()+1;//JavaScript counts the months from 0 to 11
@@ -419,7 +426,7 @@ function set_date_UsaProxy(){
 		  
 	//Server configuration parameters
 	window.usaProxyDate=cYear+"-"+cMonth+"-"+cDate+","+cHour+":"+cMin+":"+cSec;
-}
+}*/
 
 
 // Returns a Date object computed from a given datestamp string
@@ -451,13 +458,14 @@ function datestamp_UsaProxy() {
 	// get milliseconds from load time
 	var diffSecs 		= Math.abs(currentDate.getTime() - loadDate_UsaProxy.getTime());
 	// return new Date object according to UsaProxy start time + diffMSecs
-	var currentUPDate 	= new Date(startDate_UsaProxy.getTime() + diffSecs);
+	var currentUPDate 	= new Date(startDate_UsaProxy + diffSecs);
 
 	return currentUPDate.getFullYear() + "-" + completeDateVals(currentUPDate.getMonth()) + "-"
 	  + completeDateVals(currentUPDate.getDate()) + "," + completeDateVals(currentUPDate.getHours())
 	  + ":" + completeDateVals(currentUPDate.getMinutes())
 	  + ":" + completeDateVals(currentUPDate.getSeconds())
 	  + ":" + completeDateValsMilliseconds(currentUPDate.getMilliseconds());
+	  
 }
 
 /** Completes single-digit numbers by a "0"-prefix */
@@ -491,10 +499,10 @@ function writeLog_UsaProxy(text) {
 	
 	if(FLG_writingLogVal_UsaProxy) {
 		window.setTimeout("writeLog_UsaProxy(" + text + ")",50);
-		console.log("writeLog was deferred, its content were: " + text.substring(0,20));
+		//console.log("writeLog was deferred, its content were: " + text.substring(0,20));
 		return false;}
 	
-	console.log("The following event will be written, its content are: " + text.substring(0,20));
+		//console.log("The following event will be written, its content are: " + text.substring(0,20));
 	
 		//CHANGE! added additional parameters after "text"
 	
@@ -1926,7 +1934,7 @@ function processSelectText_ExtraEvent(e) {
 function processUnload_ExtraEvent(e) {
 	writeLog_UsaProxy("Unload");
 	saveLog_UsaProxy();
-	console.log("UNLOAD RECORDED");
+	//console.log("UNLOAD RECORDED");
 	//pausecomp(3000);
 	//alert("logging unload");
 }
@@ -2130,14 +2138,14 @@ function printCookiesOnConsole(){
 		y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
 		x=x.replace(/^\s+|\s+$/g,"");
 		
-		console.log(x);
+		//console.log(x);
 		/*if (x==c_name)
 		{
 			return unescape(y);
 		}*/
 	}
 	
-	alert(document.cookie);
+	//alert(document.cookie);
 }
 
 /*
@@ -2153,7 +2161,7 @@ function askForCookiePermission(){
 	}
 	
 	//if not, we show the disclaimer
-	alert("showing cookie disclaimer");
+	//alert("showing cookie disclaimer");
 	
 //	htmlDivContent = "<div style=\"text-align:center;border: 1px solid black;background-color:silver\">	<h3>This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site</h3><button  align=\"center\">I don't want to use cookies</button></div>"
 	
@@ -2164,18 +2172,30 @@ function askForCookiePermission(){
 	htmlDivContent.style.border = "1px solid black";
 	
 	//htmlDivContent.style.height="50px"
-	htmlDivContent.style.width="500px"
+	//htmlDivContent.style.width="500px"
 	
 	//htmlDivContent.style.border.style="";
 	//htmlDivContent.style.border.color="";
 	htmlDivContent.style.textAlign = "center";
 	htmlDivContent.style.margin = "0px auto 0px auto";
+	htmlDivContent.style.position = "static";
 	
-	var textDiv = document.createElement("div");
+	
+	var headerNode = document.createElement("h2");
+	var headerText = document.createTextNode("Cookies in this website");
+	headerNode.appendChild(headerText);
+	
+	//headerNode.style.float = "left";
+	//headerNode.style.textAlign = "right";
+	
+	htmlDivContent.appendChild(headerNode);
 
+	
+	
+	var textNode = document.createElement("p");
 	var disclaimerText = document.createTextNode("This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site");
-	textDiv.appendChild(disclaimerText);
-	htmlDivContent.appendChild(textDiv);
+	textNode.appendChild(disclaimerText);
+	htmlDivContent.appendChild(textNode);
 	
 	var htmlButton = document.createElement("button");
 	
@@ -2188,11 +2208,29 @@ function askForCookiePermission(){
 	
 	//document.getElementsByTagName('body')[0].appendChild(htmlDivContent);
 	
+	
+	//document.insertBefore(htmlDivContent, document.getElementsByTagName('html')[0]);
+	
 	if (document.body.firstChild){
       	document.body.insertBefore(htmlDivContent, document.body.firstChild);
+		console.log("inserting before");
 	} else {
       	document.body.appendChild(htmlDivContent);
+      	console.log("appending before");
 	}
+	
+	
+	///Changing CSS style
+	//document.getElementsByTagName('div')
+	/*divArray = document.body.getElementsByTagName('div');
+	alert( divArray.length);
+	for (var i = divArray.length-1; i >= 0; i--) {
+		divArray[i].style.marginTop = "100px";
+	} */
+
+	document.body.style.marginTop = "50px";
+	
+	htmlDivContent.style.marginTop = "0px";
 }
 
 /*
@@ -2219,9 +2257,14 @@ function handleCookieButton(){
 function getSessionFromCookie(){
 	//console.log("getSessionFromCookie");
 	
+//DEBUG PURPOSES REMEMBER TO DELETE IT!!!
+			return false;
+
+	
 	//We check if there are cookies in the Web page
-	if (document.cookie.split(";").length > 0)
+	if (document.cookie.length > 0)
 	{
+		
 		sessionID = getCookie("proxyUserID");
 		
 		if (sessionID == "null")
