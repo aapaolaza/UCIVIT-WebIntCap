@@ -1,12 +1,11 @@
 package usaproxy.events;
 
 import com.google.gson.Gson;
-
 /*
- * Event triggered when the mouse gets out of the hovering area of a certain element.
+ * The system periodically checks the scroll state of the browser.
+ * If there is a difference, it records either the x or y measure.
  */
-
-public class Mouseout {
+public class Scroll {
 
 	/**
 	 * @param ip
@@ -14,65 +13,60 @@ public class Mouseout {
 	 * @param sd
 	 * @param sid
 	 * @param event
-	 * @param nodeInfo
+	 * @param scrollX
+	 * @param scrollY
 	 * @param browser
 	 * @param url
 	 */
-	public Mouseout(String ip, String timestamp, String sd, String sid,
-			String event, NodeInfo nodeInfo, String browser, String url) {
+	public Scroll(String ip, String timestamp, String sd, String sid,
+			String event, Float scrollX, Float scrollY, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		
-		this.nodeInfo = nodeInfo;
-		
+		this.scrollX = scrollX;
+		this.scrollY = scrollY;
 		this.browser = browser;
 		this.url = url;
 	}
 	
-	/**
-	 * Deserialise given JSON and creates a new Mouseout element with the result
-	 * 
-	 * @param serialised
-	 *            class in JSON
+	/** Deserialise given JSON and creates a Scroll element with the result
+	 * @param serialised class in JSON
 	 */
 
-	public Mouseout(String json) {
+	public Scroll(String json){
 		Gson gson = new Gson();
-		Mouseout tempClass = gson.fromJson(json, Mouseout.class);
+		Scroll tempClass = gson.fromJson(json, Scroll.class);
 		
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
-		this.nodeInfo = tempClass.nodeInfo;
-
+		this.scrollX = tempClass.scrollX;
+		this.scrollY = tempClass.scrollY;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
+	}	
+	
 
-	}
-
-	/**
-	 * Serialise the class into a JSON, and returns the String containing it
-	 * 
+	/** Serialise the class into a JSON, and returns the String containing it 
 	 * @return serialised class in JSON
 	 */
 
-	public String toGson() {
+	public String toGson(){
 		Gson gson = new Gson();
 		String json = gson.toJson(this);
 		return json;
 	}
-
+ 
 	/*
 	 * User's IP
 	 */
 	private String ip;
-
+	
 	/*
 	 * Timestamp of the event
 	 */
@@ -82,7 +76,7 @@ public class Mouseout {
 	 * Id of the website
 	 */
 	private String sd;
-
+	
 	/*
 	 * User's ID
 	 */
@@ -92,22 +86,28 @@ public class Mouseout {
 	 * Event's name
 	 */
 	private String event;
-
+			
 	/*
-	 * NodeInfo element with all the information available of the node
+	 * X coordinate of the scroll
 	 */
-	private NodeInfo nodeInfo;
-
+	private Float scrollX;
+	
+	/*
+	 * Y coordinate of the scroll
+	 */
+	private Float scrollY;
+	
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-
+	
 	/*
-	 * URL wheree the event happened
+	 * URL where the event happened
 	 */
 	private String url;
 
+	
 
 	/**
 	 * @return the ip
@@ -117,8 +117,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param ip
-	 *            the ip to set
+	 * @param ip the ip to set
 	 */
 	public void setIp(String ip) {
 		this.ip = ip;
@@ -132,8 +131,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param timestamp
-	 *            the timestamp to set
+	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
@@ -147,8 +145,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param sd
-	 *            the sd to set
+	 * @param sd the sd to set
 	 */
 	public void setSd(String sd) {
 		this.sd = sd;
@@ -162,8 +159,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param sid
-	 *            the sid to set
+	 * @param sid the sid to set
 	 */
 	public void setSid(String sid) {
 		this.sid = sid;
@@ -177,25 +173,38 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param event
-	 *            the event to set
+	 * @param event the event to set
 	 */
 	public void setEvent(String event) {
 		this.event = event;
 	}
 	
 	/**
-	 * @return the nodeInfo
+	 * @return the X scroll value
 	 */
-	public NodeInfo getNodeInfo() {
-		return nodeInfo;
+	public Float getScrollX() {
+		return scrollX;
 	}
 
 	/**
-	 * @param nodeinfo the nodeInfo to set
+	 * @param key the X scroll value to set
 	 */
-	public void setNodeInfo(NodeInfo nodeInfo) {
-		this.nodeInfo = nodeInfo;
+	public void setScrollX(Float scrollX) {
+		this.scrollX = scrollX;
+	}
+
+	/**
+	 * @return the Y scroll value
+	 */
+	public Float getScrollY() {
+		return scrollY;
+	}
+
+	/**
+	 * @param key the Y scroll value to set
+	 */
+	public void setScrollY(Float scrollY) {
+		this.scrollY = scrollY;
 	}
 
 	/**
@@ -206,8 +215,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param browser
-	 *            the browser to set
+	 * @param browser the browser to set
 	 */
 	public void setBrowser(String browser) {
 		this.browser = browser;
@@ -221,11 +229,9 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param url
-	 *            the url to set
+	 * @param url the url to set
 	 */
 	public void setUrl(String url) {
 		this.url = url;
 	}
-
 }

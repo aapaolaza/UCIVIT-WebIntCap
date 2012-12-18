@@ -18,15 +18,13 @@ public class Mousemove {
 	 * @param coordY
 	 * @param offsetX
 	 * @param offsetY
-	 * @param dom
-	 * @param nodeType
-	 * @param textValue
+	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Mousemove(String ip, String timestamp, String sd, String sid,
 			String event, double coordX, double coordY, double offsetX,
-			double offsetY, String dom, String nodeType, String textValue,
+			double offsetY, NodeInfo nodeInfo,
 			String browser, String url) {
 		super();
 		this.ip = ip;
@@ -38,11 +36,28 @@ public class Mousemove {
 		this.coordY = coordY;
 		this.offsetX = offsetX;
 		this.offsetY = offsetY;
-		this.dom = dom;
-		this.nodeType = nodeType;
-		this.textValue = textValue;
+		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
+	}
+	
+
+	/** Deserialise given JSON and creates a new Mousemove element with the result
+	 * @param serialised class in JSON
+	 */
+
+	public Mousemove(String json){
+		Gson gson = new Gson();
+		Mousemove tempClass = gson.fromJson(json, Mousemove.class);
+		
+		this.coordX = tempClass.coordX;
+		this.coordY = tempClass.coordY;
+		this.offsetX = tempClass.offsetX;
+		this.offsetY = tempClass.offsetY;
+		this.nodeInfo = tempClass.nodeInfo;
+		this.browser = tempClass.browser;
+		this.url = tempClass.url;
+		
 	}
 	
 
@@ -56,25 +71,6 @@ public class Mousemove {
 		return json;
 	}
  
-	/** Deserialise given JSON and loads the result into this class
-	 * @param serialised class in JSON
-	 */
-
-	public void fromGson(String json){
-		Gson gson = new Gson();
-		Mousemove tempClass = gson.fromJson(json, Mousemove.class);
-		
-		this.coordX = tempClass.coordX;
-		this.coordY = tempClass.coordY;
-		this.offsetX = tempClass.offsetX;
-		this.offsetY = tempClass.offsetY;
-		this.dom = tempClass.dom;
-		this.nodeType = tempClass.nodeType;
-		this.textValue = tempClass.textValue;
-		this.browser = tempClass.browser;
-		this.url = tempClass.url;
-		
-	}
 	
 	/*
 	 * User's IP
@@ -119,22 +115,11 @@ public class Mousemove {
 	 * Location of the mouse with respect to the hovered element in the Y axis
 	 */
 	private double offsetY;
-	
 	/*
-	 * DOM location of the hovered element
+	 * NodeInfo element with all the information available of the node
 	 */
-	private String dom;
-	
-	/*
-	 * Node type of the hovered element
-	 */
-	private String nodeType;
-	
-	/*
-	 * Text value of the node in case it's a text node
-	 */
-	private String textValue;
-	
+	private NodeInfo nodeInfo;
+		
 	/*
 	 * Name of the browser
 	 */
@@ -272,47 +257,19 @@ public class Mousemove {
 	public void setOffsetY(double offsetY) {
 		this.offsetY = offsetY;
 	}
-
+	
 	/**
-	 * @return the dom
+	 * @return the NodeInfo
 	 */
-	public String getDom() {
-		return dom;
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
 	}
 
 	/**
-	 * @param dom the dom to set
+	 * @param nodeInfo the button to set
 	 */
-	public void setDom(String dom) {
-		this.dom = dom;
-	}
-
-	/**
-	 * @return the nodeType
-	 */
-	public String getNodeType() {
-		return nodeType;
-	}
-
-	/**
-	 * @param nodeType the nodeType to set
-	 */
-	public void setNodeType(String nodeType) {
-		this.nodeType = nodeType;
-	}
-
-	/**
-	 * @return the textValue
-	 */
-	public String getTextValue() {
-		return textValue;
-	}
-
-	/**
-	 * @param textValue the textValue to set
-	 */
-	public void setTextValue(String textValue) {
-		this.textValue = textValue;
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
 	}
 
 	/**

@@ -1,12 +1,12 @@
 package usaproxy.events;
 
 import com.google.gson.Gson;
-
 /*
- * Event triggered when the mouse gets out of the hovering area of a certain element.
+ * Event triggered when the user presses a key. Together with keyup and keypress they conform
+ * the cycle of pressing and releasing a key, being keydown the end.
+ * The difference with this event is that it records the actual character resulting from the press
  */
-
-public class Mouseout {
+public class Keypress {
 
 	/**
 	 * @param ip
@@ -14,65 +14,57 @@ public class Mouseout {
 	 * @param sd
 	 * @param sid
 	 * @param event
-	 * @param nodeInfo
+	 * @param key
 	 * @param browser
 	 * @param url
 	 */
-	public Mouseout(String ip, String timestamp, String sd, String sid,
-			String event, NodeInfo nodeInfo, String browser, String url) {
+	public Keypress(String ip, String timestamp, String sd, String sid,
+			String event, String key, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		
-		this.nodeInfo = nodeInfo;
-		
+		this.key = key;
 		this.browser = browser;
 		this.url = url;
 	}
 	
-	/**
-	 * Deserialise given JSON and creates a new Mouseout element with the result
-	 * 
-	 * @param serialised
-	 *            class in JSON
+	/** Deserialise given JSON and creates a Keydown element with the result
+	 * @param serialised class in JSON
 	 */
 
-	public Mouseout(String json) {
+	public Keypress(String json){
 		Gson gson = new Gson();
-		Mouseout tempClass = gson.fromJson(json, Mouseout.class);
+		Keypress tempClass = gson.fromJson(json, Keypress.class);
 		
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
-		this.nodeInfo = tempClass.nodeInfo;
-
+		this.key = tempClass.key;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
+	}	
 
-	}
 
-	/**
-	 * Serialise the class into a JSON, and returns the String containing it
-	 * 
+	/** Serialise the class into a JSON, and returns the String containing it 
 	 * @return serialised class in JSON
 	 */
 
-	public String toGson() {
+	public String toGson(){
 		Gson gson = new Gson();
 		String json = gson.toJson(this);
 		return json;
 	}
-
+ 
 	/*
 	 * User's IP
 	 */
 	private String ip;
-
+	
 	/*
 	 * Timestamp of the event
 	 */
@@ -82,7 +74,7 @@ public class Mouseout {
 	 * Id of the website
 	 */
 	private String sd;
-
+	
 	/*
 	 * User's ID
 	 */
@@ -92,22 +84,23 @@ public class Mouseout {
 	 * Event's name
 	 */
 	private String event;
-
+			
 	/*
-	 * NodeInfo element with all the information available of the node
+	 * Name of the key involved in the event
 	 */
-	private NodeInfo nodeInfo;
-
+	private String key;
+	
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-
+	
 	/*
-	 * URL wheree the event happened
+	 * URL where the event happened
 	 */
 	private String url;
 
+	
 
 	/**
 	 * @return the ip
@@ -117,8 +110,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param ip
-	 *            the ip to set
+	 * @param ip the ip to set
 	 */
 	public void setIp(String ip) {
 		this.ip = ip;
@@ -132,8 +124,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param timestamp
-	 *            the timestamp to set
+	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
@@ -147,8 +138,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param sd
-	 *            the sd to set
+	 * @param sd the sd to set
 	 */
 	public void setSd(String sd) {
 		this.sd = sd;
@@ -162,8 +152,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param sid
-	 *            the sid to set
+	 * @param sid the sid to set
 	 */
 	public void setSid(String sid) {
 		this.sid = sid;
@@ -177,25 +166,23 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param event
-	 *            the event to set
+	 * @param event the event to set
 	 */
 	public void setEvent(String event) {
 		this.event = event;
 	}
-	
 	/**
-	 * @return the nodeInfo
+	 * @return the key
 	 */
-	public NodeInfo getNodeInfo() {
-		return nodeInfo;
+	public String getKey() {
+		return key;
 	}
 
 	/**
-	 * @param nodeinfo the nodeInfo to set
+	 * @param key the key to set
 	 */
-	public void setNodeInfo(NodeInfo nodeInfo) {
-		this.nodeInfo = nodeInfo;
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 	/**
@@ -206,8 +193,7 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param browser
-	 *            the browser to set
+	 * @param browser the browser to set
 	 */
 	public void setBrowser(String browser) {
 		this.browser = browser;
@@ -221,11 +207,9 @@ public class Mouseout {
 	}
 
 	/**
-	 * @param url
-	 *            the url to set
+	 * @param url the url to set
 	 */
 	public void setUrl(String url) {
 		this.url = url;
 	}
-
 }

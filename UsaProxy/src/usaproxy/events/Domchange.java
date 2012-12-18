@@ -27,22 +27,11 @@ public class Domchange {
 		this.numberOfChanges = numberOfChanges;
 	}
 	
-
-	/** Serialise the class into a JSON, and returns the String containing it 
-	 * @return serialised class in JSON
-	 */
-
-	public String toGson(){
-		Gson gson = new Gson();
-		String json = gson.toJson(this);
-		return json;
-	}
- 
-	/** Deserialise given JSON and loads the result into this class
+	/** Deserialise given JSON and creates a Domchange element with the result
 	 * @param serialised class in JSON
 	 */
 
-	public void fromGson(String json){
+	public Domchange(String json){
 		Gson gson = new Gson();
 		Domchange tempClass = gson.fromJson(json, Domchange.class);
 		
@@ -54,6 +43,19 @@ public class Domchange {
 		this.numberOfChanges = tempClass.numberOfChanges;
 		
 	}	
+	
+
+	/** Serialise the class into a JSON, and returns the String containing it 
+	 * @return serialised class in JSON
+	 */
+
+	public String toGson(){
+		Gson gson = new Gson();
+		String json = gson.toJson(this);
+		return json;
+	}
+ 
+	
 
 	/*
 	 * User's IP

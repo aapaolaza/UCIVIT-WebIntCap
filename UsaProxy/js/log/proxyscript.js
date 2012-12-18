@@ -113,6 +113,12 @@ var sessionID = null;
 //Will determine the lifespan of the cookie, in days
 var cookieLife = 10000;
 
+
+///////////////////////Resize variables
+
+var lastResizeWidth = 0;
+var lastResizeHeigth = 0;
+var lastResizeDate = 0;
 ////End of New Constants
 ////////////////////////////////////
 
@@ -689,7 +695,15 @@ function processResize_UsaProxy(e) {
 	var newWidth, newHeight;
 	newWidth 	= (window.innerWidth) ? window.innerWidth : document.body.offsetWidth;  // innerWidth=NS
 	newHeight 	= (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;  // innerHeight=NS
-	writeLog_UsaProxy("resize&size=" + newWidth + "x" + newHeight);
+	
+	//We check if we have recorded this size at this time already
+	if (lastResizeWidth!=newWidth || lastResizeHeigth!=newHeight || lastResizeDate!= new Date().getTime()){
+		lastResizeWidth = newWidth;
+		lastResizeHeigth = newHeight;
+		lastResizeDate = new Date().getTime();
+		
+		writeLog_UsaProxy("resize&size=" + newWidth + "x" + newHeight);
+	}
 	//saveLog_UsaProxy();
 }
 
@@ -850,7 +864,7 @@ function processMousedown_UsaProxy(e) {
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
 	/** mouse button detection: was middle or right mouse button clicked ?*/
-	var mbutton = "left";
+	var mbutton = "l";//The default will be left
 	if (ev.which) {  		// NS
 		switch(ev.which) {
 			case 2: mbutton = "m"; break;	// middle button
@@ -863,7 +877,7 @@ function processMousedown_UsaProxy(e) {
 		}
 	}
 	// log middle and right button events, continue if left button was clicked
-	if (mbutton!="left") {
+	if (mbutton!="l") {
 
 		////DEBUG START
 		//alert("TEST");
@@ -887,12 +901,12 @@ function processMousedown_UsaProxy(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("mousedown&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("mousedown&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("mousedown&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("mousedown&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 	
@@ -1601,7 +1615,7 @@ function processMouseup_ExtraEvent(e) {
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
 	/** mouse button detection: was middle or right mouse button clicked ?*/
-	var mbutton = "left";
+	var mbutton = "l";
 	if (ev.which) {  		// NS
 		switch(ev.which) {
 			case 2: mbutton = "m"; break;	// middle button
@@ -1615,7 +1629,7 @@ function processMouseup_ExtraEvent(e) {
 	}
 	
 	// log middle and right button events, continue if left button was clicked
-	if (mbutton!="left") {
+	if (mbutton!="l") {
 
 		writeLog_UsaProxy("mouseup&but=" + mbutton + generateEventString_UsaProxy(target));
 		return;
@@ -1625,12 +1639,12 @@ function processMouseup_ExtraEvent(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("mouseup&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("mouseup&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("mouseup&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("mouseup&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 	
@@ -1652,12 +1666,12 @@ function processContextMenu_ExtraEvent(e) {
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("oncontextmenu&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("contextmenu&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("oncontextmenu&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("contextmenu&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("oncontextmenu&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("contextmenu&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 }
@@ -1765,7 +1779,7 @@ function processKeydown_ExtraEvent(e) {
 
 	keyName_UsaProxy = returnKeyValue(KeyID);
 	
-	writeLog_UsaProxy("keydownEXTRA&key=" + keyName_UsaProxy);
+	writeLog_UsaProxy("keydown&key=" + keyName_UsaProxy);
 	//saveLog_UsaProxy();
 	keyName_UsaProxy = "";
 }
@@ -1778,7 +1792,7 @@ function processKeypress_ExtraEvent(e) {
 	var evtobj 	= window.event ? window.event : e;
 	var KeyID 	= evtobj.which ? evtobj.which : evtobj.keyCode;
 	
-	writeLog_UsaProxy("keypressEXTRA&key=" + String.fromCharCode(KeyID));
+	writeLog_UsaProxy("keypress&key=" + String.fromCharCode(KeyID));
 }
 
 
@@ -1794,7 +1808,7 @@ function processKeyUp_ExtraEvent(e) {
 	//keyName_UsaProxy = String.fromKeyCode(KeyID);
 	keyName_UsaProxy = returnKeyValue(KeyID);
 
-	writeLog_UsaProxy("keyupEXTRA&key=" + keyName_UsaProxy);
+	writeLog_UsaProxy("keyup&key=" + keyName_UsaProxy);
 	//saveLog_UsaProxy();
 	keyName_UsaProxy = "";
 
@@ -2228,9 +2242,9 @@ function askForCookiePermission(){
 		divArray[i].style.marginTop = "100px";
 	} */
 
-	document.body.style.marginTop = "50px";
+	//document.body.style.marginTop = "50px";
 	
-	htmlDivContent.style.marginTop = "0px";
+	//htmlDivContent.style.marginTop = "0px";
 }
 
 /*
@@ -2241,7 +2255,9 @@ function handleCookieButton(){
 	//console.log("getSessionFromCookie");
 	setCookie("proxyUserID", sessionID_Proxy, cookieLife);
 	sessionID = getCookie("proxyUserID");
-	document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
+	//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
+	var div = document.getElementById("proxyCookieDiscalimer");
+	div.parentNode.removeChild(div);
     
 	init_UsaProxy();
 }

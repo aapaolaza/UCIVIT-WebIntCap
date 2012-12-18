@@ -3,10 +3,10 @@ package usaproxy.events;
 import com.google.gson.Gson;
 
 /*
- * Event triggered when the mouse gets out of the hovering area of a certain element.
+ * Event triggered when the mouse gets into the hovering area of a certain element.
  */
 
-public class Mouseout {
+public class Mouseover {
 
 	/**
 	 * @param ip
@@ -18,17 +18,16 @@ public class Mouseout {
 	 * @param browser
 	 * @param url
 	 */
-	public Mouseout(String ip, String timestamp, String sd, String sid,
-			String event, NodeInfo nodeInfo, String browser, String url) {
+	public Mouseover(String ip, String timestamp, String sd, String sid,
+			String event, NodeInfo nodeInfo, String nodeId, String dom, String nodeType,
+			String textValue, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		
 		this.nodeInfo = nodeInfo;
-		
 		this.browser = browser;
 		this.url = url;
 	}
@@ -40,9 +39,9 @@ public class Mouseout {
 	 *            class in JSON
 	 */
 
-	public Mouseout(String json) {
+	public Mouseover(String json) {
 		Gson gson = new Gson();
-		Mouseout tempClass = gson.fromJson(json, Mouseout.class);
+		Mouseover tempClass = gson.fromJson(json, Mouseover.class);
 		
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
@@ -50,7 +49,6 @@ public class Mouseout {
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
 		this.nodeInfo = tempClass.nodeInfo;
-
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
 
@@ -67,6 +65,8 @@ public class Mouseout {
 		String json = gson.toJson(this);
 		return json;
 	}
+
+	
 
 	/*
 	 * User's IP
@@ -92,7 +92,6 @@ public class Mouseout {
 	 * Event's name
 	 */
 	private String event;
-
 	/*
 	 * NodeInfo element with all the information available of the node
 	 */
@@ -183,21 +182,20 @@ public class Mouseout {
 	public void setEvent(String event) {
 		this.event = event;
 	}
-	
 	/**
-	 * @return the nodeInfo
+	 * @return the NodeInfo
 	 */
 	public NodeInfo getNodeInfo() {
 		return nodeInfo;
 	}
 
 	/**
-	 * @param nodeinfo the nodeInfo to set
+	 * @param nodeInfo the button to set
 	 */
 	public void setNodeInfo(NodeInfo nodeInfo) {
 		this.nodeInfo = nodeInfo;
 	}
-
+	
 	/**
 	 * @return the browser
 	 */
