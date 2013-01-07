@@ -1,9 +1,9 @@
 package usaproxy.events;
 
 import com.google.gson.Gson;
-
 /*
- * Event triggered when the mouse gets into the hovering area of a certain element.
+ * Event triggered when the user cuts text from a text area.
+ * It captures the text that was cut. 
  * 
  * The mapping of text logs to variables is the following: 
  * text log --> variable name
@@ -13,12 +13,12 @@ import com.google.gson.Gson;
  * sd --> sd
  * sid --> sid
  * event --> event
+ * content --> content
  * from variable --> nodeInfo
  * browser --> browser
  * url --> url
  */
-
-public class Mouseover {
+public class Cut {
 
 	/**
 	 * @param ip
@@ -26,64 +26,61 @@ public class Mouseover {
 	 * @param sd
 	 * @param sid
 	 * @param event
+	 * @param content
 	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
-	public Mouseover(String ip, String timestamp, String sd, String sid,
-			String event, NodeInfo nodeInfo, String browser, String url) {
+	public Cut(String ip, String timestamp, String sd, String sid,
+			String event, String content, NodeInfo nodeInfo, 
+			String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
+		this.content = content;
 		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
 	}
 	
-	/**
-	 * Deserialise given JSON and creates a new Mouseout element with the result
-	 * 
-	 * @param serialised
-	 *            class in JSON
+	/** Deserialise given JSON and creates a Mousedown element with the result
+	 * @param serialised class in JSON
 	 */
 
-	public Mouseover(String json) {
+	public Cut(String json){
 		Gson gson = new Gson();
-		Mouseover tempClass = gson.fromJson(json, Mouseover.class);
+		Cut tempClass = gson.fromJson(json, Cut.class);
 		
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
+		this.content = tempClass.content;
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-
+		
 	}
 
-	/**
-	 * Serialise the class into a JSON, and returns the String containing it
-	 * 
+	/** Serialise the class into a JSON, and returns the String containing it 
 	 * @return serialised class in JSON
 	 */
 
-	public String toGson() {
+	public String toGson(){
 		Gson gson = new Gson();
 		String json = gson.toJson(this);
 		return json;
 	}
-
 	
-
 	/*
 	 * User's IP
 	 */
 	private String ip;
-
+	
 	/*
 	 * Timestamp of the event
 	 */
@@ -93,7 +90,7 @@ public class Mouseover {
 	 * Id of the website
 	 */
 	private String sd;
-
+	
 	/*
 	 * User's ID
 	 */
@@ -103,21 +100,25 @@ public class Mouseover {
 	 * Event's name
 	 */
 	private String event;
+
+	/*
+	 * Text content which is being cut
+	 */
+	private String content;
 	/*
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-
+	
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-
+	
 	/*
 	 * URL wheree the event happened
 	 */
 	private String url;
-
 
 	/**
 	 * @return the ip
@@ -127,8 +128,7 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param ip
-	 *            the ip to set
+	 * @param ip the ip to set
 	 */
 	public void setIp(String ip) {
 		this.ip = ip;
@@ -142,8 +142,7 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param timestamp
-	 *            the timestamp to set
+	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
@@ -157,8 +156,7 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param sd
-	 *            the sd to set
+	 * @param sd the sd to set
 	 */
 	public void setSd(String sd) {
 		this.sd = sd;
@@ -172,8 +170,7 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param sid
-	 *            the sid to set
+	 * @param sid the sid to set
 	 */
 	public void setSid(String sid) {
 		this.sid = sid;
@@ -187,26 +184,38 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param event
-	 *            the event to set
+	 * @param event the event to set
 	 */
 	public void setEvent(String event) {
 		this.event = event;
 	}
+
 	/**
-	 * @return the NodeInfo
+	 * @return the content
+	 */
+	public String getContent() {
+		return content;
+	}
+	/**
+	 * @param content the content to set
+	 */
+	public void setContent(String content) {
+		this.content = content;
+	}
+	/**
+	 * @return the nodeInfo
 	 */
 	public NodeInfo getNodeInfo() {
 		return nodeInfo;
 	}
 
 	/**
-	 * @param nodeInfo the button to set
+	 * @param nodeinfo the nodeInfo to set
 	 */
 	public void setNodeInfo(NodeInfo nodeInfo) {
 		this.nodeInfo = nodeInfo;
 	}
-	
+
 	/**
 	 * @return the browser
 	 */
@@ -215,8 +224,7 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param browser
-	 *            the browser to set
+	 * @param browser the browser to set
 	 */
 	public void setBrowser(String browser) {
 		this.browser = browser;
@@ -230,11 +238,11 @@ public class Mouseover {
 	}
 
 	/**
-	 * @param url
-	 *            the url to set
+	 * @param url the url to set
 	 */
 	public void setUrl(String url) {
 		this.url = url;
-	}
+	}			
 
+	
 }

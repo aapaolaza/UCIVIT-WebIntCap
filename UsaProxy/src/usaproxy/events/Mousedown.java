@@ -5,6 +5,19 @@ import com.google.gson.Gson;
  * Event triggered when the user clicks the mouse button. It records which button was pressed.
  * Together with mouseup it represents the whole cycle of a click action, being mousedown the start. 
  * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * but --> button
+ * from variable --> mouseCoordinates
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  */
 public class Mousedown {
 	
@@ -16,13 +29,14 @@ public class Mousedown {
 	 * @param sid
 	 * @param event
 	 * @param button
+	 * @param mouseCoordinates
 	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Mousedown(String ip, String timestamp, String sd, String sid,
-			String event, String button, NodeInfo nodeInfo, String browser,
-			String url) {
+			String event, String button,MouseCoordinates mouseCoordinates,
+			NodeInfo nodeInfo, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
@@ -30,6 +44,7 @@ public class Mousedown {
 		this.sid = sid;
 		this.event = event;
 		this.button = button;
+		this.mouseCoordinates = mouseCoordinates;
 		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
@@ -49,6 +64,7 @@ public class Mousedown {
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
 		this.button = tempClass.button;
+		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
@@ -94,6 +110,10 @@ public class Mousedown {
 	 * Which button was pressed (l for left, r for right and m for middle)
 	 */
 	private String button;
+	/*
+	 * MouseCoordinates element with all the information available of the mouse coordinates
+	 */
+	private MouseCoordinates mouseCoordinates;
 	/*
 	 * NodeInfo element with all the information available of the node
 	 */
@@ -192,6 +212,20 @@ public class Mousedown {
 	public void setButton(String button) {
 		this.button = button;
 	}
+	/**
+	 * @return the mouseCoordinates
+	 */
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	/**
+	 * @param mouseCoordinates the mouseCoordinates to set
+	 */
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+
 	/**
 	 * @return the nodeInfo
 	 */

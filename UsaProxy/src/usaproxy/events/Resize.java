@@ -3,6 +3,18 @@ package usaproxy.events;
 import com.google.gson.Gson;
 /*
  * This event gets triggered when the user changes the size of the screen.
+ * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * size --> size
+ * browser --> browser
+ * url --> url
  */
 public class Resize {
 

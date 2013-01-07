@@ -7,6 +7,19 @@ import com.google.gson.Gson;
  * It will have plenty of optional fields, like img in case the element referes to an image
  * or link and text in the case the node is an link.
  * All element whose information was not set, should be empty strings.
+ * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * id --> nodeId
+ * name --> nodeName
+ * dom --> NodeDom
+ * img --> nodeImg
+ * link --> nodeLink
+ * text --> nodeText
+ * nodeType --> nodeType
+ * textValue --> nodeTextValue
+ * 
  */
 public class NodeInfo {
 	/**

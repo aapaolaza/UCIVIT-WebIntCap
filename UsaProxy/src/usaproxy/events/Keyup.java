@@ -6,6 +6,19 @@ import com.google.gson.Gson;
  * the cycle of pressing and releasing a key, being keyup the end.
  * The difference with this event is that it records the physical key that corresponds
  * to that action.
+ * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * key --> key
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  */
 public class Keyup {
 
@@ -16,11 +29,13 @@ public class Keyup {
 	 * @param sid
 	 * @param event
 	 * @param key
+ 	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Keyup(String ip, String timestamp, String sd, String sid,
-			String event, String key, String browser, String url) {
+			String event, String key, NodeInfo nodeInfo,
+			String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
@@ -28,6 +43,7 @@ public class Keyup {
 		this.sid = sid;
 		this.event = event;
 		this.key = key;
+		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
 	}
@@ -46,6 +62,7 @@ public class Keyup {
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
 		this.key = tempClass.key;
+		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
 	}	
@@ -90,7 +107,10 @@ public class Keyup {
 	 * Name of the key involved in the event
 	 */
 	private String key;
-	
+	/*
+	 * NodeInfo element with all the information available of the node
+	 */
+	private NodeInfo nodeInfo;
 	/*
 	 * Name of the browser
 	 */
@@ -184,6 +204,20 @@ public class Keyup {
 	 */
 	public void setKey(String key) {
 		this.key = key;
+	}
+
+	/**
+	 * @return the nodeInfo
+	 */
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	/**
+	 * @param nodeInfo the nodeInfo to set
+	 */
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
 	}
 
 	/**

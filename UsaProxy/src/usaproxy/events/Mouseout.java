@@ -4,6 +4,18 @@ import com.google.gson.Gson;
 
 /*
  * Event triggered when the mouse gets out of the hovering area of a certain element.
+ * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  */
 
 public class Mouseout {

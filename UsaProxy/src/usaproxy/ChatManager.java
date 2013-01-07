@@ -4,7 +4,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-/** 
+/**  
  *  Class <code>ChatManager</code> manages the exchange of chat messages between 
  *  two clients which collaborate in a shared session. For each pair of users an 
  *  <code>ArrayList</code> structure is created which stores the exchanged messages.

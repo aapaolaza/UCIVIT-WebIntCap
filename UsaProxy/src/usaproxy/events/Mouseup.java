@@ -6,6 +6,20 @@ import com.google.gson.Gson;
  * Together with mousedown it represents the whole cycle of a click action, being mouseup the 
  * end. 
  * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * but --> button
+ * from variable --> mouseCoordinates
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
+ * 
  */
 public class Mouseup {
 	
@@ -17,12 +31,14 @@ public class Mouseup {
 	 * @param sid
 	 * @param event
 	 * @param button
+	 * @param mouseCoordinates
 	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Mouseup(String ip, String timestamp, String sd, String sid,
-			String event, String button, NodeInfo nodeInfo, String browser, String url) {
+			String event, String button, MouseCoordinates mouseCoordinates, NodeInfo nodeInfo,
+			String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
@@ -30,6 +46,7 @@ public class Mouseup {
 		this.sid = sid;
 		this.event = event;
 		this.button = button;
+		this.mouseCoordinates = mouseCoordinates;
 		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
@@ -49,6 +66,7 @@ public class Mouseup {
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
 		this.button = tempClass.button;
+		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
@@ -94,7 +112,10 @@ public class Mouseup {
 	 * Which button was pressed (l for left, r for right and m for middle)
 	 */
 	private String button;
-
+	/*
+	 * MouseCoordinates element with all the information available of the mouse coordinates
+	 */
+	private MouseCoordinates mouseCoordinates;
 	/*
 	 * Nodeinfo element with all the information available of the node
 	 */
@@ -194,6 +215,20 @@ public class Mouseup {
 		this.button = button;
 	}
 	
+	/**
+	 * @return the mouseCoordinates
+	 */
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	/**
+	 * @param mouseCoordinates the mouseCoordinates to set
+	 */
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+
 	/**
 	 * @return the nodeInfo
 	 */

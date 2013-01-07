@@ -5,6 +5,19 @@ import com.google.gson.Gson;
  * Event triggered when the user presses a key. Together with keyup and keypress they conform
  * the cycle of pressing and releasing a key, being keydown the end.
  * The difference with this event is that it records the actual character resulting from the press
+ * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * key --> key
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  */
 public class Keypress {
 
@@ -15,11 +28,13 @@ public class Keypress {
 	 * @param sid
 	 * @param event
 	 * @param key
+	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Keypress(String ip, String timestamp, String sd, String sid,
-			String event, String key, String browser, String url) {
+			String event, String key, NodeInfo nodeInfo,
+			String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
@@ -27,6 +42,7 @@ public class Keypress {
 		this.sid = sid;
 		this.event = event;
 		this.key = key;
+		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
 	}
@@ -45,6 +61,7 @@ public class Keypress {
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
 		this.key = tempClass.key;
+		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
 	}	
@@ -89,7 +106,10 @@ public class Keypress {
 	 * Name of the key involved in the event
 	 */
 	private String key;
-	
+	/*
+	 * NodeInfo element with all the information available of the node
+	 */
+	private NodeInfo nodeInfo;
 	/*
 	 * Name of the browser
 	 */
@@ -183,6 +203,20 @@ public class Keypress {
 	 */
 	public void setKey(String key) {
 		this.key = key;
+	}
+
+	/**
+	 * @return the nodeInfo
+	 */
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	/**
+	 * @param nodeInfo the nodeInfo to set
+	 */
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
 	}
 
 	/**

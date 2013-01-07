@@ -5,6 +5,15 @@ import com.google.gson.Gson;
  * Event triggered when a DOM change is recorded, the content of the DOM change is stored to a text file.
  * The text file is stored in a folder with the name of the sid, and timestamped with this same timestamp
  * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * numberofchanges --> numberOfChanges
  */
 public class Domchange {
 

@@ -4,9 +4,20 @@ import com.google.gson.Gson;
 /*
  * Event triggered when the mouse wheel gets activated  
  * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * delta --> delta
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  */
 public class Mousewheel {
-	
 
 	/**
 	 * @param ip

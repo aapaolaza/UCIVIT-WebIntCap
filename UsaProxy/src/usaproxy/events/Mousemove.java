@@ -5,6 +5,18 @@ import com.google.gson.Gson;
  * Event triggered when the user moves the mouse. It's not recorded every time the mouse is moved.
  * Instead the position is checked periodically, and stored when it's different. 
  * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * from variable --> mouseCoordinates
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  */
 public class Mousemove {
 
@@ -14,17 +26,14 @@ public class Mousemove {
 	 * @param sd
 	 * @param sid
 	 * @param event
-	 * @param coordX
-	 * @param coordY
-	 * @param offsetX
-	 * @param offsetY
+	 * @param mouseCoordinates
 	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Mousemove(String ip, String timestamp, String sd, String sid,
 			String event, double coordX, double coordY, double offsetX,
-			double offsetY, NodeInfo nodeInfo,
+			double offsetY, MouseCoordinates mouseCoordinates,NodeInfo nodeInfo,
 			String browser, String url) {
 		super();
 		this.ip = ip;
@@ -32,10 +41,7 @@ public class Mousemove {
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		this.coordX = coordX;
-		this.coordY = coordY;
-		this.offsetX = offsetX;
-		this.offsetY = offsetY;
+		this.mouseCoordinates = mouseCoordinates;
 		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
@@ -50,10 +56,7 @@ public class Mousemove {
 		Gson gson = new Gson();
 		Mousemove tempClass = gson.fromJson(json, Mousemove.class);
 		
-		this.coordX = tempClass.coordX;
-		this.coordY = tempClass.coordY;
-		this.offsetX = tempClass.offsetX;
-		this.offsetY = tempClass.offsetY;
+		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
@@ -98,23 +101,10 @@ public class Mousemove {
 	private String event;
 
 	/*
-	 * Location of the mouse in the X axis
+	 * MouseCoordinates element with all the information available of the mouse coordinates
 	 */
-	private double coordX;
-	/*
-	 * Location of the mouse in the Y axis
-	 */
-	private double coordY;
+	private MouseCoordinates mouseCoordinates;
 	
-	/*
-	 * Location of the mouse with respect to the hovered element in the X axis
-	 */
-	private double offsetX;
-	
-	/*
-	 * Location of the mouse with respect to the hovered element in the Y axis
-	 */
-	private double offsetY;
 	/*
 	 * NodeInfo element with all the information available of the node
 	 */
@@ -202,62 +192,23 @@ public class Mousemove {
 		this.event = event;
 	}
 
-	/**
-	 * @return the coordX
-	 */
-	public double getCoordX() {
-		return coordX;
-	}
-
-	/**
-	 * @param coordX the coordX to set
-	 */
-	public void setCoordX(double coordX) {
-		this.coordX = coordX;
-	}
-
-	/**
-	 * @return the coordY
-	 */
-	public double getCoordY() {
-		return coordY;
-	}
-
-	/**
-	 * @param coordY the coordY to set
-	 */
-	public void setCoordY(double coordY) {
-		this.coordY = coordY;
-	}
-
-	/**
-	 * @return the offsetX
-	 */
-	public double getOffsetX() {
-		return offsetX;
-	}
-
-	/**
-	 * @param offsetX the offsetX to set
-	 */
-	public void setOffsetX(double offsetX) {
-		this.offsetX = offsetX;
-	}
-
-	/**
-	 * @return the offsetY
-	 */
-	public double getOffsetY() {
-		return offsetY;
-	}
-
-	/**
-	 * @param offsetY the offsetY to set
-	 */
-	public void setOffsetY(double offsetY) {
-		this.offsetY = offsetY;
-	}
 	
+	/**
+	 * @return the mouseCoordinates
+	 */
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+
+	/**
+	 * @param mouseCoordinates the mouseCoordinates to set
+	 */
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+
+
 	/**
 	 * @return the NodeInfo
 	 */

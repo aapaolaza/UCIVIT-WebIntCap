@@ -4,7 +4,21 @@ import com.google.gson.Gson;
 /*
  * The system periodically checks the scroll state of the browser.
  * If there is a difference, it records either the x or y measure.
+ * 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * x --> scrollX
+ * y --> scrollY
+ * browser --> browser
+ * url --> url
  */
+
 public class Scroll {
 
 	/**

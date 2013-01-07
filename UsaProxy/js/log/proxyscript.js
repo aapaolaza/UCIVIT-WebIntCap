@@ -252,12 +252,7 @@ function init_UsaProxy() {
 		
 		document.attachEvent('onkeydown', processKeydown_ExtraEvent);
 		document.attachEvent('onkeyup', processKeyUp_ExtraEvent);
-		document.attachEvent('onkeypress', processKeypress_ExtraEvent);
-		
-		document.attachEvent('onmousewheel', processMousewheel_ExtraEvent);
-		document.attachEvent('onselect', processSelectText_ExtraEvent);
-		window.attachEvent('onbeforeunload', processUnload_ExtraEvent);
-		
+		document.attachEvent('onkeypress', processKeypress_ExtraEvent);	
 		
 		document.attachEvent ("onfocusin", processFocus_UsaProxy);
 		document.attachEvent ("onfocusout", processBlur_UsaProxy);			
@@ -901,12 +896,12 @@ function processMousedown_UsaProxy(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mousedown&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mousedown&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("mousedown&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 	
@@ -1391,7 +1386,7 @@ function processSelection_UsaProxy() {
 		
 		// if selection is not empty and new text was selected, log select event
 		if(currentSelection != "" && lastSelection_UsaProxy != currentSelection) {
-			writeLog_UsaProxy("select&text=" + escape(currentSelection));
+			writeLog_UsaProxy("select&selectedContent=" + escape(currentSelection));
 			// set last selected text
 			lastSelection_UsaProxy = currentSelection;
 			saveLog_UsaProxy();
@@ -1403,6 +1398,8 @@ function processSelection_UsaProxy() {
 /* NS: Processes text selection event in textfields/areas.
  * Since NS doesn't capture any selected text in text fields/areas over getSelection,
  * function is invoked on select */
+ 
+ //DEPRECATED
 function processSelectionNS_UsaProxy(e) {
 
 	/* get event target
@@ -1639,12 +1636,12 @@ function processMouseup_ExtraEvent(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mouseup&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mouseup&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("mouseup&but=" + mbutton + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 	
@@ -1666,12 +1663,12 @@ function processContextMenu_ExtraEvent(e) {
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("contextmenu&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("contextmenu&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("contextmenu&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 }
@@ -1685,7 +1682,7 @@ function processCut_ExtraEvent(e) {
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("cut" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		writeLog_UsaProxy("cut&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1698,7 +1695,7 @@ function processCopy_ExtraEvent(e) {
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("copy" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		writeLog_UsaProxy("copy&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1710,7 +1707,7 @@ function processPaste_ExtraEvent(e) {
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("paste" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		writeLog_UsaProxy("paste&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1743,20 +1740,21 @@ function processDblClick_ExtraEvent(e) {
 	// log middle and right button events, continue if left button was clicked
 	if (mbutton!="left") {
 
-		writeLog_UsaProxy("dblclick&but=" + mbutton + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&but=" + mbutton + generateEventString_UsaProxy(target));
 		return;
 	}
+
 	// end mouse button detection 
 	
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("dblclick&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
+	if (target.id) 	writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("dblclick&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
-			writeLog_UsaProxy("dblclick&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+			writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		}
 	}
 	
@@ -1774,12 +1772,13 @@ function processKeydown_ExtraEvent(e) {
 
 	/* get keycode
 	 * IE: first case (window.event available); NS: second case */
-	var evtobj 				= window.event ? window.event : e;
-	var KeyID 				= evtobj.which ? evtobj.which : evtobj.keyCode;
+	var ev 				= window.event ? window.event : e;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var KeyID 				= ev.which ? ev.which : ev.keyCode;
 
 	keyName_UsaProxy = returnKeyValue(KeyID);
 	
-	writeLog_UsaProxy("keydown&key=" + keyName_UsaProxy);
+	writeLog_UsaProxy("keydown&key=" + keyName_UsaProxy + generateEventString_UsaProxy(target));
 	//saveLog_UsaProxy();
 	keyName_UsaProxy = "";
 }
@@ -1789,10 +1788,11 @@ function processKeydown_ExtraEvent(e) {
 function processKeypress_ExtraEvent(e) {
 	/* get keycode
 	 * IE: first case (window.event available); NS: second case */
-	var evtobj 	= window.event ? window.event : e;
-	var KeyID 	= evtobj.which ? evtobj.which : evtobj.keyCode;
+	var ev 	= window.event ? window.event : e;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var KeyID 	= ev.which ? ev.which : ev.keyCode;
 	
-	writeLog_UsaProxy("keypress&key=" + String.fromCharCode(KeyID));
+	writeLog_UsaProxy("keypress&key=" + String.fromCharCode(KeyID) + generateEventString_UsaProxy(target));
 }
 
 
@@ -1802,13 +1802,14 @@ function processKeypress_ExtraEvent(e) {
 function processKeyUp_ExtraEvent(e) {
 	/* get keycode
 	 * IE: first case (window.event available); NS: second case */
-	var evtobj 	= window.event ? window.event : e;
-	var KeyID 	= evtobj.which ? evtobj.which : evtobj.keyCode;
+	var ev 	= window.event ? window.event : e;
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var KeyID 	= ev.which ? ev.which : ev.keyCode;
 	//keyName_UsaProxy = String.fromCharCode(KeyID);
 	//keyName_UsaProxy = String.fromKeyCode(KeyID);
 	keyName_UsaProxy = returnKeyValue(KeyID);
 
-	writeLog_UsaProxy("keyup&key=" + keyName_UsaProxy);
+	writeLog_UsaProxy("keyup&key=" + keyName_UsaProxy + generateEventString_UsaProxy(target));
 	//saveLog_UsaProxy();
 	keyName_UsaProxy = "";
 
@@ -1935,7 +1936,7 @@ function processSelectText_ExtraEvent(e) {
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&selectedContent=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1962,7 +1963,7 @@ function processIfHtmlIsSelected(selectionTool, target){
 	var selectedContent = getSelectionHtml();
 	
 	if (selectedContent != "")
-		writeLog_UsaProxy("selectextra&selectiontool="+ selectionTool + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(selectedContent));
+		writeLog_UsaProxy("selectextra&selectionTool="+ selectionTool + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(selectedContent));
 	
 }
 

@@ -5,6 +5,18 @@ import com.google.gson.Gson;
  * Event triggered when the user release the  mouse button. It records which button was pressed.
  * Together with mousedown it represents the whole cycle of a click action, being mouseup the 
  * end. 
+ * The mapping of text logs to variables is the following: 
+ * text log --> variable name
+ * 
+ * from variable --> ip
+ * time --> timestamp
+ * sd --> sd
+ * sid --> sid
+ * event --> event
+ * from variable --> mouseCoordinates
+ * from variable --> nodeInfo
+ * browser --> browser
+ * url --> url
  * 
  */
 public class Contextmenu {
@@ -16,20 +28,21 @@ public class Contextmenu {
 	 * @param sd
 	 * @param sid
 	 * @param event
-	 * @param button
+	 * @param mouseCoordinates
 	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
 	public Contextmenu(String ip, String timestamp, String sd, String sid,
-			String event, String button, NodeInfo nodeInfo, String browser, String url) {
+			String event,MouseCoordinates mouseCoordinates, NodeInfo nodeInfo,
+			String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		this.button = button;
+		this.mouseCoordinates = mouseCoordinates;
 		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
@@ -48,7 +61,7 @@ public class Contextmenu {
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
-		this.button = tempClass.button;
+		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
@@ -89,11 +102,11 @@ public class Contextmenu {
 	 * Event's name
 	 */
 	private String event;
-	
+
 	/*
-	 * Which button was pressed (l for left, r for right and m for middle)
+	 * MouseCoordinates element with all the information available of the mouse coordinates
 	 */
-	private String button;
+	private MouseCoordinates mouseCoordinates;
 	/*
 	 * Nodeinfo element with all the information available of the node
 	 */
@@ -179,19 +192,6 @@ public class Contextmenu {
 		this.event = event;
 	}
 
-	/**
-	 * @return the button
-	 */
-	public String getButton() {
-		return button;
-	}
-
-	/**
-	 * @param button the button to set
-	 */
-	public void setButton(String button) {
-		this.button = button;
-	}
 	/**
 	 * @return the nodeInfo
 	 */
