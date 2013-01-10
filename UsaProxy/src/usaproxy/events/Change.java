@@ -1,30 +1,33 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user changes the state of one of the following types of 
  * elements: select-one, select-multiple, text, textarea, file, checkbox, password or radio.
  * Its content depends on the type of element.
  * 
- *The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * type --> type
- * checked --> checked
- * from variable --> nodeInfo
- * value --> value
- * selected --> selected
- * browser --> browser
- * url --> url
-
  */
-public class Change {
-	
+public class Change extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Change(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.type = "";
+		this.checked = "";
+		this.nodeInfo = null;
+		this.value = "";
+		this.selected = "";
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -41,21 +44,23 @@ public class Change {
 	 * @param url
 	 */
 	public Change(String ip, String timestamp, String sd, String sid,
-			String event, String button, MouseCoordinates mouseCoordinates, NodeInfo nodeInfo,
-			String browser, String url) {
+			String event, String type, String checked, NodeInfo nodeInfo,
+			String value, String selected, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		this.button = button;
-		this.mouseCoordinates = mouseCoordinates;
+		this.type = type;
+		this.checked = checked;
 		this.nodeInfo = nodeInfo;
+		this.value = value;
+		this.selected = selected;
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Mousedown element with the result
 	 * @param serialised class in JSON
 	 */
@@ -63,18 +68,20 @@ public class Change {
 	public Change(String json){
 		Gson gson = new Gson();
 		Change tempClass = gson.fromJson(json, Change.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
-		this.button = tempClass.button;
-		this.mouseCoordinates = tempClass.mouseCoordinates;
+		this.type = tempClass.type;
+		this.checked = tempClass.checked;
 		this.nodeInfo = tempClass.nodeInfo;
+		this.value = tempClass.value;
+		this.selected = tempClass.selected;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -86,51 +93,120 @@ public class Change {
 		String json = gson.toJson(this);
 		return json;
 	}
-	
-	/*
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * type --> type
+	 * checked --> checked
+	 * from variable --> nodeInfo
+	 * value --> value
+	 * selected --> selected
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Change parseFromHash(EventDataHashMap eventData) {
+
+		Change classObject = new Change();
+		
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.type = eventData.get(EventConstants.TYPE);
+
+		classObject.checked = eventData.get(EventConstants.CHECKED);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.value = eventData.get(EventConstants.VALUE);
+
+		classObject.selected = eventData.get(EventConstants.SELECTED);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
+	/**
 	 * User's IP
 	 */
 	private String ip;
-	
-	/*
+
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
-	
-	/*
+
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
-	
-	/*
-	 * Which button was pressed (l for left, r for right and m for middle)
+
+	/**
+	 * Type of element susceptible to a "change" event
 	 */
-	private String button;
-	/*
-	 * MouseCoordinates element with all the information available of the mouse coordinates
+	private String type;
+
+	/**
+	 * In the case of a checkbox, indicates if it's checked or not
 	 */
-	private MouseCoordinates mouseCoordinates;
-	/*
+	private String checked;
+
+	/**
 	 * Nodeinfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-	
-	/*
+
+	/**
+	 * In the case of text or file field and selection menus, indicates the value of the element
+	 */
+	private String value;
+
+	/**
+	 * In the case of single selection menus, indicates the index of the selected element
+	 */
+	private String selected;
+
+
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
-	
-	/*
+
+	/**
 	 * URL where the event happened
 	 */
 	private String url;
@@ -206,18 +282,33 @@ public class Change {
 	}
 
 	/**
-	 * @return the button
+	 * @return the type
 	 */
-	public String getButton() {
-		return button;
+	public String getType() {
+		return type;
 	}
 
 	/**
-	 * @param button the button to set
+	 * @param type the type to set
 	 */
-	public void setButton(String button) {
-		this.button = button;
+	public void setType(String type) {
+		this.type = type;
 	}
+
+	/**
+	 * @return the checked
+	 */
+	public String getChecked() {
+		return checked;
+	}
+
+	/**
+	 * @param checked the checked to set
+	 */
+	public void setChecked(String checked) {
+		this.checked = checked;
+	}
+
 	/**
 	 * @return the nodeInfo
 	 */
@@ -226,10 +317,38 @@ public class Change {
 	}
 
 	/**
-	 * @param nodeInfo the button to set
+	 * @param nodeInfo the nodeInfo to set
 	 */
 	public void setNodeInfo(NodeInfo nodeInfo) {
 		this.nodeInfo = nodeInfo;
+	}
+
+	/**
+	 * @return the value
+	 */
+	public String getValue() {
+		return value;
+	}
+
+	/**
+	 * @param value the value to set
+	 */
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	/**
+	 * @return the selected
+	 */
+	public String getSelected() {
+		return selected;
+	}
+
+	/**
+	 * @param selected the selected to set
+	 */
+	public void setSelected(String selected) {
+		this.selected = selected;
 	}
 
 	/**
@@ -258,7 +377,6 @@ public class Change {
 	 */
 	public void setUrl(String url) {
 		this.url = url;
-	}			
+	}
 
-	
 }

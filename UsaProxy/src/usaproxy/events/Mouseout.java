@@ -1,24 +1,29 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
 
-/*
+/**
  * Event triggered when the mouse gets out of the hovering area of a certain element.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
 
-public class Mouseout {
+public class Mouseout extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Mouseout(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -38,13 +43,13 @@ public class Mouseout {
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		
+
 		this.nodeInfo = nodeInfo;
-		
+
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/**
 	 * Deserialise given JSON and creates a new Mouseout element with the result
 	 * 
@@ -55,7 +60,7 @@ public class Mouseout {
 	public Mouseout(String json) {
 		Gson gson = new Gson();
 		Mouseout tempClass = gson.fromJson(json, Mouseout.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -80,6 +85,50 @@ public class Mouseout {
 		return json;
 	}
 
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Mouseout parseFromHash(EventDataHashMap eventData) {
+
+		Mouseout classObject = new Mouseout();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+	
 	/*
 	 * User's IP
 	 */
@@ -195,7 +244,7 @@ public class Mouseout {
 	public void setEvent(String event) {
 		this.event = event;
 	}
-	
+
 	/**
 	 * @return the nodeInfo
 	 */

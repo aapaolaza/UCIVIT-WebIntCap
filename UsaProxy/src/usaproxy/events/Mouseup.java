@@ -1,28 +1,31 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user release the  mouse button. It records which button was pressed.
  * Together with mousedown it represents the whole cycle of a click action, being mouseup the 
  * end. 
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * but --> button
- * from variable --> mouseCoordinates
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
- * 
  */
-public class Mouseup {
+public class Mouseup extends GenericEvent{
 	
+	/**
+	 * Empty constructor
+	 */
+	public Mouseup(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.button = "";
+		this.mouseCoordinates = null;
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -83,6 +86,56 @@ public class Mouseup {
 		return json;
 	}
 	
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * but --> button
+	 * from variable --> mouseCoordinates
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Mouseup parseFromHash(EventDataHashMap eventData) {
+
+		Mouseup classObject = new Mouseup();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.button = eventData.get(EventConstants.BUTTON);
+		
+		classObject.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
+		
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */

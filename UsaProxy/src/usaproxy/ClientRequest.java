@@ -99,7 +99,7 @@ public class ClientRequest extends Thread {
 			e.printStackTrace();
 			
 			ErrorLogging.logError("ClientRequest.java: run()",
-        			"ERROR occured while negotiating with the server",e.toString());
+        			"ERROR occured while negotiating with the server",e);
 
 		} finally {
 
@@ -306,7 +306,11 @@ public class ClientRequest extends Thread {
 								.println("\nAn ERROR occured while opening UsaProxy server socket:\n"
 										+ err);
 						
-						ErrorLogging.logError("ClientRequest.java","ERROR occured while opening UsaProxy server socket", err.toString());
+						ErrorLogging
+								.logError(
+										"ClientRequest.java/processRequest()",
+										"ERROR occured while opening UsaProxy server socket",
+										err);
 					}
 
 					/**
@@ -1279,15 +1283,15 @@ public class ClientRequest extends Thread {
 								+ server.getSocket().getInetAddress()
 										.getHostName() + ":\n" + e);
 				
-				ErrorLogging.logError("ClientRequest.java: processResponse()",
-	        			"ERROR occured while reading response headers",e.toString());
+				ErrorLogging.logError("ClientRequest.java/processResponse()",
+	        			"ERROR occured while reading response headers",e);
 			} else {
 				System.err
 						.println("\nAn ERROR occured while reading response headers: "
 								+ "\n" + e);
 				
 				ErrorLogging.logError("ClientRequest.java: processResponse()",
-	        			"ERROR occured while reading response headers",e.toString());
+	        			"ERROR occured while reading response headers",e);
 			}
 		}
 
@@ -1628,14 +1632,14 @@ public class ClientRequest extends Thread {
 				ErrorLogging.logError("ClientRequest.java: insertJavaScript()",
 	        			"ERROR occured while enhancing response" + "from server "
 								+ server.getSocket().getInetAddress()
-								.getHostName(), e.toString());
+								.getHostName(), e);
 			} else {
 				System.err
 						.println("\nAn ERROR occured while enhancing response: "
 								+ "\n" + e);
 				
 				ErrorLogging.logError("ClientRequest.java: insertJavaScript()",
-	        			"ERROR occured while enhancing response",e.toString());
+	        			"ERROR occured while enhancing response",e);
 			}
 		}
 

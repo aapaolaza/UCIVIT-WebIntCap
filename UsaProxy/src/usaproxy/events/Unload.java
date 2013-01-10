@@ -3,72 +3,63 @@ package usaproxy.events;
 
 import com.google.gson.Gson;
 /**
- * Event triggered when the user pastes text into a text area.
- * It captures the text that was pasted. 
+ * Event triggered when the page is unloaded. It doesn't usually get recorded as
+ * the Javascript doesn't have time to submit the event before being stopped. 
  * 
  */
-public class Paste extends GenericEvent{
+public class Unload extends GenericEvent{
 
 	/**
 	 * Empty constructor
 	 */
-	public Paste(){
+	public Unload(){
 		super();
 		this.ip = "";
 		this.timestamp = "";
 		this.sd = "";
 		this.sid = "";
 		this.event = "";
-		this.content = "";
-		this.nodeInfo = null;
 		this.browser = "";
 		this.url = "";
 	}
-	
+
 	/**
 	 * @param ip
 	 * @param timestamp
 	 * @param sd
 	 * @param sid
 	 * @param event
-	 * @param content
-	 * @param nodeInfo
 	 * @param browser
 	 * @param url
 	 */
-	public Paste(String ip, String timestamp, String sd, String sid,
-			String event, String content, NodeInfo nodeInfo, 
-			String browser, String url) {
+	public Unload(String ip, String timestamp, String sd, String sid,
+			String event, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.event = event;
-		this.content = content;
-		this.nodeInfo = nodeInfo;
 		this.browser = browser;
 		this.url = url;
 	}
-	
-	/** Deserialise given JSON and creates a Mousedown element with the result
+
+	/** Deserialise given JSON and creates a Load element with the result
 	 * @param serialised class in JSON
 	 */
 
-	public Paste(String json){
+	public Unload(String json){
 		Gson gson = new Gson();
-		Paste tempClass = gson.fromJson(json, Paste.class);
-		
+		Unload tempClass = gson.fromJson(json, Unload.class);
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
-		this.content = tempClass.content;
-		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -80,11 +71,9 @@ public class Paste extends GenericEvent{
 		String json = gson.toJson(this);
 		return json;
 	}
-	
+
 	/**
-	 * Constructs the class with an IP address obtained as a parameter and a
-	 * string with the rest of the information. The string will need to be parsed
-	 * in order to get the values for each attribute.
+	 * Constructs the class getting the information from a HashMap.
 	 * 
 	 * The mapping of HashMap keys to variables is the following: 
 	 * text log --> variable name
@@ -94,8 +83,6 @@ public class Paste extends GenericEvent{
 	 * sd --> sd
 	 * sid --> sid
 	 * event --> event
-	 * content --> content
-	 * from variable --> nodeInfo
 	 * browser --> browser
 	 * url --> url
 	 * 
@@ -105,11 +92,10 @@ public class Paste extends GenericEvent{
 	 * 
 	 * 
 	 */
-	
-	public static Paste parseFromHash(EventDataHashMap eventData) {
+	public static Unload parseFromHash(EventDataHashMap eventData) {
 
-		Paste classObject = new Paste();
-		
+		Unload classObject = new Unload();
+
 		classObject.ip = eventData.get(EventConstants.IPADDRESS);
 
 		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
@@ -119,10 +105,6 @@ public class Paste extends GenericEvent{
 		classObject.sid = eventData.get(EventConstants.SID);
 
 		classObject.event = eventData.get(EventConstants.EVENTNAME);
-		
-		classObject.content = eventData.get(EventConstants.CONTENT);
-				
-		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
 
 		classObject.browser = eventData.get(EventConstants.BROWSER);
 
@@ -130,12 +112,12 @@ public class Paste extends GenericEvent{
 
 		return classObject;
 	}
-	
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -145,7 +127,7 @@ public class Paste extends GenericEvent{
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -157,19 +139,10 @@ public class Paste extends GenericEvent{
 	private String event;
 
 	/*
-	 * Text content which is being pasted
-	 */
-	private String content;
-	/*
-	 * NodeInfo element with all the information available of the node
-	 */
-	private NodeInfo nodeInfo;
-	
-	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL wheree the event happened
 	 */
@@ -246,32 +219,6 @@ public class Paste extends GenericEvent{
 	}
 
 	/**
-	 * @return the content
-	 */
-	public String getContent() {
-		return content;
-	}
-	/**
-	 * @param content the content to set
-	 */
-	public void setContent(String content) {
-		this.content = content;
-	}
-	/**
-	 * @return the nodeInfo
-	 */
-	public NodeInfo getNodeInfo() {
-		return nodeInfo;
-	}
-
-	/**
-	 * @param nodeinfo the nodeInfo to set
-	 */
-	public void setNodeInfo(NodeInfo nodeInfo) {
-		this.nodeInfo = nodeInfo;
-	}
-
-	/**
 	 * @return the browser
 	 */
 	public String getBrowser() {
@@ -299,5 +246,4 @@ public class Paste extends GenericEvent{
 		this.url = url;
 	}			
 
-	
 }

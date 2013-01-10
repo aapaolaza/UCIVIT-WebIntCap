@@ -1,25 +1,29 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event that collects the selection of text or html content by the user.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * selectionTool -->selectionTool
- * from variable --> nodeInfo
- * selectedContent --> selectionTool
- * browser --> browser
- * url --> url
  */
-public class SelectContent {
-	
+public class SelectContent extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public SelectContent(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.selectionTool = "";
+		this.nodeInfo = null;
+		this.selectedContent = "";
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -48,7 +52,7 @@ public class SelectContent {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Mousedown element with the result
 	 * @param serialised class in JSON
 	 */
@@ -56,7 +60,7 @@ public class SelectContent {
 	public SelectContent(String json){
 		Gson gson = new Gson();
 		SelectContent tempClass = gson.fromJson(json, SelectContent.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -67,7 +71,7 @@ public class SelectContent {
 		this.selectedContent = tempClass.selectedContent;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -79,12 +83,61 @@ public class SelectContent {
 		String json = gson.toJson(this);
 		return json;
 	}
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * selectionTool -->selectionTool
+	 * from variable --> nodeInfo
+	 * selectedContent --> selectedContent
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static SelectContent parseFromHash(EventDataHashMap eventData) {
+
+		SelectContent classObject = new SelectContent();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.selectionTool = eventData.get(EventConstants.SELECTIONTOOL);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.selectedContent = eventData.get(EventConstants.SELECTEDCONTENT);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
 	
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -94,7 +147,7 @@ public class SelectContent {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -117,18 +170,18 @@ public class SelectContent {
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-	
+
 	/*
 	 * String with the selected content.
 	 * 
 	 */
 	private String selectedContent;
-	
+
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL wheree the event happened
 	 */
@@ -246,5 +299,5 @@ public class SelectContent {
 		this.url = url;
 	}			
 
-	
+
 }

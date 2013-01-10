@@ -1,27 +1,32 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user releases a key. Together with keydown and keypress they conform
  * the cycle of pressing and releasing a key, being keyup the end.
  * The difference with this event is that it records the physical key that corresponds
  * to that action.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * key --> key
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Keyup {
+public class Keyup extends GenericEvent{
 
+	/**
+	 * Empty constructor
+	 */
+	public Keyup(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.key = "";
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
+	
 	/**
 	 * @param ip
 	 * @param timestamp
@@ -76,6 +81,53 @@ public class Keyup {
 		Gson gson = new Gson();
 		String json = gson.toJson(this);
 		return json;
+	}
+	
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * key --> key
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Keyup parseFromHash(EventDataHashMap eventData) {
+
+		Keyup classObject = new Keyup();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.key = eventData.get(EventConstants.KEY);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
 	}
  
 	/*

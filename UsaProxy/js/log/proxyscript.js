@@ -512,7 +512,7 @@ function writeLog_UsaProxy(text) {
 	
 	// generate and append log entry
 	var logline;
-	logLine = "&time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
+	logLine = "time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
 	+ sessionID + "&event=" + text+ "&url=" + encodeURIComponent(url);
 	
 	// set synchronization flag (block function)
@@ -1071,7 +1071,7 @@ function processScroll_UsaProxy() {
 		if(percentOfHeight.length==2) percentOfHeight = "0" + percentOfHeight;
 		percentOfHeight = percentOfHeight.substring(0,1) + "." + percentOfHeight.substring(1);
 	
-		writeLog_UsaProxy("scroll&y=" + percentOfHeight);
+		writeLog_UsaProxy("scroll&scrolly=" + percentOfHeight);
 		// set last scrollbar position
 		lastScrollPosY_UsaProxy = currentScrollPosY;
 		//saveLog_UsaProxy();
@@ -1086,7 +1086,7 @@ function processScroll_UsaProxy() {
 		if(percentOfWidth.length==2) percentOfWidth = "0" + percentOfWidth;
 		percentOfWidth = percentOfWidth.substring(0,1) + "." + percentOfWidth.substring(1);
 	
-		writeLog_UsaProxy("scroll&x=" + percentOfWidth);
+		writeLog_UsaProxy("scroll&scrollx=" + percentOfWidth);
 		// set last scrollbar position
 		lastScrollPosX_UsaProxy = currentScrollPosX;
 		//saveLog_UsaProxy();
@@ -1578,14 +1578,14 @@ function processMouseOut_ExtraEvent(e) {
 	
 	// log mouseout coordinates and all available target attributes
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mouseoout&id=" + target.id + generateEventString_UsaProxy(target));
+	if (target.id) 	writeLog_UsaProxy("mouseout&id=" + target.id + generateEventString_UsaProxy(target));
 	else {
 		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mouseoout&name=" + target.name + generateEventString_UsaProxy(target));
+		if(target.name) writeLog_UsaProxy("mouseout&name=" + target.name + generateEventString_UsaProxy(target));
 		else {
 			// if element has an href or src attribute
 			if (target.href || target.src)
-				writeLog_UsaProxy("mouseoout" + generateEventString_UsaProxy(target));
+				writeLog_UsaProxy("mouseout" + generateEventString_UsaProxy(target));
 		}
 	}
 }

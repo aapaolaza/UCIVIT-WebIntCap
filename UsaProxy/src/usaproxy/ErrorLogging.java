@@ -29,18 +29,23 @@ public class ErrorLogging {
 	 *            under which is happening
 	 * @param errorSystemMessage
 	 *            Supposing this error is happening under a catch statement, the
-	 *            error produced by the system. Otherwise just state it wasn't a
-	 *            system error
+	 *            error produced by the system, null otherwise
 	 */
 
 	public static void logError(String sourceFuntion, String errorComment,
-			String errorSystemMessage) {
+			Exception errorException) {
 		/** Open a stream to the error log file. */
 		try {
 			
 			FileOutputStream fos = new FileOutputStream(new File(filename), true);
 
 			String errorToLog = errorSeparator;
+			
+			String errorSystemMessage;
+			if (errorException!=null)
+				errorSystemMessage = errorException.toString();
+			else
+				errorSystemMessage = "";
 			
 			SimpleDateFormat sdf = new SimpleDateFormat(
 					"MM/dd/yyyy HH:mm:ss.SSS");

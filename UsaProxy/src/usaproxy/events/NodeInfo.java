@@ -1,27 +1,34 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
 
-/*
+/**
  * This class will contain all the information of the node the event may be referring to.
  * It will have plenty of optional fields, like img in case the element referes to an image
  * or link and text in the case the node is an link.
  * All element whose information was not set, should be empty strings.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
  * 
- * id --> nodeId
- * name --> nodeName
- * dom --> NodeDom
- * img --> nodeImg
- * link --> nodeLink
- * text --> nodeText
- * nodeType --> nodeType
- * textValue --> nodeTextValue
  * 
  */
-public class NodeInfo {
+public class NodeInfo extends GenericEvent{
+	
+	/*
+	 * Empty constructor
+	 */
+	public NodeInfo(){
+		super();
+		this.nodeId = "";
+		this.nodeName = "";
+		this.nodeDom = "";
+		this.nodeImg= "";
+		this.nodeLink = "";
+		this.nodeText = "";
+		this.nodeType = null;
+		this.nodeTextValue = "";
+	}
+	
 	/**
 	 * @param nodeId
 	 * @param nodeName
@@ -70,6 +77,50 @@ public class NodeInfo {
 		return json;
 	}
 	
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * id --> nodeId
+	 * name --> nodeName
+	 * dom --> nodeDom
+	 * img --> nodeImg
+	 * link --> nodeLink
+	 * text --> nodeText
+	 * nodeType --> nodeType
+	 * textValue --> nodeTextValue
+	 * 
+	 * @param nodeData
+	 *            {@link EventDataHashMap} with all the information about the node.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static NodeInfo parseFromHash(EventDataHashMap nodeData) {
+
+		NodeInfo classObject = new NodeInfo();
+
+		classObject.nodeId = nodeData.get(EventConstants.NODEID);
+
+		classObject.nodeName = nodeData.get(EventConstants.NODENAME);
+
+		classObject.nodeDom = nodeData.get(EventConstants.NODEDOM);
+
+		classObject.nodeImg = nodeData.get(EventConstants.NODEIMG);
+
+		classObject.nodeLink = nodeData.get(EventConstants.NODELINK);
+
+		classObject.nodeText = nodeData.get(EventConstants.NODETEXT);
+
+		classObject.nodeType = nodeData.get(EventConstants.NODETYPE);
+
+		classObject.nodeTextValue = nodeData.get(EventConstants.NODETEXTVALUE);
+
+		return classObject;
+	}
+
 	/*
 	 * Id of the node if available
 	 */

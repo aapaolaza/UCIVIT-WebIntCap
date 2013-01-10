@@ -1,25 +1,29 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user double clicks.
  * Two single mouseclick events will be recorded even if this event is triggered.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * from variable --> mouseCoordinates
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Dblclick {
-	
+public class Dblclick extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Dblclick(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.mouseCoordinates = null;
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -46,7 +50,7 @@ public class Dblclick {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Mousedown element with the result
 	 * @param serialised class in JSON
 	 */
@@ -54,7 +58,7 @@ public class Dblclick {
 	public Dblclick(String json){
 		Gson gson = new Gson();
 		Dblclick tempClass = gson.fromJson(json, Dblclick.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -64,7 +68,7 @@ public class Dblclick {
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -76,12 +80,59 @@ public class Dblclick {
 		String json = gson.toJson(this);
 		return json;
 	}
-	
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * from variable --> mouseCoordinates
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Dblclick parseFromHash(EventDataHashMap eventData) {
+
+		Dblclick classObject = new Dblclick();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -91,7 +142,7 @@ public class Dblclick {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -110,12 +161,12 @@ public class Dblclick {
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-	
+
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL wheree the event happened
 	 */
@@ -247,5 +298,5 @@ public class Dblclick {
 		this.url = url;
 	}			
 
-	
+
 }

@@ -1,25 +1,30 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user cuts text from a text area.
  * It captures the text that was cut. 
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * content --> content
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Cut {
+public class Cut extends GenericEvent{
 
+	/**
+	 * Empty constructor
+	 */
+	public Cut(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.content = "";
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
+	
 	/**
 	 * @param ip
 	 * @param timestamp
@@ -64,6 +69,53 @@ public class Cut {
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
 		
+	}
+	
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * content --> content
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Cut parseFromHash(EventDataHashMap eventData) {
+
+		Cut classObject = new Cut();
+		
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+		
+		classObject.content = eventData.get(EventConstants.CONTENT);
+				
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 

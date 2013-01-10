@@ -1,23 +1,29 @@
 package usaproxy.events;
 
+import usaproxy.ErrorLogging;
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the mouse wheel gets activated  
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * delta --> delta
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Mousewheel {
+public class Mousewheel extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Mousewheel(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.delta = null;
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -31,7 +37,7 @@ public class Mousewheel {
 	 * @param url
 	 */
 	public Mousewheel(String ip, String timestamp, String sd, String sid,
-			String event, Float delta, NodeInfo nodeInfo, String browser,
+			String event, Integer delta, NodeInfo nodeInfo, String browser,
 			String url) {
 		super();
 		this.ip = ip;
@@ -44,7 +50,7 @@ public class Mousewheel {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Mousewheel element with the result
 	 * @param serialised class in JSON
 	 */
@@ -52,7 +58,7 @@ public class Mousewheel {
 	public Mousewheel(String json){
 		Gson gson = new Gson();
 		Mousewheel tempClass = gson.fromJson(json, Mousewheel.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -62,7 +68,7 @@ public class Mousewheel {
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -74,12 +80,65 @@ public class Mousewheel {
 		String json = gson.toJson(this);
 		return json;
 	}
-	
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * delta --> delta
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Mousewheel parseFromHash(EventDataHashMap eventData) {
+
+		Mousewheel classObject = new Mousewheel();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		try{
+			classObject.delta = Integer.parseInt(eventData.get(EventConstants.DELTA));
+		}
+		catch(Exception e){
+			ErrorLogging.logError("Mousewheel.java/parseMousewheelObject", 
+					"Error parsing the delta value", e);
+		}
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -89,7 +148,7 @@ public class Mousewheel {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -99,22 +158,22 @@ public class Mousewheel {
 	 * Event's name
 	 */
 	private String event;
-	
+
 	/*
 	 * Value of the delta indicates the amount of wheel movement
 	 */
-	private Float delta;
-		
+	private Integer delta;
+
 	/*
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-	
+
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL wheree the event happened
 	 */
@@ -189,18 +248,18 @@ public class Mousewheel {
 	public void setEvent(String event) {
 		this.event = event;
 	}
-	
+
 	/**
 	 * @return the delta
 	 */
-	public String getDelta() {
-		return event;
+	public Integer getDelta() {
+		return delta;
 	}
 
 	/**
 	 * @param delta the delta to set
 	 */
-	public void setDelta(Float delta) {
+	public void setDelta(Integer delta) {
 		this.delta = delta;
 	}
 
@@ -246,5 +305,5 @@ public class Mousewheel {
 		this.url = url;
 	}			
 
-	
+
 }

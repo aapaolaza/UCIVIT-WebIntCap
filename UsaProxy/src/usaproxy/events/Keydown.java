@@ -1,26 +1,31 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user presses a key. Together with keyup and keypress they conform
  * the cycle of pressing and releasing a key, being keydown the end.
  * The difference with this event is that it records the physical key that corresponds
  * to that action.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * key --> key
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Keydown {
+public class Keydown extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Keydown(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.key = "";
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -47,7 +52,7 @@ public class Keydown {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Keydown element with the result
 	 * @param serialised class in JSON
 	 */
@@ -55,7 +60,7 @@ public class Keydown {
 	public Keydown(String json){
 		Gson gson = new Gson();
 		Keydown tempClass = gson.fromJson(json, Keydown.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -66,7 +71,7 @@ public class Keydown {
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
 	}	
-	
+
 
 	/** Serialise the class into a JSON, and returns the String containing it 
 	 * @return serialised class in JSON
@@ -77,12 +82,59 @@ public class Keydown {
 		String json = gson.toJson(this);
 		return json;
 	}
- 
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * key --> key
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Keydown parseFromHash(EventDataHashMap eventData) {
+
+		Keydown classObject = new Keydown();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+		
+		classObject.key = eventData.get(EventConstants.KEY);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -92,7 +144,7 @@ public class Keydown {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -102,7 +154,7 @@ public class Keydown {
 	 * Event's name
 	 */
 	private String event;
-			
+
 	/*
 	 * Name of the key involved in the event
 	 */
@@ -115,13 +167,13 @@ public class Keydown {
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL where the event happened
 	 */
 	private String url;
 
-	
+
 
 	/**
 	 * @return the ip

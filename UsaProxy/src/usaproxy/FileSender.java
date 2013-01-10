@@ -356,7 +356,7 @@ public class FileSender {
 					+ e);
 			
 			ErrorLogging.logError("FileSender.java: send()",
-        			"ERROR occured: script file not found",e.toString());
+        			"ERROR occured: script file not found",e);
 
 			SocketData.send404(out);
 		}
@@ -409,7 +409,7 @@ public class FileSender {
 			System.err.println("\nAn ERROR occured: file " + filename
 					+ " not found:\n" + e);
 			ErrorLogging.logError("FileSender.java: getHTMLData()", "file "
-					+ filename + " not found", e.toString());
+					+ filename + " not found", e);
 			return null;
 		}
 	}

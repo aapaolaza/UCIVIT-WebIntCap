@@ -1,26 +1,30 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when the user clicks the mouse button. It records which button was pressed.
  * Together with mouseup it represents the whole cycle of a click action, being mousedown the start. 
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * but --> button
- * from variable --> mouseCoordinates
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Mousedown {
+public class Mousedown extends GenericEvent{
 	
+	/**
+	 * Empty constructor
+	 */
+	public Mousedown(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.button = "";
+		this.mouseCoordinates = null;
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -49,7 +53,7 @@ public class Mousedown {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Mousedown element with the result
 	 * @param serialised class in JSON
 	 */
@@ -57,7 +61,7 @@ public class Mousedown {
 	public Mousedown(String json){
 		Gson gson = new Gson();
 		Mousedown tempClass = gson.fromJson(json, Mousedown.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -68,7 +72,7 @@ public class Mousedown {
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -80,12 +84,62 @@ public class Mousedown {
 		String json = gson.toJson(this);
 		return json;
 	}
-	
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * but --> button
+	 * from variable --> mouseCoordinates
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Mousedown parseFromHash(EventDataHashMap eventData) {
+
+		Mousedown classObject = new Mousedown();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.button = eventData.get(EventConstants.BUTTON);
+		
+		classObject.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
+		
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -95,7 +149,7 @@ public class Mousedown {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -105,7 +159,7 @@ public class Mousedown {
 	 * Event's name
 	 */
 	private String event;
-	
+
 	/*
 	 * Which button was pressed (l for left, r for right and m for middle)
 	 */
@@ -118,12 +172,12 @@ public class Mousedown {
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-	
+
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL wheree the event happened
 	 */
@@ -268,5 +322,5 @@ public class Mousedown {
 		this.url = url;
 	}			
 
-	
+
 }

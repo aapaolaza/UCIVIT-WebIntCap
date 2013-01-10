@@ -1,21 +1,27 @@
 package usaproxy.events;
 
+import usaproxy.ErrorLogging;
+
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when a DOM change is recorded, the content of the DOM change is stored to a text file.
  * The text file is stored in a folder with the name of the sid, and timestamped with this same timestamp
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * numberofchanges --> numberOfChanges
  */
-public class Domchange {
+public class Domchange extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Domchange(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.numberOfChanges = null;
+	}
 
 	/**
 	 * @param ip
@@ -35,7 +41,7 @@ public class Domchange {
 		this.event = event;
 		this.numberOfChanges = numberOfChanges;
 	}
-	
+
 	/** Deserialise given JSON and creates a Domchange element with the result
 	 * @param serialised class in JSON
 	 */
@@ -43,16 +49,16 @@ public class Domchange {
 	public Domchange(String json){
 		Gson gson = new Gson();
 		Domchange tempClass = gson.fromJson(json, Domchange.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
 		this.numberOfChanges = tempClass.numberOfChanges;
-		
+
 	}	
-	
+
 
 	/** Serialise the class into a JSON, and returns the String containing it 
 	 * @return serialised class in JSON
@@ -63,14 +69,56 @@ public class Domchange {
 		String json = gson.toJson(this);
 		return json;
 	}
- 
-	
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * numberofchanges --> numberOfChanges
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Domchange parseFromHash(EventDataHashMap eventData) {
+
+		Domchange classObject = new Domchange();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		try{
+			classObject.numberOfChanges = Integer.parseInt(eventData.get(EventConstants.NUMBEROFCHANGES));
+		}
+		catch(Exception e){
+			ErrorLogging.logError("Domchange.java/parseDomchangeObject", 
+					"Error parsing the number of changes", e);
+		}
+
+		return classObject;
+	}
 
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -80,7 +128,7 @@ public class Domchange {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -95,7 +143,7 @@ public class Domchange {
 	 * Number of changes since the last DOM change
 	 */
 	private Integer numberOfChanges;
-	
+
 
 	/**
 	 * @return the ip
@@ -167,7 +215,7 @@ public class Domchange {
 		this.event = event;
 	}
 
-	
+
 
 
 	/**

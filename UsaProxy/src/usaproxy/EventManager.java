@@ -22,6 +22,32 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import usaproxy.domchanges.DOMdiff;
+import usaproxy.events.Blur;
+import usaproxy.events.Change;
+import usaproxy.events.Contextmenu;
+import usaproxy.events.Copy;
+import usaproxy.events.Cut;
+import usaproxy.events.Dblclick;
+import usaproxy.events.Domchange;
+import usaproxy.events.EventConstants;
+import usaproxy.events.EventDataHashMap;
+import usaproxy.events.Focus;
+import usaproxy.events.Keydown;
+import usaproxy.events.Keypress;
+import usaproxy.events.Keyup;
+import usaproxy.events.Load;
+import usaproxy.events.Mousedown;
+import usaproxy.events.Mousemove;
+import usaproxy.events.Mouseout;
+import usaproxy.events.Mouseover;
+import usaproxy.events.Mouseup;
+import usaproxy.events.Mousewheel;
+import usaproxy.events.Paste;
+import usaproxy.events.Resize;
+import usaproxy.events.Scroll;
+import usaproxy.events.SelectContent;
+import usaproxy.events.FactoryEvent;
+import usaproxy.events.Unload;
 
 /**
  * Class EventManager manages the exchange of interactions occured in one of the
@@ -62,7 +88,8 @@ public class EventManager {
 	 * heavy for text editors, and also to check it's working. that should be 5
 	 * * 1024 *1024 = 5242880
 	 */
-	private final static int maxLogSize = 5242880;//I will test with 100kb to see if it's working
+	private final static int maxLogSize = 5242880;// I will test with 100kb to
+	// see if it's working
 
 	/**
 	 * Reference value of the default value of the variable
@@ -263,13 +290,17 @@ public class EventManager {
 						dataArray[m] += " numberofchanges="
 								+ numberOfDomChanges;
 					}
-
+					
+					//Log information to the database
+					logEventToDB(clientIP,dataArray[m]);
+					
 					/** append complete entry */
 					data = data + clientIP + " " + dataArray[m] + HTTPData.CRLF;
 				}
 			}
 
-			if(writeToLogFile(data) && out != null){
+			if (writeToLogFile(data) && out != null) {
+				
 				/** send 404 message in order to complete the request */
 				// Changed to 200 message
 				SocketData.send200(out);
@@ -281,7 +312,7 @@ public class EventManager {
 
 			ErrorLogging.logError("Event Manager.java: log()",
 					"log file not found while trying to write the following data:\n"
-							+ data, e.toString());
+							+ data, e);
 
 			/** Send 404 error message to client */
 			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
@@ -315,8 +346,10 @@ public class EventManager {
 		boolean returnValue = false;
 		/** Open a stream to the log file. */
 		File logFile = new File(logFolder, logFilename);
-		
-		//System.out.println("recordingsLeftToCheckSize: " + recordingsLeftToCheckSize +", and log file size:" + logFile.length());
+
+		// System.out.println("recordingsLeftToCheckSize: " +
+		// recordingsLeftToCheckSize +", and log file size:" +
+		// logFile.length());
 
 		// if it's time to check the size
 		if (recordingsLeftToCheckSize == 0) {
@@ -327,15 +360,17 @@ public class EventManager {
 			// and add a timestamp to the old one
 			if (logFile.length() > maxLogSize) {
 
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd,HH-mm-ss-SSS");
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd,HH-mm-ss-SSS");
 				Date dt = new Date();
 				String timeStamp = sdf.format(dt);
 
-				File oldLogFile = new File(logFolder, timeStamp + "_" + logFilename);
+				File oldLogFile = new File(logFolder, timeStamp + "_"
+						+ logFilename);
 
 				// if the rename function works we create a new log file
 				// and writes the new data to it
-				try{
+				try {
 					FileUtils.moveFile(logFile, oldLogFile);
 					File newLog = new File(logFolder, logFilename);
 					FileOutputStream fos = new FileOutputStream(newLog, true);
@@ -343,10 +378,12 @@ public class EventManager {
 					fos.flush();
 					fos.close();
 					returnValue = true;
-				}
-				catch(Exception e){
-					//There was a problem with the rename function, we record the error
-					ErrorLogging.logError("EventManager.java:writeToLogFile()", "Trying to rename the old log file failed", e.toString());
+				} catch (Exception e) {
+					// There was a problem with the rename function, we record
+					// the error
+					ErrorLogging.logError("EventManager.java:writeToLogFile()",
+							"Trying to rename the old log file failed",
+							e);
 					returnValue = false;
 				}
 			}
@@ -475,16 +512,16 @@ public class EventManager {
 						HTTPData.CRLF);
 				if (eventOffset != null)
 					XMLmessages.append("<offset>" + eventOffset + "</offset>")
-							.append(HTTPData.CRLF);
+					.append(HTTPData.CRLF);
 				if (eventSd != null)
 					XMLmessages.append("<sd>" + eventSd + "</sd>").append(
 							HTTPData.CRLF);
 				if (eventPage != null)
 					XMLmessages.append("<page>" + eventPage + "</page>")
-							.append(HTTPData.CRLF);
+					.append(HTTPData.CRLF);
 				if (eventSize != null)
 					XMLmessages.append("<size>" + eventSize + "</size>")
-							.append(HTTPData.CRLF);
+					.append(HTTPData.CRLF);
 				if (eventSid != null)
 					XMLmessages.append("<sid>" + eventSid + "</sid>").append(
 							HTTPData.CRLF);
@@ -506,11 +543,11 @@ public class EventManager {
 							.append(HTTPData.CRLF);
 				if (eventValue != null)
 					XMLmessages.append("<value>" + eventValue + "</value>")
-							.append(HTTPData.CRLF);
+					.append(HTTPData.CRLF);
 				if (eventChecked != null)
 					XMLmessages.append(
 							"<checked>" + eventChecked + "</checked>").append(
-							HTTPData.CRLF);
+									HTTPData.CRLF);
 				if (eventSelected != null)
 					XMLmessages.append(
 							"<selected>" + eventSelected + "</selected>")
@@ -559,7 +596,7 @@ public class EventManager {
 		 */
 		if (event.indexOf(" " + parameter + "=") > -1)
 			start = event.indexOf(" " + parameter + "=") + 2
-					+ parameter.length();
+			+ parameter.length();
 		else
 			start = -1;
 
@@ -626,8 +663,8 @@ public class EventManager {
 	public int logDOMChange(String newdomData, String clientIP) {
 
 		int numberOfDomChanges;// variable that will contain the number of DOM
-								// changes. If it records a new DOM it will be
-								// 0.
+		// changes. If it records a new DOM it will be
+		// 0.
 
 		try {
 			// /First we need to get all the data, it should arrive in the
@@ -754,26 +791,52 @@ public class EventManager {
 		} catch (FileNotFoundException e) {
 			/** If log file doesn't exist, send 404 message. */
 			System.err
-					.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
-							+ e);
+			.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
+					+ e);
 
 			ErrorLogging
-					.logError(
-							"EventManager.java: logDOMChange()",
-							"ERROR occured: problems accessing the log file for DOM change",
-							e.toString());
+			.logError(
+					"EventManager.java: logDOMChange()",
+					"ERROR occured: problems accessing the log file for DOM change",
+					e);
 		}
 
 		catch (IOException ie) {
 			System.err
-					.println("\nAn ERROR occured while logging DOM change event data:\n"
-							+ ie);
+			.println("\nAn ERROR occured while logging DOM change event data:\n"
+					+ ie);
 
 			ErrorLogging.logError("EventManager.java: logDOMChange()",
 					"ERROR occured while logging DOM change event data",
-					ie.toString());
+					ie);
 		}
 		return -1;
+
+	}
+
+	/**
+	 * Logs the event to the database, in order to do that, it has to discern
+	 * what kind of event it is, map it into the corresponding event Java class
+	 * from usaproxy.events and serialize it into a JSON. After that it will
+	 * submit it to the Database.
+	 * 
+	 * @param ipAddress
+	 *            String with the users' IP address
+	 * @param eventData
+	 *            String with all the information about the event, this is the
+	 *            string that needs to be parsed.
+	 * 
+	 * 
+	 */
+	public void logEventToDB(String ipAddress, String eventData) {
+
+		//EventDataHashMap will automatically parse the event data, 
+		//and by adding the IP address we will have all the information there  
+		EventDataHashMap eventHashMap = new EventDataHashMap(eventData);
+		eventHashMap.put(EventConstants.IPADDRESS, ipAddress);
+
+		MongoDAO.MongoDAO().commitJson(FactoryEvent.getJsonFromEventHashMap(eventHashMap));
+		// We look the type of event, to then create the corresponding Java class and serialize into a JSON		
 
 	}
 
@@ -796,8 +859,8 @@ public class EventManager {
 
 		} catch (IOException e) {
 			System.out
-					.println("EventManager.java/getStringFromFile: ERROR accessing the following file:"
-							+ filename.getPath());
+			.println("EventManager.java/getStringFromFile: ERROR accessing the following file:"
+					+ filename.getPath());
 			e.printStackTrace();
 			return null;
 		}

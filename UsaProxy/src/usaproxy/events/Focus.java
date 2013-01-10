@@ -1,23 +1,26 @@
 package usaproxy.events;
 
 import com.google.gson.Gson;
-/*
+/**
  * Event triggered when an element in the page gain focus 
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * from variable --> nodeInfo
- * browser --> browser
- * url --> url
  */
-public class Focus {
-	
+public class Focus extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Focus(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.nodeInfo = null;
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -42,7 +45,7 @@ public class Focus {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Focus element with the result
 	 * @param serialised class in JSON
 	 */
@@ -50,7 +53,7 @@ public class Focus {
 	public Focus(String json){
 		Gson gson = new Gson();
 		Focus tempClass = gson.fromJson(json, Focus.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -59,7 +62,7 @@ public class Focus {
 		this.nodeInfo = tempClass.nodeInfo;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
-		
+
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -71,12 +74,56 @@ public class Focus {
 		String json = gson.toJson(this);
 		return json;
 	}
-	
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * from variable --> nodeInfo
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Focus parseFromHash(EventDataHashMap eventData) {
+
+		Focus classObject = new Focus();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+		
+		classObject.url = eventData.get(EventConstants.URL);
+		
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -86,7 +133,7 @@ public class Focus {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -96,18 +143,18 @@ public class Focus {
 	 * Event's name
 	 */
 	private String event;
-	
-	
+
+
 	/*
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-	
+
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL wheree the event happened
 	 */
@@ -225,5 +272,5 @@ public class Focus {
 		this.url = url;
 	}			
 
-	
+
 }

@@ -1,22 +1,27 @@
 package usaproxy.events;
 
+
 import com.google.gson.Gson;
-/*
+/**
  * This event gets triggered when the user changes the size of the screen.
  * 
- * The mapping of text logs to variables is the following: 
- * text log --> variable name
- * 
- * from variable --> ip
- * time --> timestamp
- * sd --> sd
- * sid --> sid
- * event --> event
- * size --> size
- * browser --> browser
- * url --> url
  */
-public class Resize {
+public class Resize extends GenericEvent{
+
+	/**
+	 * Empty constructor
+	 */
+	public Resize(){
+		super();
+		this.ip = "";
+		this.timestamp = "";
+		this.sd = "";
+		this.sid = "";
+		this.event = "";
+		this.size = "";
+		this.browser = "";
+		this.url = "";
+	}
 
 	/**
 	 * @param ip
@@ -40,7 +45,7 @@ public class Resize {
 		this.browser = browser;
 		this.url = url;
 	}
-	
+
 	/** Deserialise given JSON and creates a Resize element with the result
 	 * @param serialised class in JSON
 	 */
@@ -48,7 +53,7 @@ public class Resize {
 	public Resize(String json){
 		Gson gson = new Gson();
 		Resize tempClass = gson.fromJson(json, Resize.class);
-		
+
 		this.ip = tempClass.ip;
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
@@ -58,7 +63,7 @@ public class Resize {
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
 	}	
-	
+
 
 	/** Serialise the class into a JSON, and returns the String containing it 
 	 * @return serialised class in JSON
@@ -69,12 +74,56 @@ public class Resize {
 		String json = gson.toJson(this);
 		return json;
 	}
- 
+
+	/**
+	 * Constructs the class getting the information from a HashMap.
+	 * 
+	 * The mapping of HashMap keys to variables is the following: 
+	 * text log --> variable name
+	 * 
+	 * from variable --> ip
+	 * time --> timestamp
+	 * sd --> sd
+	 * sid --> sid
+	 * event --> event
+	 * size --> size
+	 * browser --> browser
+	 * url --> url
+	 * 
+	 * @param eventData
+	 *            {@link EventDataHashMap} with all the information about the event.
+	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 * 
+	 * 
+	 */
+	public static Resize parseFromHash(EventDataHashMap eventData) {
+
+		Resize classObject = new Resize();
+
+		classObject.ip = eventData.get(EventConstants.IPADDRESS);
+
+		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		classObject.sd = eventData.get(EventConstants.SD);
+
+		classObject.sid = eventData.get(EventConstants.SID);
+
+		classObject.event = eventData.get(EventConstants.EVENTNAME);
+
+		classObject.size =  eventData.get(EventConstants.SIZE);
+
+		classObject.browser = eventData.get(EventConstants.BROWSER);
+
+		classObject.url = eventData.get(EventConstants.URL);
+
+		return classObject;
+	}
+
 	/*
 	 * User's IP
 	 */
 	private String ip;
-	
+
 	/*
 	 * Timestamp of the event
 	 */
@@ -84,7 +133,7 @@ public class Resize {
 	 * Id of the website
 	 */
 	private String sd;
-	
+
 	/*
 	 * User's ID
 	 */
@@ -94,23 +143,23 @@ public class Resize {
 	 * Event's name
 	 */
 	private String event;
-			
+
 	/*
 	 * String representing the size of the new screen (in the format 1440x900)
 	 */
 	private String size;
-	
+
 	/*
 	 * Name of the browser
 	 */
 	private String browser;
-	
+
 	/*
 	 * URL where the event happened
 	 */
 	private String url;
 
-	
+
 
 	/**
 	 * @return the ip
@@ -181,7 +230,7 @@ public class Resize {
 	public void setEvent(String event) {
 		this.event = event;
 	}
-	
+
 	/**
 	 * @return the size value
 	 */
