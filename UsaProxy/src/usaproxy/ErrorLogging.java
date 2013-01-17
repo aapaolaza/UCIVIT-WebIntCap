@@ -3,6 +3,8 @@ package usaproxy;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -42,8 +44,12 @@ public class ErrorLogging {
 			String errorToLog = errorSeparator;
 			
 			String errorSystemMessage;
-			if (errorException!=null)
-				errorSystemMessage = errorException.toString();
+			if (errorException!=null){
+				StringWriter writer = new StringWriter();
+				PrintWriter printWriter = new PrintWriter(writer);
+				errorException.printStackTrace(printWriter);
+				errorSystemMessage = writer.toString();
+			}
 			else
 				errorSystemMessage = "";
 			

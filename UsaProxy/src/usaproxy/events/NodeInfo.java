@@ -14,7 +14,7 @@ import com.google.gson.Gson;
  */
 public class NodeInfo extends GenericEvent{
 	
-	/*
+	/**
 	 * Empty constructor
 	 */
 	public NodeInfo(){
@@ -121,36 +121,36 @@ public class NodeInfo extends GenericEvent{
 		return classObject;
 	}
 
-	/*
+	/**
 	 * Id of the node if available
 	 */
 	private String nodeId;
-	/*
+	/**
 	 * Name of the node if available
 	 */
 	private String nodeName;
-	/*
+	/**
 	 * DOM location of the hovered element
 	 */
 	private String nodeDom;
-	/*
+	/**
 	 * The filename the node may be referring to 
 	 */
 	private String nodeImg;
-	/*
+	/**
 	 * The link the node may be pointing at
 	 */
 	private String nodeLink;
-	/*
+	/**
 	 * Text the node may contain
 	 */
 	private String nodeText;
-	/*
+	/**
 	 * Node type of the hovered element
 	 */
 	private String nodeType;
 	
-	/*
+	/**
 	 * Possible text value of the node 
 	 */
 	private String nodeTextValue;

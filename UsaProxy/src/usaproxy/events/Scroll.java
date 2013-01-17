@@ -39,7 +39,7 @@ public class Scroll extends GenericEvent{
 	 * @param url
 	 */
 	public Scroll(String ip, String timestamp, String sd, String sid,
-			String event, Integer scrollX, Integer scrollY, String browser, String url) {
+			String event, Float scrollX, Float scrollY, String browser, String url) {
 		super();
 		this.ip = ip;
 		this.timestamp = timestamp;
@@ -128,7 +128,7 @@ public class Scroll extends GenericEvent{
 		else{
 
 			try{
-				classObject.scrollX = Integer.parseInt(eventData.get(EventConstants.SCROLLX));
+				classObject.scrollX = Float.parseFloat(eventData.get(EventConstants.SCROLLX));
 			}
 			catch(Exception e){
 				//we only log an error if the reading was not null (it was something unexpected)
@@ -138,7 +138,7 @@ public class Scroll extends GenericEvent{
 			}
 
 			try{
-				classObject.scrollY = Integer.parseInt(eventData.get(EventConstants.SCROLLY));
+				classObject.scrollY = Float.parseFloat(eventData.get(EventConstants.SCROLLY));
 			}
 			catch(Exception e){
 				//we only log an error if the reading was not null (it was something unexpected)
@@ -155,47 +155,47 @@ public class Scroll extends GenericEvent{
 		return classObject;
 	}
 
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
-	/*
-	 * X coordinate of the scroll
+	/**
+	 * Percentage of scroll in the X axis
 	 */
-	private Integer scrollX;
+	private Float scrollX;
 
-	/*
-	 * Y coordinate of the scroll
+	/**
+	 * Percentage of scroll in the Y axis
 	 */
-	private Integer scrollY;
+	private Float scrollY;
 
-	/*
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
 
-	/*
+	/**
 	 * URL where the event happened
 	 */
 	private String url;
@@ -275,28 +275,28 @@ public class Scroll extends GenericEvent{
 	/**
 	 * @return the X scroll value
 	 */
-	public Integer getScrollX() {
+	public Float getScrollX() {
 		return scrollX;
 	}
 
 	/**
 	 * @param key the X scroll value to set
 	 */
-	public void setScrollX(Integer scrollX) {
+	public void setScrollX(Float scrollX) {
 		this.scrollX = scrollX;
 	}
 
 	/**
 	 * @return the Y scroll value
 	 */
-	public Integer getScrollY() {
+	public Float getScrollY() {
 		return scrollY;
 	}
 
 	/**
 	 * @param key the Y scroll value to set
 	 */
-	public void setScrollY(Integer scrollY) {
+	public void setScrollY(Float scrollY) {
 		this.scrollY = scrollY;
 	}
 

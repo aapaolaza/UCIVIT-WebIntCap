@@ -2,6 +2,8 @@ package usaproxy.events;
 
 import java.util.HashMap;
 
+import usaproxy.ErrorLogging;
+
 /**
  * This class will provide a HashMap in which to put all the data from the events,
  * this will speed up the process of getting the relevant data for each event type,
@@ -21,17 +23,26 @@ public class EventDataHashMap {
 		
 		String[] paramList = eventData.split(" ");
 		// I need to split the event String using first spaces and then "="
-System.out.println(eventData);
+		
 		String[] paramItemPair;
-		System.out.println("EventDataHashMap: initializing HashMap with the following number of elements:" +paramList.length);
+		
 		for (int i = 0; i < paramList.length; i++) {
 			paramItemPair = paramList[i].split("=");
-			System.out.println(paramList[i]);
-			System.out.println(paramItemPair[0]);
-			System.out.println(paramItemPair[1]);
+//			System.out.println(paramList[i]);
+//			System.out.println(paramItemPair[0]);
+//			System.out.println(paramItemPair[1]);
 			//for each pair we will store the second element using the first one as the key
-			
-			dataMap.put(paramItemPair[0], paramItemPair[1]);
+			try{
+				if (paramItemPair.length == 1)
+					dataMap.put(paramItemPair[0], "");
+				else
+					dataMap.put(paramItemPair[0], paramItemPair[1]);
+			}
+			catch(Exception e){
+				ErrorLogging.logError("EventDataHashMap.java/EventDataHashMap()",
+						"Error trying to add the following keypair to the HashMap: " + paramList[i],
+						e);
+			}
 		}
 	}
 	

@@ -13,7 +13,7 @@ import com.google.gson.Gson;
  */
 public class MouseCoordinates {
 
-	/*
+	/**
 	 * Empty constructor
 	 */
 	public MouseCoordinates() {
@@ -111,22 +111,22 @@ public class MouseCoordinates {
 	return classObject;
 }
 
-/*
+/**
  * Coordinates X of the mouse
  */
 private Integer coordX;
 
-/*
+/**
  * Coordinates Y of the mouse
  */
 private Integer coordY;
 
-/*
+/**
  * Offset coordinate X inside the node object of the event
  */
 private Integer offsetX;
 
-/*
+/**
  * Offset coordinate Y inside the node object of the event
  */
 private Integer offsetY;

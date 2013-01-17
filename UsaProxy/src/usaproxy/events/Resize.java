@@ -119,42 +119,42 @@ public class Resize extends GenericEvent{
 		return classObject;
 	}
 
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
-	/*
+	/**
 	 * String representing the size of the new screen (in the format 1440x900)
 	 */
 	private String size;
 
-	/*
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
 
-	/*
+	/**
 	 * URL where the event happened
 	 */
 	private String url;

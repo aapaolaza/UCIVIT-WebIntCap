@@ -135,50 +135,50 @@ public class Mousedown extends GenericEvent{
 		return classObject;
 	}
 
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
-	/*
+	/**
 	 * Which button was pressed (l for left, r for right and m for middle)
 	 */
 	private String button;
-	/*
+	/**
 	 * MouseCoordinates element with all the information available of the mouse coordinates
 	 */
 	private MouseCoordinates mouseCoordinates;
-	/*
+	/**
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
 
-	/*
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
 
-	/*
+	/**
 	 * URL wheree the event happened
 	 */
 	private String url;

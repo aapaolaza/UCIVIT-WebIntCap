@@ -133,56 +133,56 @@ public class SelectContent extends GenericEvent{
 		return classObject;
 	}
 	
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
 
-	/*
+	/**
 	 * Name of the tool employed for the selection of the content (at the moment only mouse).
 	 * It may not be available.
 	 * 
 	 */
 	private String selectionTool;
 
-	/*
+	/**
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
 
-	/*
+	/**
 	 * String with the selected content.
 	 * 
 	 */
 	private String selectedContent;
 
-	/*
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
 
-	/*
+	/**
 	 * URL wheree the event happened
 	 */
 	private String url;

@@ -50,7 +50,7 @@ var id_UsaProxy;				// String: contains String identifying the current UsaProxy 
    * Doesn't need to be created as the server add it with its corresponding value*/
 //var startDate_UsaProxy;			
 
-var loadDate_UsaProxy;			// Date: Initialised on load. All further timestamps are calculated
+var loadDate_UsaProxy = new Date();	// Date: Initialised on load. All further timestamps are calculated
 								// by adding the ms passed since page load completion to this
 								//  relative timestamp.
 
@@ -461,7 +461,7 @@ function datestamp_UsaProxy() {
 	// return new Date object according to UsaProxy start time + diffMSecs
 	var currentUPDate 	= new Date(startDate_UsaProxy + diffSecs);
 
-	return currentUPDate.getFullYear() + "-" + completeDateVals(currentUPDate.getMonth()) + "-"
+	return currentUPDate.getFullYear() + "-" + completeDateVals(currentUPDate.getMonth()+1) + "-"
 	  + completeDateVals(currentUPDate.getDate()) + "," + completeDateVals(currentUPDate.getHours())
 	  + ":" + completeDateVals(currentUPDate.getMinutes())
 	  + ":" + completeDateVals(currentUPDate.getSeconds())
@@ -878,12 +878,12 @@ function processMousedown_UsaProxy(e) {
 		//alert("TEST");
 		//printCookiesOnConsole();
 		////DEBUG END
-		writeLog_UsaProxy("mousedown&but=" + mbutton + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 		return;
 	}
 	/* end mouse button detection */
-	
+	/*
 	// dropdown selection event is handled by function processChange_UsaProxy
 	if(target.nodeName=="OPTION" || target.nodeName=="option") return; // do nothing
 	if(target.nodeName=="SELECT" || target.nodeName=="select") return; // do nothing
@@ -892,7 +892,7 @@ function processMousedown_UsaProxy(e) {
 	if(target.type && (target.type == "radio")) {
 		return;
 	}
-	
+	*/
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
@@ -908,8 +908,6 @@ function processMousedown_UsaProxy(e) {
 	recordCurrentDOM();
 	//saveLog_UsaProxy();
 }
-
-/* no mouseup event since with regular user tracking not necessary */
 
 /* Processes change event in select lists, input fields, textareas.
    Logs change event together with the corresponding field type, and
@@ -1482,7 +1480,7 @@ function mapToAlph(position /*number*/) {
 /* Computes the element's offset from the left edge
    of the browser window */
 function absLeft(element) {
-	if (isNotOldIE) return element.pageX;
+	if (element.pageX) return element.pageX;
 	else
     	return (element.offsetParent)? 
      	element.offsetLeft + absLeft(element.offsetParent) : element.offsetLeft;
@@ -1628,7 +1626,7 @@ function processMouseup_ExtraEvent(e) {
 	// log middle and right button events, continue if left button was clicked
 	if (mbutton!="l") {
 
-		writeLog_UsaProxy("mouseup&but=" + mbutton + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target));
 		return;
 	}
 	// end mouse button detection 
@@ -2197,6 +2195,8 @@ function askForCookiePermission(){
 	
 	
 	var headerNode = document.createElement("h2");
+	headerNode.style.textAlign = "center";
+
 	var headerText = document.createTextNode("Cookies in this website");
 	headerNode.appendChild(headerText);
 	
@@ -2208,6 +2208,9 @@ function askForCookiePermission(){
 	
 	
 	var textNode = document.createElement("p");
+	textNode.style.textAlign = "center";
+
+
 	var disclaimerText = document.createTextNode("This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site");
 	textNode.appendChild(disclaimerText);
 	htmlDivContent.appendChild(textNode);
@@ -2275,7 +2278,14 @@ function getSessionFromCookie(){
 	//console.log("getSessionFromCookie");
 	
 //DEBUG PURPOSES REMEMBER TO DELETE IT!!!
-			return false;
+	if (document.cookie.length > 0){
+		alert(document.cookie.split(';').length);
+		alert(document.cookie);
+	}
+	else
+		alert("No cookies were found");
+			
+	return false;
 
 	
 	//We check if there are cookies in the Web page

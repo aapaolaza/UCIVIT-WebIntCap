@@ -119,44 +119,44 @@ public class Load extends GenericEvent{
 		return classObject;
 	}
 	
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 	
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 	
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
 
-	/*
+	/**
 	 * Client's browser's window size
 	 */
 	private String size;
 
 	
-	/*
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
 	
-	/*
+	/**
 	 * URL wheree the event happened
 	 */
 	private String url;

@@ -1,13 +1,13 @@
 package usaproxy.events;
 
-/*
+/**
  * This class contains all (or the majority) of constants used throughout the document.
  * This includes the taxonomy employed by the JavaScript to name different attributes,
  * like "event" for the type of event recorded, or "time" for the timestamp.
  * 
  */
 public class EventConstants {
-	/*
+	/**
 	public static enum EventsEnum{
 	    blur, change, contextmenu, copy,
 	    cut, dblclick, domchange, focus,

@@ -129,46 +129,46 @@ public class Contextmenu extends GenericEvent{
 		return classObject;
 	}
 	
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 	
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 	
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
-	/*
+	/**
 	 * MouseCoordinates element with all the information available of the mouse coordinates
 	 */
 	private MouseCoordinates mouseCoordinates;
-	/*
+	/**
 	 * Nodeinfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
 	
-	/*
+	/**
 	 * Name of the browser
 	 */
 	private String browser;
 	
-	/*
+	/**
 	 * URL where the event happened
 	 */
 	private String url;

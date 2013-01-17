@@ -4,7 +4,7 @@ import com.mongodb.DBObject;
 
 import usaproxy.ErrorLogging;
 
-/*
+/**
  * This class will serve as an interface to the rest of events.
  * Its functions will discern what event class should be called
  * to then call the approppiate class' function
@@ -129,7 +129,7 @@ public class FactoryEvent {
 	 * 
 	 */
 	
-	public static GenericEvent getEventFromJson(DBObject dbObject){
+	public static GenericEvent getEventFromDBObject(DBObject dbObject){
 		GenericEvent classObject = null;
 		
 		switch (dbObject.get(EventConstants.EVENTNAME).toString()) {

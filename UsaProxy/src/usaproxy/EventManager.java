@@ -22,32 +22,9 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 
 import usaproxy.domchanges.DOMdiff;
-import usaproxy.events.Blur;
-import usaproxy.events.Change;
-import usaproxy.events.Contextmenu;
-import usaproxy.events.Copy;
-import usaproxy.events.Cut;
-import usaproxy.events.Dblclick;
-import usaproxy.events.Domchange;
 import usaproxy.events.EventConstants;
 import usaproxy.events.EventDataHashMap;
-import usaproxy.events.Focus;
-import usaproxy.events.Keydown;
-import usaproxy.events.Keypress;
-import usaproxy.events.Keyup;
-import usaproxy.events.Load;
-import usaproxy.events.Mousedown;
-import usaproxy.events.Mousemove;
-import usaproxy.events.Mouseout;
-import usaproxy.events.Mouseover;
-import usaproxy.events.Mouseup;
-import usaproxy.events.Mousewheel;
-import usaproxy.events.Paste;
-import usaproxy.events.Resize;
-import usaproxy.events.Scroll;
-import usaproxy.events.SelectContent;
 import usaproxy.events.FactoryEvent;
-import usaproxy.events.Unload;
 
 /**
  * Class EventManager manages the exchange of interactions occured in one of the

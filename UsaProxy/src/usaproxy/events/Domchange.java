@@ -114,32 +114,32 @@ public class Domchange extends GenericEvent{
 		return classObject;
 	}
 
-	/*
+	/**
 	 * User's IP
 	 */
 	private String ip;
 
-	/*
+	/**
 	 * Timestamp of the event
 	 */
 	private String timestamp;
 
-	/*
+	/**
 	 * Id of the website
 	 */
 	private String sd;
 
-	/*
+	/**
 	 * User's ID
 	 */
 	private String sid;
 
-	/*
+	/**
 	 * Event's name
 	 */
 	private String event;
 
-	/*
+	/**
 	 * Number of changes since the last DOM change
 	 */
 	private Integer numberOfChanges;
