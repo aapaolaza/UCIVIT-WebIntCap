@@ -24,16 +24,30 @@ public class MongoDAO {
 	public final String DATABASEIP = "localhost";
 	public final String DATABASEIPNAME = "testdb";
 	public final String DATABASECOLLECTION = "events";
-
+	
+	public final String DATABASEUSER = "wel";
+	public final char[] DATABASEPASSWORD = "wel&2013$".toCharArray();
+	
 	public static MongoClient mongoClient;
 	public static DB db;
 	public static DBCollection coll;
+	
+	//Variable indicating if the authorisation was correct 
+	private boolean auth;
 
 	private MongoDAO() throws UnknownHostException {
 		mongoClient = new MongoClient(DATABASEIP);
 
 		db = mongoClient.getDB(DATABASEIPNAME);
-		coll = db.getCollection(DATABASECOLLECTION);
+		auth = db.authenticate(DATABASEUSER, DATABASEPASSWORD);
+		
+		if (auth){
+			coll = db.getCollection(DATABASECOLLECTION);
+		}
+		else{
+			ErrorLogging.logError("MongoDAO.java/MongoDAO()",
+					"There was an error trying to connect to the MongoDB database", null);
+		}
 	}
 
 	/**

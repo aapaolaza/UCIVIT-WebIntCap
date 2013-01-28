@@ -154,7 +154,7 @@ if (isNotOldIE) window.addEventListener('load', includeJquery, false);
 else window.attachEvent('onload', includeJquery);
 
 
-/* Initializes all variables, event handlers, and interval functions and
+/** Initializes all variables, event handlers, and interval functions and
  * invokes the logging of the load event 
  */
 function init_UsaProxy() {
@@ -430,7 +430,8 @@ function init_UsaProxy() {
 }*/
 
 
-// Returns a Date object computed from a given datestamp string
+/** Returns a Date object computed from a given datestamp string
+ */ 
 function date_UsaProxy(datestamp /*string*/) {
 
 	var datestampTail 	= datestamp;
@@ -448,7 +449,7 @@ function date_UsaProxy(datestamp /*string*/) {
 	return			    new Date(year,month,day,hours,mins,secs);
 }
 
-/* Returns a timestamp string of the form "2004-12-31,23:59:59".
+/** Returns a timestamp string of the form "2004-12-31,23:59:59".
  * Takes UsaProxy's httptraffic log entry time as start time and adds
  * the difference between load time and current time */
  
@@ -469,7 +470,8 @@ function datestamp_UsaProxy() {
 	  
 }
 
-/** Completes single-digit numbers by a "0"-prefix */
+/** Completes single-digit numbers by a "0"-prefix
+ *  */
 function completeDateVals(dateVal) {
 	var dateVal = "" + dateVal;
 	if (dateVal.length<2) return "0" + dateVal;
@@ -477,7 +479,8 @@ function completeDateVals(dateVal) {
 }
 
 /** Completes single-digit numbers by a "0"-prefix
- * This is a special case for milliseconds, in which we will add up to two zeros */
+ * This is a special case for milliseconds, in which we will add up to two zeros 
+ * */
 function completeDateValsMilliseconds(dateVal) {
 	var dateVal = "" + dateVal;
 	if (dateVal.length<2) return "00" + dateVal;
@@ -485,7 +488,7 @@ function completeDateValsMilliseconds(dateVal) {
 	else return dateVal;
 }
   
-/* Appends an event log entry together with the httptrafficindex referencing this page,
+/** Appends an event log entry together with the httptrafficindex referencing this page,
    the client's session ID,
  * and the current timestamp to logVal_UsaProxy */
 function writeLog_UsaProxy(text) {
@@ -523,7 +526,7 @@ function writeLog_UsaProxy(text) {
 }
 
 //CHANGE!!! now this function returns textContent as well, it will be useful!!
-/* Returns all available node information such as the DOM path, an image name, href, etc. */
+/** Returns all available node information such as the DOM path, an image name, href, etc. */
 function generateEventString_UsaProxy(node /*DOM element*/) {
 	var eventString = "";
 	eventString = eventString + "&dom=" + getDOMPath(node);  // append DOM path
@@ -568,7 +571,7 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	return eventString;
 }
 
-/* Returns file name of a URL/path */
+/** Returns file name of a URL/path */
 function getFileName(path /*string*/) {
 	if(path.lastIndexOf("/")>-1)
 		return path.substring(path.lastIndexOf("/")+1);
@@ -578,7 +581,7 @@ function getFileName(path /*string*/) {
 /***** AJAX code.
 	   Used with each logging request  */
 
-/* Creates a new XMLHttpRequest object with a freed parameter 
+/** Creates a new XMLHttpRequest object with a freed parameter 
    which indicates whether the object is currently operating 
    (e.g. expecting a UsaProxy response) */
 function OBJ_XHR_UsaProxy(freed /*number*/){
@@ -669,7 +672,7 @@ function saveLog_UsaProxy() {
 
 /** Event logging functionality */
 
-/* Processes load event (logs load event together with the page size) */
+/** Processes load event (logs load event together with the page size) */
 function processLoad_UsaProxy(e) {
 	/* get size
 	 * NS: first case (window.innerWidth/innerHeight available); IE: second case */
@@ -683,7 +686,7 @@ function processLoad_UsaProxy(e) {
 
 }
 
-/* Processes window resize event (logs resize event together with the page size) */
+/** Processes window resize event (logs resize event together with the page size) */
 function processResize_UsaProxy(e) {
 	/* get size
 	 * NS: first case (window.innerWidth/innerHeight available); IE: second case */
@@ -702,7 +705,7 @@ function processResize_UsaProxy(e) {
 	//saveLog_UsaProxy();
 }
 
-/* Processes mousemove event if FLG_LogMousemove_UsaProxy isn't set 
+/** Processes mousemove event if FLG_LogMousemove_UsaProxy isn't set 
    (FLG_LogMousemove_UsaProxy defers the next mousemove logging action
    for 150 ms) */
 function processMousemove_UsaProxy(e) {
@@ -740,7 +743,7 @@ function setInaktiv_UsaProxy() {
 	FLG_LogMousemove_UsaProxy = false;
 }
 
-/* Processes mouseover event.
+/** Processes mouseover event.
  * logs mouseover events on all elements which have either an
  * id, name, href, or src property (logging more would cause a log overload).
    In addition it applies the appropriate direct event listeners to form elements */  
@@ -829,9 +832,7 @@ function processMouseover_UsaProxy(e) {
 	}
 }
 
-/* no mouseout event since with regular user tracking not necessary */
-
-/* Processes mouse release event.
+/** Processes mouse release event.
    Logs mousedown event together with the mouse button type (if middle or
    right button), and the available event target properties.
    Since click might have occured also outside of form fields, images, or, hyperlinks,
@@ -909,7 +910,7 @@ function processMousedown_UsaProxy(e) {
 	//saveLog_UsaProxy();
 }
 
-/* Processes change event in select lists, input fields, textareas.
+/** Processes change event in select lists, input fields, textareas.
    Logs change event together with the corresponding field type, and
    a couple of field content properties such as the new field value. */
 function processChange_UsaProxy(e) {
@@ -1015,7 +1016,7 @@ function processChange_UsaProxy(e) {
 	
 }
 
-/* Processes scrolling of the page.
+/** Processes scrolling of the page.
  * Function is invoked periodically since no explicit scroll event is triggered.
    The page offset is logged in the form of a percentage value relative
    to the total HTML document height/width */
@@ -1092,7 +1093,7 @@ function processScroll_UsaProxy() {
 }
 
 
-/* Detects key combinations: first part - key down
+/** Detects key combinations: first part - key down
  * flags are set in the case that shift, ctrl, or alt is pressed
  * in case any og those flags is true, a combination is detected and logged.  */
 function processKeydown_UsaProxy(e) {
@@ -1205,7 +1206,7 @@ function processKeydown_UsaProxy(e) {
 	
 }
 
-/* Processes the release of key combinations: second part - key up/released
+/** Processes the release of key combinations: second part - key up/released
  * flags are reset in case shift, ctrl, or alt is released
  * in case any flag is true a combination is detected and logged  */
 function processKeyup_UsaProxy(e) {
@@ -1303,7 +1304,7 @@ function processKeyup_UsaProxy(e) {
 	}
 }
 
-/* Logs all regular single key presses. are logged
+/** Logs all regular single key presses. are logged
  * If keyPress flag is enabled (in case no control key is clicked at the same time)
  * the keyPress event returns for regular char keys the correct small case key code. */
 function processKeypress_UsaProxy(e) {
@@ -1322,7 +1323,7 @@ function processKeypress_UsaProxy(e) {
 	//}
 }
 
-/* Processes blur event */
+/** Processes blur event */
 function processBlur_UsaProxy(e) {
 
 	/* get event target
@@ -1346,7 +1347,7 @@ function processBlur_UsaProxy(e) {
 	//saveLog_UsaProxy();
 }
 
-/* Processes focus event */
+/** Processes focus event */
 function processFocus_UsaProxy(e) {
 
 	/* get event target
@@ -1371,7 +1372,7 @@ function processFocus_UsaProxy(e) {
 	//saveLog_UsaProxy();
 }
 
-/* Processes the selection of text within the web page's content.
+/** Processes the selection of text within the web page's content.
  * Function is invoked on mousedown */
 function processSelection_UsaProxy() {
 		var currentSelection;
@@ -1447,7 +1448,7 @@ function getDOMIndex(node /*DOM element*/) {
 	}
 }
 
-/* Optional: returns a hex representation of DOM path
+/** Optional: returns a hex representation of DOM path
  * e.g. having a path of <HTML><BODY><FORM><P>1st<INPUT>
  * results in 2h2h1h1h1h
  * e.g. having a path of <HTML><BODY><FORM><P>34th<INPUT>
@@ -1477,7 +1478,7 @@ function mapToAlph(position /*number*/) {
 	return (alphArray[position-1]);
 }
 
-/* Computes the element's offset from the left edge
+/** Computes the element's offset from the left edge
    of the browser window */
 function absLeft(element) {
 	if (element.pageX) return element.pageX;
@@ -1486,7 +1487,7 @@ function absLeft(element) {
      	element.offsetLeft + absLeft(element.offsetParent) : element.offsetLeft;
   }
 
-/* Computes the element's offset from the top edge
+/** Computes the element's offset from the top edge
    of the browser window */
 function absTop(element) {
   	if (element.pageY) return element.pageY;
@@ -1781,7 +1782,7 @@ function processKeydown_ExtraEvent(e) {
 	keyName_UsaProxy = "";
 }
 
-/* Logs all regular single key presses. are logged
+/** Logs all regular single key presses. are logged
  */ 
 function processKeypress_ExtraEvent(e) {
 	/* get keycode
@@ -1813,7 +1814,7 @@ function processKeyUp_ExtraEvent(e) {
 
 }
 
-/*
+/**
  * Piece of code adapted from http://www.adomas.org/javascript-mouse-wheel/
  */ 
 function processMousewheel_ExtraEvent(e) {
@@ -1945,14 +1946,14 @@ function processSelectText_ExtraEvent(e) {
  * 
  * */
 function processUnload_ExtraEvent(e) {
-	writeLog_UsaProxy("Unload");
+	writeLog_UsaProxy("unload");
 	saveLog_UsaProxy();
 	//console.log("UNLOAD RECORDED");
 	//pausecomp(3000);
 	//alert("logging unload");
 }
  
-/*
+/**
  * Returns true if it detects that something has been selected in the web page.
  * If it's true, then it records the content of the selection as a selection event
  * The usual functions that will call this function are mouse up and keyup
@@ -1970,7 +1971,7 @@ function processIfHtmlIsSelected(selectionTool, target){
 ////////////////USEFUL FUNCTIONS//////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-/*
+/**
  * Adding the browser's name to the event
  * 
  * 
@@ -2058,7 +2059,7 @@ function inferBrowserInfo(){
 	//)
 
 }
-/*
+/**
  * Dirty function to make the browser wait
  * 
  */
@@ -2069,7 +2070,7 @@ function pausecomp(ms) {
 }
 
 
-/*
+/**
  * Returns currently selected (highlighted) text in the web page
  */ 
 function getSelectionHtml() {
@@ -2161,7 +2162,7 @@ function printCookiesOnConsole(){
 	//alert(document.cookie);
 }
 
-/*
+/**
  * This function will check if the cookie is available, if not it shows a disclaimer with a button
  * when that button is pressed, a new session ID is created and stored in a cookie
  * 
@@ -2251,7 +2252,7 @@ function askForCookiePermission(){
 	//htmlDivContent.style.marginTop = "0px";
 }
 
-/*
+/**
  * If the user clicks, then we generate the ID, set the cookie and store the ID
  * 
  */ 
@@ -2267,7 +2268,7 @@ function handleCookieButton(){
 }
 
 
-/* The rational for this function is that if there are more cookies
+/** The rational for this function is that if there are more cookies
  * then we should be able to put our cookie.
  * From javascript we can only access domain cookies, so if there is any
  * then the web page took the necessary measure to make the user accept the cookie
@@ -2278,6 +2279,8 @@ function getSessionFromCookie(){
 	//console.log("getSessionFromCookie");
 	
 //DEBUG PURPOSES REMEMBER TO DELETE IT!!!
+
+/*DEBUG CODE START
 	if (document.cookie.length > 0){
 		alert(document.cookie.split(';').length);
 		alert(document.cookie);
@@ -2286,7 +2289,7 @@ function getSessionFromCookie(){
 		alert("No cookies were found");
 			
 	return false;
-
+DEBUG CODE END*/
 	
 	//We check if there are cookies in the Web page
 	if (document.cookie.length > 0)
@@ -2363,7 +2366,7 @@ function getBackgroundColour(jqueryElement) {
     }
 }
 
-/*
+/**
  * Returns the string representation of the corresponding key code.
  * I got this code from the web page, although is slightly modified: http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
  * 
