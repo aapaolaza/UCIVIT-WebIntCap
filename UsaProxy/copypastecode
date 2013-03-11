@@ -5,10 +5,9 @@
 		window.webpageIndex = '10001';
 		//window.usaProxyServerIP = '130.88.193.26:2727';
 		window.usaProxyServerIP = '130.88.192.182:2727';
-		window.usaProxyId = '';
 		window.sessionId = getCookie("proxyUserID");
 		
-		window.usaProxySrc = "http://"+window.usaProxyServerIP+"/usaproxylolo/file/proxyscript.js?sd="+window.webpageIndex+"&ts=&id=&sid="+window.sessionId
+		window.usaProxySrc = "http://"+window.usaProxyServerIP+"/usaproxylolo/file/proxyscript.js?sd="+window.webpageIndex+"&sid="+window.sessionId
 
 		//window.usaProxySrc = "http://130.88.193.26:2727/usaproxylolo/file/proxyscript.js?sd=10000&amp;ts=2012-05-20,18:19:30&amp;id="
 

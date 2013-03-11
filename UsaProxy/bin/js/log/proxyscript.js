@@ -41,7 +41,7 @@ var IVL_saveLog_UsaProxy;		// Interval function variable for sending captured da
 var serverdataId_UsaProxy;      /* String: contains related serverdata ID defined by UsaProxy 
 								 * (page ID assigned by UsaProxy when data was cached)*/
 
-var id_UsaProxy;				// String: contains String identifying the current UsaProxy instance
+//var id_UsaProxy;				// String: contains String identifying the current UsaProxy instance
 								 
 /* timestamp objects */
 
@@ -193,7 +193,7 @@ function init_UsaProxy() {
 	
 	startDate_UsaProxy = parseInt(startDate_UsaProxy);
 	
-	id_UsaProxy=window.usaProxyId;
+	//id_UsaProxy=window.usaProxyId;
 	
 	/* log load event */
 	processLoad_UsaProxy();
@@ -1833,7 +1833,7 @@ function processMousewheel_ExtraEvent(e) {
 		delta = -event.detail/3;
 	}
 	
-	handleWheelEvents(delta, target);	
+	handleWheelEvents(delta, target);
 }
 
 /**
@@ -1946,7 +1946,7 @@ function processSelectText_ExtraEvent(e) {
  * 
  * */
 function processUnload_ExtraEvent(e) {
-	writeLog_UsaProxy("Unload");
+	writeLog_UsaProxy("unload");
 	saveLog_UsaProxy();
 	//console.log("UNLOAD RECORDED");
 	//pausecomp(3000);
@@ -1982,7 +1982,7 @@ function processIfHtmlIsSelected(selectionTool, target){
 		inferBrowserInfo();
 	}
 	
-	return text + "&browser=" + browserName;
+	return text + "&browser=" + browserName+fullVersion;
   }
 
 //////////////CODE FOR GETTING BROWSER INFORMATION

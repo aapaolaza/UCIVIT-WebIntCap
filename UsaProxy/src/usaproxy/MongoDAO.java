@@ -24,29 +24,33 @@ public class MongoDAO {
 	public final String DATABASEIP = "localhost";
 	public final String DATABASEIPNAME = "testdb";
 	public final String DATABASECOLLECTION = "events";
-	
+
 	public final String DATABASEUSER = "wel";
 	public final char[] DATABASEPASSWORD = "wel&2013$".toCharArray();
-	
-	public static MongoClient mongoClient;
-	public static DB db;
-	public static DBCollection coll;
-	
+
+	public static MongoClient mongoClient = null;
+	public static DB db = null;
+	public static DBCollection coll = null;
+
 	//Variable indicating if the authorisation was correct 
 	private boolean auth;
 
 	private MongoDAO() throws UnknownHostException {
-		mongoClient = new MongoClient(DATABASEIP);
 
-		db = mongoClient.getDB(DATABASEIPNAME);
-		auth = db.authenticate(DATABASEUSER, DATABASEPASSWORD);
-		
-		if (auth){
-			coll = db.getCollection(DATABASECOLLECTION);
-		}
-		else{
-			ErrorLogging.logError("MongoDAO.java/MongoDAO()",
-					"There was an error trying to connect to the MongoDB database", null);
+		//As they are static objects, if the database object exists already, there is no need to create it again
+		if (coll == null){
+			mongoClient = new MongoClient(DATABASEIP);
+
+			db = mongoClient.getDB(DATABASEIPNAME);
+			auth = db.authenticate(DATABASEUSER, DATABASEPASSWORD);
+
+			if (auth){
+				coll = db.getCollection(DATABASECOLLECTION);
+			}
+			else{
+				ErrorLogging.logError("MongoDAO.java/MongoDAO()",
+						"There was an error trying to connect to the MongoDB database", null);
+			}
 		}
 	}
 
@@ -80,7 +84,7 @@ public class MongoDAO {
 			//System.out.println("MongoDAO/commitJson(): Storing the following Json: " + jsonString);
 			Object o = com.mongodb.util.JSON.parse(jsonString);
 			DBObject dbObj = (DBObject) o;
-			
+
 			coll.insert(dbObj);
 			//WriteResult result = coll.insert(dbObj);
 
@@ -101,7 +105,7 @@ public class MongoDAO {
 	 */
 	public ArrayList<GenericEvent> getAllDocuments(){
 		ArrayList<GenericEvent> eventList = new ArrayList<GenericEvent>();
-		
+
 		DBCursor cursor = coll.find();
 		try {
 			while(cursor.hasNext()) {
@@ -116,7 +120,7 @@ public class MongoDAO {
 		}
 		return eventList;
 	}
-	
+
 	/**
 	 * Queries and returns all the events from a particular type in a {@link ArrayList}
 	 * 
@@ -126,11 +130,11 @@ public class MongoDAO {
 	 */
 	public ArrayList<GenericEvent> getAllDocumentsByType(String eventType){
 		ArrayList<GenericEvent> eventList = new ArrayList<GenericEvent>();
-		
+
 		BasicDBObject query = new BasicDBObject(EventConstants.EVENTNAME, eventType);
-		
+
 		DBCursor cursor = coll.find(query);
-		
+
 		try {
 			while(cursor.hasNext()) {
 				eventList.add(FactoryEvent.getEventFromDBObject(cursor.curr()));
