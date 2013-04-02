@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 
+import usaproxy.domchanges.DOMBean;
 import usaproxy.domchanges.DOMdiff;
 import usaproxy.events.EventConstants;
 import usaproxy.events.EventDataHashMap;
@@ -58,6 +61,12 @@ public class EventManager {
 	 * Name of the file in which to record the logged data
 	 */
 	private final static String logFilename = "log.txt";
+
+	/**
+	 * Number of minutes that define the threshold to discern different
+	 * interaction episodes
+	 */
+	private final static int interactEpisLengthMinutes = 20;
 
 	/**
 	 * Maximum size of the log file in bytes. If bigger than this, it will
@@ -226,19 +235,20 @@ public class EventManager {
 			 */
 			dataArray = data.split("&xX");
 
-			// DEBUG
-			// System.out.println("EventManager/log  Received new data Parsing a total of "
-			// + dataArray.length + "elements");
-			// System.out.println(data);
-			// System.out.println("\n\n\n\n\n\n");
+			// This timestamp will tell us when was the last time an event was
+			// recorded for this user
+			// It will be used to discern if the recording of a new milestone
+			// DOM is necessary
+			String lastEventStoredTS = dataArray[0];
 
 			data = "";
 
 			/**
 			 * append each entry to the final log String together with the
-			 * related IP address
+			 * related IP address As the first element (dataArray[0]) was the
+			 * last stored event timestamp, the events are recorded from "1"
 			 */
-			for (int m = 0; m < dataArray.length; m++) {
+			for (int m = 1; m < dataArray.length; m++) {
 
 				/** if entry not empty */
 				if (dataArray[m].length() > 0) {
@@ -249,13 +259,17 @@ public class EventManager {
 					 */
 					dataArray[m] = dataArray[m].replaceAll("&", " ");
 
-					// TODO I will have to check if the event is "domchange" is
+					// I will have to check if the event is "domchange" is
 					// being recorded in order to send it to logDOMChange
 					if (isEventDOMChange(dataArray[m])) {
 
 						System.out.println("There was a dom CHANGE");
-						numberOfDomChanges = logDOMChange(dataArray[m],
-								clientIP);
+						
+						//numberOfDomChanges = logDOMChange(lastEventStoredTS, dataArray[m], clientIP);
+						
+						numberOfDomChanges = logDOMChangeToDB(lastEventStoredTS,
+								dataArray[m], clientIP);
+						
 						// If it's a DOM change event, then we need to remove
 						// the information from the traditional log
 						// I will use regex with the information obtained from:
@@ -267,17 +281,17 @@ public class EventManager {
 						dataArray[m] += " numberofchanges="
 								+ numberOfDomChanges;
 					}
-					
-					//Log information to the database
-					logEventToDB(clientIP,dataArray[m]);
-					
+
+					// Log information to the database
+					logEventToDB(clientIP, dataArray[m]);
+
 					/** append complete entry */
 					data = data + clientIP + " " + dataArray[m] + HTTPData.CRLF;
 				}
 			}
 
 			if (writeToLogFile(data) && out != null) {
-				
+
 				/** send 404 message in order to complete the request */
 				// Changed to 200 message
 				SocketData.send200(out);
@@ -359,8 +373,7 @@ public class EventManager {
 					// There was a problem with the rename function, we record
 					// the error
 					ErrorLogging.logError("EventManager.java:writeToLogFile()",
-							"Trying to rename the old log file failed",
-							e);
+							"Trying to rename the old log file failed", e);
 					returnValue = false;
 				}
 			}
@@ -489,16 +502,16 @@ public class EventManager {
 						HTTPData.CRLF);
 				if (eventOffset != null)
 					XMLmessages.append("<offset>" + eventOffset + "</offset>")
-					.append(HTTPData.CRLF);
+							.append(HTTPData.CRLF);
 				if (eventSd != null)
 					XMLmessages.append("<sd>" + eventSd + "</sd>").append(
 							HTTPData.CRLF);
 				if (eventPage != null)
 					XMLmessages.append("<page>" + eventPage + "</page>")
-					.append(HTTPData.CRLF);
+							.append(HTTPData.CRLF);
 				if (eventSize != null)
 					XMLmessages.append("<size>" + eventSize + "</size>")
-					.append(HTTPData.CRLF);
+							.append(HTTPData.CRLF);
 				if (eventSid != null)
 					XMLmessages.append("<sid>" + eventSid + "</sid>").append(
 							HTTPData.CRLF);
@@ -520,11 +533,11 @@ public class EventManager {
 							.append(HTTPData.CRLF);
 				if (eventValue != null)
 					XMLmessages.append("<value>" + eventValue + "</value>")
-					.append(HTTPData.CRLF);
+							.append(HTTPData.CRLF);
 				if (eventChecked != null)
 					XMLmessages.append(
 							"<checked>" + eventChecked + "</checked>").append(
-									HTTPData.CRLF);
+							HTTPData.CRLF);
 				if (eventSelected != null)
 					XMLmessages.append(
 							"<selected>" + eventSelected + "</selected>")
@@ -573,7 +586,7 @@ public class EventManager {
 		 */
 		if (event.indexOf(" " + parameter + "=") > -1)
 			start = event.indexOf(" " + parameter + "=") + 2
-			+ parameter.length();
+					+ parameter.length();
 		else
 			start = -1;
 
@@ -626,6 +639,10 @@ public class EventManager {
 	 * will depend on the values of sid and sd. A timestamped file will hold a
 	 * screenshot of the current DOM
 	 * 
+	 * @param lastEventStoredTS
+	 *            is the timestamp (2013-03-31,18:12:09:939 format) of the last
+	 *            event stored for that user
+	 * 
 	 * @param newdomData
 	 *            is the string to be examined, which will include the complete
 	 *            encoded DOM
@@ -637,7 +654,8 @@ public class EventManager {
 	 *         first time it will be 0, and -1 in case of error.
 	 */
 
-	public int logDOMChange(String newdomData, String clientIP) {
+	public int logDOMChange(String lastEventStoredTS, String newdomData,
+			String clientIP) {
 
 		int numberOfDomChanges;// variable that will contain the number of DOM
 		// changes. If it records a new DOM it will be
@@ -651,7 +669,7 @@ public class EventManager {
 			// event=domchange domContent= ”encodedDOM”
 
 			String[] paramList = newdomData.split(" ");
-			String time = "", sd = "", sid = "", domContent = "", event = "";
+			String time = "", sd = "", sid = "", domContent = "", event = "", url = "";
 
 			for (int i = 0; i < paramList.length; i++) {
 				String[] paramItemPair = paramList[i].split("=");
@@ -671,18 +689,14 @@ public class EventManager {
 					break;
 				case "event":
 					event = paramItemPair[1];
+				case "url":
+					url = paramItemPair[1];
 				default:
 					// this case should not happen
+					ErrorLogging.logError("EventManager.java:logDOMChange",
+							"This switch case should never happen", null);
 				}
 			}
-			// At this point we should have all the information we need to
-			// record the event
-			// Testing the data we have:
-			// System.out.println("time = " + time);
-			// System.out.println("sd = " + sd);
-			// System.out.println("sid = " + sid);
-			// System.out.println("domContent = " +
-			// URLDecoder.decode(domContent, "UTF-8"));
 
 			domContent = URLDecoder.decode(domContent, "UTF-8");
 
@@ -736,7 +750,8 @@ public class EventManager {
 				// System.out.println("The new DOM is: " + newdomData);
 				String domChangesString = DOMdiff.getChangesLogJSON(
 						removeNewLines(latestDOMString),
-						removeNewLines(newdomData), clientIP, time, sd, sid);
+						removeNewLines(newdomData), clientIP, time, sd, sid,
+						url);
 
 				numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
 
@@ -768,26 +783,183 @@ public class EventManager {
 		} catch (FileNotFoundException e) {
 			/** If log file doesn't exist, send 404 message. */
 			System.err
-			.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
-					+ e);
+					.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
+							+ e);
 
 			ErrorLogging
-			.logError(
-					"EventManager.java: logDOMChange()",
-					"ERROR occured: problems accessing the log file for DOM change",
-					e);
+					.logError(
+							"EventManager.java: logDOMChange()",
+							"ERROR occured: problems accessing the log file for DOM change",
+							e);
 		}
 
 		catch (IOException ie) {
 			System.err
-			.println("\nAn ERROR occured while logging DOM change event data:\n"
-					+ ie);
+					.println("\nAn ERROR occured while logging DOM change event data:\n"
+							+ ie);
 
 			ErrorLogging.logError("EventManager.java: logDOMChange()",
-					"ERROR occured while logging DOM change event data",
-					ie);
+					"ERROR occured while logging DOM change event data", ie);
 		}
 		return -1;
+
+	}
+
+	/**
+	 * Records the specific event of DOM change to the MongoDB. It works the
+	 * same way as logDOMChange, without using files.
+	 * 
+	 * @param lastEventStoredTS
+	 *            is the timestamp (2013-03-31,18:12:09:939 format) of the last
+	 *            event stored for that user
+	 * 
+	 * @param newdomData
+	 *            is the string to be examined, which will include the complete
+	 *            encoded DOM
+	 * @param clientIP
+	 *            is the client's machine IP address
+	 * 
+	 * @return An integer with the count of DOM changes that happened with
+	 *         respect to the last recorded DOM. If the DOM is saved for the
+	 *         first time it will be 0, and -1 in case of error.
+	 */
+
+	public int logDOMChangeToDB(String lastEventStoredTS, String newdomData,
+			String clientIP) {
+
+		int numberOfDomChanges;// variable that will contain the number of DOM
+		// changes. If it records a new DOM it will be
+		// 0.
+
+		// /First we need to get all the data, it should arrive in the
+		// following format, and we have already tested it is a "domchange"
+		// event
+		// time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7
+		// event=domchange domContent= ”encodedDOM”
+
+		String[] paramList = newdomData.split(" ");
+		String time = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "";
+
+		String decodedDomContent="";
+		
+		for (int i = 0; i < paramList.length; i++) {
+			String[] paramItemPair = paramList[i].split("=");
+
+			switch (paramItemPair[0]) {
+			case "time":
+				time = paramItemPair[1];
+				break;
+			case "sd":
+				sd = paramItemPair[1];
+				break;
+			case "sid":
+				sid = paramItemPair[1];
+				break;
+			case "domContent":
+				encodedDomContent = paramItemPair[1];
+				break;
+			case "event":
+				event = paramItemPair[1];
+			case "url":
+				url = paramItemPair[1];
+			default:
+				// this case should not happen
+				ErrorLogging.logError("EventManager.java:logDOMChangeToDB",
+						"This switch case should never happen: " + paramItemPair[0], null);
+			}
+		}
+
+		try {
+			decodedDomContent = URLDecoder.decode(encodedDomContent, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			ErrorLogging.logError("EventManager.java:logDOMChangeToDB()", 
+					"There was an error trying to decode the domContent received as a parameter", e);
+		}
+		
+		boolean saveEntireDOM = false;
+
+		/*
+		 * There will be three different collections for the IF there was a lack
+		 * of that user events for more than 20 minutes OR it has no
+		 * milestoneTEMP If so, record new milestone Change milestoneTemp to the
+		 * new milestone (update existing one or insert new) ELSE Look for the
+		 * last DOMTemp Milestone. (If there isn't one, do previous step) Get
+		 * differences with that milestone Record differences with it Update
+		 * obtained milestone temp with the new DOM (mongo's update function?)
+		 */
+
+		// IF there was a lack of that user events for more than 20 minutes
+		// OR it has no milestoneTEMP
+
+		// If there is any error with the dates, we will want to store the
+		// entire DOM
+		long diffDateMinutes = interactEpisLengthMinutes + 10;
+
+		try {
+
+			diffDateMinutes = ((new Date().getTime() / 60000) 
+					- (Long.parseLong(lastEventStoredTS)/ 60000));
+
+		} catch (NumberFormatException e) {
+			ErrorLogging.logError("EventManager.java:logDOMChangeToDB",
+					"There was a parsing error with the lastEventStoredTS which value is: "
+							+ lastEventStoredTS, e);
+		}
+
+		if (diffDateMinutes > interactEpisLengthMinutes) {
+			// We need to store the entire DOM, and the successive
+			// recordings will be modifications to this DOM
+			saveEntireDOM = true;
+		}
+
+		/** append complete entry */
+
+		// We need to read the previous state of the DOM
+		// This needs to be a Mongo function.
+		// Read the last milestone TEMP DOM from the database for that user
+		DOMBean latestDOMTemp = MongoDAO.MongoDAO().getTempMilestoneForSid(sid);
+
+		DOMBean domToSave = new DOMBean(time, sd, sid, decodedDomContent, url);
+
+		// if there was no temporary DOM, then store entire DOM
+		if (latestDOMTemp == null)
+			saveEntireDOM = true;
+
+		// if there wasn't any previous temporary DOM, we store the entire DOM
+
+		// we also need to store the temporary one, but that will be done later
+		if (saveEntireDOM) {
+			MongoDAO.MongoDAO().commitJsonToDOM(domToSave.toGson());
+
+			numberOfDomChanges = 0;
+
+		}
+		// otherwise we store the differences with the current last DOM
+		// We will only save it IF there were any, if not we don't save
+		// anything
+		else {
+
+			// Get the correspondent TEMP DOM for that user and decode the
+			// DOM (it's decoded directly from the Bean, in the
+			// "getDomContent()" function
+			String decodedDOM = latestDOMTemp.getDomContent();
+
+			String domChangesString = DOMdiff.getChangesLogJSON(
+					removeNewLines(decodedDOM), removeNewLines(decodedDomContent),
+					clientIP, time, sd, sid, url);
+
+			numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
+
+			if (numberOfDomChanges > 0) {
+
+				// /Store the changes to the database
+				MongoDAO.MongoDAO().commitJsonToDOMChange(domChangesString);
+			}
+		}
+
+		MongoDAO.MongoDAO().upsertDOMTempForUser(domToSave);
+
+		return numberOfDomChanges;
 
 	}
 
@@ -807,13 +979,15 @@ public class EventManager {
 	 */
 	public void logEventToDB(String ipAddress, String eventData) {
 
-		//EventDataHashMap will automatically parse the event data, 
-		//and by adding the IP address we will have all the information there  
+		// EventDataHashMap will automatically parse the event data,
+		// and by adding the IP address we will have all the information there
 		EventDataHashMap eventHashMap = new EventDataHashMap(eventData);
 		eventHashMap.put(EventConstants.IPADDRESS, ipAddress);
 
-		MongoDAO.MongoDAO().commitJson(FactoryEvent.getJsonFromEventHashMap(eventHashMap));
-		// We look the type of event, to then create the corresponding Java class and serialize into a JSON		
+		MongoDAO.MongoDAO().commitJsonToEvents(
+				FactoryEvent.getJsonFromEventHashMap(eventHashMap));
+		// We look the type of event, to then create the corresponding Java
+		// class and serialize into a JSON
 
 	}
 
@@ -836,8 +1010,8 @@ public class EventManager {
 
 		} catch (IOException e) {
 			System.out
-			.println("EventManager.java/getStringFromFile: ERROR accessing the following file:"
-					+ filename.getPath());
+					.println("EventManager.java/getStringFromFile: ERROR accessing the following file:"
+							+ filename.getPath());
 			e.printStackTrace();
 			return null;
 		}

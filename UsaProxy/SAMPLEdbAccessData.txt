@@ -1,0 +1,15 @@
+The info in the file can be in any order, as long as is in the format
+label=value
+Without spaces. The information required is IP (location of the database),
+DBNAME (name of the database), EVENTSCOLL (collection where the events are stored),
+DOMCOLL (collection where the DOM milestones are stored), DOMCHANGECOLL(collection where the DOM changes are stored),
+DOMTEMPCOLL(collection where the temporary DOM milestones are stored), 
+USER (database user), PASSWORD (database password).
+IP=value
+DBNAME=value
+EVENTSCOLL=value
+DOMCOLL=value
+DOMCHANGECOLL=value
+DOMTEMPCOLL=value
+USER=value
+PASSWORD=value

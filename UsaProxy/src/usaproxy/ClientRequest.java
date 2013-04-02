@@ -610,8 +610,8 @@ public class ClientRequest extends Thread {
 			else if (requestURL.getPath().equals("/usaproxylolo/log")) {
 
 				// /DEBUG TEST
-				String[] dataArray = requestURL.getQuery().split("&xX");
-
+				//String[] dataArray = requestURL.getQuery().split("&xX");
+				
 				// DEBUG
 				// System.out.println("\n\n\n\n\n\nClientRequest processRequest log  Received new data"
 				// +"Parsing a total of " + dataArray.length + "elements");

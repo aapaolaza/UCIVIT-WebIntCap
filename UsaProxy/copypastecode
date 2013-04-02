@@ -4,7 +4,8 @@
 		//The webpageindex will be specific to each site
 		window.webpageIndex = '10001';
 		//window.usaProxyServerIP = '130.88.193.26:2727';
-		window.usaProxyServerIP = '130.88.192.182:2727';
+		//window.usaProxyServerIP = '130.88.192.182:2727';
+		window.usaProxyServerIP = 'wel-experimental.cs.man.ac.uk:2727'; 
 		window.sessionId = getCookie("proxyUserID");
 		
 		window.usaProxySrc = "http://"+window.usaProxyServerIP+"/usaproxylolo/file/proxyscript.js?sd="+window.webpageIndex+"&sid="+window.sessionId

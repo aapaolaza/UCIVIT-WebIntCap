@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import usaproxy.ErrorLogging;
 import usaproxy.domchanges.DOMChangesLogList.DOMChangeLogElement;
 import usaproxy.domchanges.diff_match_patch.Diff;
 
@@ -39,17 +40,22 @@ public class DOMdiff {
 	 *            , web page identifier
 	 * @param sid
 	 *            , session identifier
+	 * @param url
+	 *            , url of the Web page
 	 * @return A JSON representing a serialised DOMChangesLogList, ready to be
 	 *         written to a text file
 	 */
 	public static String getChangesLogJSON(String origDOM, String newDOM,
-			String clientIP, String time, String sd, String sid) {
+			String clientIP, String time, String sd, String sid, String url) {
 
 		// /Recording differences to a DOMChangesLogList
 		// element////////////////////
 		diff_match_patch dmp = new diff_match_patch();
 
 		LinkedList<Diff> diffList = dmp.diff_main(origDOM, newDOM);
+		
+		ErrorLogging.logError("DOMdiff.java:getChangesLogJSON DEBUG", "Content of origDOM is: \n"+origDOM, null);
+		ErrorLogging.logError("DOMdiff.java:getChangesLogJSON DEBUG", "Content of newDOM is: \n"+newDOM, null);
 
 		System.out
 				.println("DOMdiff.java/getChangesLogJSON: Amount of differences:"
@@ -106,11 +112,12 @@ public class DOMdiff {
 				break;
 			}
 		}
-		
-		lastNumberOfDomChanges = domChangesLogList.list.size();
-		System.out.println("DOMdiff: number of changes were: "+ lastNumberOfDomChanges);
 
-		domChangesLogList.setContextInfo(clientIP, time, sd, sid);
+		lastNumberOfDomChanges = domChangesLogList.list.size();
+		System.out.println("DOMdiff: number of changes were: "
+				+ lastNumberOfDomChanges);
+
+		domChangesLogList.setContextInfo(time, sd, sid, clientIP, url);
 
 		// converting the Java object to JSON
 		return domChangesLogList.toGson();
@@ -198,13 +205,14 @@ public class DOMdiff {
 
 		for (int i = 1; i < filesBeforeTimeStamp.size(); i++) {
 			if (filesBeforeTimeStamp.get(i).isFile()) {
-				
-				System.out.println("Computing next step in the DOM with file: " +getStringFromFile(filesBeforeTimeStamp.get(i)));
+
+				System.out.println("Computing next step in the DOM with file: "
+						+ getStringFromFile(filesBeforeTimeStamp.get(i)));
 				resultingDOM = computeNewDOM(resultingDOM,
 						getStringFromFile(filesBeforeTimeStamp.get(i)));
 			}
 		}
-		
+
 		System.out.println("Result is:");
 		System.out.println(resultingDOM);
 
@@ -227,8 +235,9 @@ public class DOMdiff {
 		DOMChangesLogList domChangesLogList = new DOMChangesLogList();
 		domChangesLogList.fromGson(modificationsJson);
 
-		System.out.println("computeNewDOM number of changes to apply: "+ domChangesLogList.list.size());
-		
+		System.out.println("computeNewDOM number of changes to apply: "
+				+ domChangesLogList.list.size());
+
 		for (int i = 0; i < domChangesLogList.list.size(); i++) {
 
 			DOMChangeLogElement domChange = domChangesLogList.list.get(i);
@@ -238,8 +247,7 @@ public class DOMdiff {
 				// We remove all the characters between "charIndexStart" and
 				// "charIndexEnd"
 				System.out.println("Deleting");
-				origDOM = origDOM.substring(0,
-						domChange.getCharIndexStart())
+				origDOM = origDOM.substring(0, domChange.getCharIndexStart())
 						+ origDOM.substring(domChange.getCharIndexEnd(),
 								origDOM.length());
 				break;
@@ -248,8 +256,7 @@ public class DOMdiff {
 				// We inject text between "getCharIndexStart" and
 				// "getCharIndexStart" + 1
 				System.out.println("Inserting");
-				origDOM = origDOM.substring(0,
-						domChange.getCharIndexStart())
+				origDOM = origDOM.substring(0, domChange.getCharIndexStart())
 						+ domChange.getInsertionText()
 						+ origDOM.substring(domChange.getCharIndexStart(),
 								origDOM.length());
@@ -281,7 +288,7 @@ public class DOMdiff {
 			fos.write(computedDOMString.getBytes());
 			fos.flush();
 			fos.close();
-			
+
 		} catch (ParseException e) {
 			System.out.println("genericTestingFunction: Parse Exception");
 			e.printStackTrace();
@@ -292,7 +299,6 @@ public class DOMdiff {
 
 	}
 
-	
 	public static void main(String[] args) throws IOException {
 		testComputeLastDOM();
 
@@ -450,11 +456,12 @@ public class DOMdiff {
 				fileString += lineList.get(i);
 				fileString += "\n";
 			}
-			
-			//Cutting out the last "\n" to avoid different files from the one in the system
-			fileString = fileString.substring(0, fileString.length()-1);
+
+			// Cutting out the last "\n" to avoid different files from the one
+			// in the system
+			fileString = fileString.substring(0, fileString.length() - 1);
 			return fileString;
-			
+
 		} catch (IOException e) {
 			System.out
 					.println("EventManager.java/getStringFromFile: ERROR accessing the following file:"
