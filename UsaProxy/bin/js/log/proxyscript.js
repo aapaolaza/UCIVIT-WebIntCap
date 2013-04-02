@@ -109,6 +109,10 @@ var mouseTimeout = 150;
 ////////////////////////////Session ID////////////////////
 var sessionID = null;
 
+var sessionIDCookieName = "proxyUserID";
+
+var lastEventTSCookieName = "proxyLastEventTS";
+
 ////////////////////////////Cookie lifespan////////////////////
 //Will determine the lifespan of the cookie, in days
 var cookieLife = 10000;
@@ -665,7 +669,12 @@ function xmlhttpChange_UsaProxy(pos /*number*/, callback_function /*string*/) {
 function saveLog_UsaProxy() {
 
 	if(logVal_UsaProxy!="") {
-		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + logVal_UsaProxy, "");
+		//timestamp shjould come from cookie
+		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
+		
+		//we record current time as the last event recorded
+		setCookie(lastEventTSCookieName, new Date().getTime(), cookieLife);
+
 		logVal_UsaProxy = ""; // reset log data
 	}
 }
@@ -2125,6 +2134,12 @@ function getCookie(c_name)
 	return "null";
 }
 
+/**
+ * Stores the given value in the cookie whose name is given
+ * @param c_name label of the cookie
+ * @param value value to store
+ * @param exdays expiration date (cookieLife variable, defined above, can be used)
+ */
 function setCookie(c_name,value,exdays)
 {
 	var exdate=new Date();
@@ -2258,8 +2273,8 @@ function askForCookiePermission(){
  */ 
 function handleCookieButton(){
 	//console.log("getSessionFromCookie");
-	setCookie("proxyUserID", sessionID_Proxy, cookieLife);
-	sessionID = getCookie("proxyUserID");
+	setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
+	sessionID = getCookie(sessionIDCookieName);
 	//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
 	var div = document.getElementById("proxyCookieDiscalimer");
 	div.parentNode.removeChild(div);
@@ -2295,13 +2310,13 @@ DEBUG CODE END*/
 	if (document.cookie.length > 0)
 	{
 		
-		sessionID = getCookie("proxyUserID");
+		sessionID = getCookie(sessionIDCookieName);
 		
 		if (sessionID == "null")
 		{
 			//We don't have our cookie deployed, but there were other cookies, so we should be able to create one
-			setCookie("proxyUserID", sessionID_Proxy, cookieLife);
-			sessionID = getCookie("proxyUserID");
+			setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
+			sessionID = getCookie(sessionIDCookieName);
 			//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
 		}
 		init_UsaProxy();
