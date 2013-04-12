@@ -7,12 +7,12 @@ import com.google.gson.Gson;
  * the Javascript doesn't have time to submit the event before being stopped. 
  * 
  */
-public class Unload extends GenericEvent{
+public class WindowFocus extends GenericEvent{
 
 	/**
 	 * Empty constructor
 	 */
-	public Unload(){
+	public WindowFocus(){
 		super();
 	}
 
@@ -37,15 +37,15 @@ public class Unload extends GenericEvent{
 //		this.url = url;
 //	}
 
-	/** Deserialise given JSON and creates a Unload element with the result
+	/** Deserialise given JSON and creates a WindowFocus element with the result
 	 * @param serialised class in JSON
 	 */
 	
-	public Unload (String json){
-		this(new Gson().fromJson(json, Unload.class));
+	public WindowFocus (String json){
+		this(new Gson().fromJson(json, WindowFocus.class));
 	}
 	
-	public Unload (Unload tempClass){
+	public WindowFocus (WindowFocus tempClass){
 		super(tempClass);
 		
 	}
@@ -81,12 +81,12 @@ public class Unload extends GenericEvent{
 	 * 
 	 */
 	
-	public static Unload parseFromHash(EventDataHashMap eventData) {
+	public static WindowFocus parseFromHash(EventDataHashMap eventData) {
 
-		return new Unload(eventData);
+		return new WindowFocus(eventData);
 	}
 	
-	private Unload(EventDataHashMap eventData) {
+	private WindowFocus(EventDataHashMap eventData) {
 		super(eventData);
 
 	}

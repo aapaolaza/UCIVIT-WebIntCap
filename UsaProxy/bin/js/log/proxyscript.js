@@ -358,6 +358,30 @@ function init_UsaProxy() {
 		}
 	}
 	
+	
+	/* Registration of the Window focus and blur, that will tell us if the window is in the background  */
+	
+	/* We need an auxiliary variable, as certain versions of chrome trigger
+	the same event twice
+	*/
+	var windowIsFocused = false;
+	window.onfocus = function () {
+		if(!windowIsFocused){
+			processWindowFocusEvent();
+			windowIsFocused = true;
+			console.log("window focused");
+		}
+	}; 
+
+	window.onblur = function () { 
+		if(windowIsFocused){
+			processWindowBlurEvent();
+			windowIsFocused = false;
+			console.log("window blurred");
+		}
+	}; 
+		
+		 
 	/* instantiate scroll check and save function being invoked periodically */
 	IVL_scrollCheck_UsaProxy 	= window.setInterval("processScroll_UsaProxy()",1000);
 	IVL_saveLog_UsaProxy 		= window.setInterval("saveLog_UsaProxy()",3000);
@@ -1368,7 +1392,8 @@ function processKeypress_UsaProxy(e) {
 
 /** Processes blur event */
 function processBlur_UsaProxy(e) {
-
+	
+	console.log("blur event");
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case */
 	/*var ev 		= (window.Event) ? e : window.event;
@@ -2036,6 +2061,30 @@ function processUnload_ExtraEvent(e) {
 	//pausecomp(3000);
 	//alert("logging unload");
 }
+
+/**
+ * This event will register the event of the window gaining focus.
+ * It will occur when the focus comes back to the window after going to another tab,
+ * or minimizing the window
+ * 
+ */ 
+ 
+function processWindowFocusEvent(){
+	writeLog_UsaProxy("windowfocus");
+
+}
+
+/**
+ * This event will register the event of the window losing focus.
+ * It will occur when the focus on the window is lost
+ * after going to another tab, or minimizing the window
+ * 
+ */ 
+  
+function processWindowBlurEvent(){
+	writeLog_UsaProxy("windowblur");
+
+}
  
 /**
  * Returns true if it detects that something has been selected in the web page.
@@ -2428,13 +2477,13 @@ function privacyCheck(ev){
 	for (i=0;i<protectedIds.length;i++)
 	{
 		if (targetId == protectedIds[i]){
-			console.log("Target has banned ID!! " + protectedIds[i]);
+			//console.log("Target has banned ID!! " + protectedIds[i]);
 			return true;
 		}
 		
 		//The '#' is required for jQuery to know it's an id
 		if (jqueryTarget.parents('#' + protectedIds[i]).length){
-			console.log("Target is child of banned ID!! " + protectedIds[i]);
+			//console.log("Target is child of banned ID!! " + protectedIds[i]);
 			return true;
 		}
 

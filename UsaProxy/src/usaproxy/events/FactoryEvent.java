@@ -102,6 +102,14 @@ public class FactoryEvent {
 			case "unload":
 				jsonObject = Unload.parseFromHash(eventHashMap).toGson();
 				break;
+				
+			case "windowfocus":
+				jsonObject = WindowFocus.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "windowblur":
+				jsonObject = WindowBlur.parseFromHash(eventHashMap).toGson();
+				break;
 	
 			default:
 				ErrorLogging
