@@ -240,10 +240,10 @@ public class EventManager {
 			// DOM is necessary
 
 			Long lastEventStoredTS = (long) 0;
-			
+
 			try {
 				lastEventStoredTS = Long.parseLong(dataArray[0]);
-				
+
 			} catch (NumberFormatException e) {
 				ErrorLogging
 						.logError(
@@ -281,8 +281,9 @@ public class EventManager {
 
 						numberOfDomChanges = logDOMChangeToDB(
 								lastEventStoredTS, dataArray[m], clientIP);
-						ErrorLogging.logError("EventManager.java:log()", "Updating timestamp from " + lastEventStoredTS
-								+ " to " + new Date().getTime(), null);
+						ErrorLogging.logError("EventManager.java:log()",
+								"Updating timestamp from " + lastEventStoredTS
+										+ " to " + new Date().getTime(), null);
 						lastEventStoredTS = new Date().getTime();
 
 						// If it's a DOM change event, then we need to remove
@@ -290,15 +291,23 @@ public class EventManager {
 						// I will use regex with the information obtained from:
 						// http://stackoverflow.com/questions/4026685/regex-to-get-text-between-two-characters
 						// This regex will delete everything after domchange
-						dataArray[m] = dataArray[m].replaceAll(
-								"(?<=domchange)[^$]*", "");
 
-						dataArray[m] += " numberofchanges="
-								+ numberOfDomChanges;
+						if (numberOfDomChanges != -1) {
+//							dataArray[m] = dataArray[m].replaceAll(
+//									"(?<=domchange)[^$]*", "");
+
+							dataArray[m] += " numberofchanges="
+									+ numberOfDomChanges;
+
+							logEventToDB(clientIP, dataArray[m]);
+						}
+
 					}
 
-					// Log information to the database
-					logEventToDB(clientIP, dataArray[m]);
+					else {
+						// Log information to the database
+						logEventToDB(clientIP, dataArray[m]);
+					}
 
 					/** append complete entry */
 					data = data + clientIP + " " + dataArray[m] + HTTPData.CRLF;
@@ -836,13 +845,15 @@ public class EventManager {
 	 * 
 	 * @return An integer with the count of DOM changes that happened with
 	 *         respect to the last recorded DOM. If the DOM is saved for the
-	 *         first time it will be 0, and -1 in case of error.
+	 *         first time it will be 0, and -1 if no DOM event was stored, or in
+	 *         case of error.
 	 */
 
 	public int logDOMChangeToDB(Long lastEventStoredTS, String newdomData,
 			String clientIP) {
 
-		int numberOfDomChanges;// variable that will contain the number of DOM
+		int numberOfDomChanges = -1;// variable that will contain the number of
+									// DOM
 		// changes. If it records a new DOM it will be
 		// 0.
 
@@ -950,18 +961,19 @@ public class EventManager {
 			// We need to store the entire DOM, and the successive
 			// recordings will be modifications to this DOM
 			saveEntireDOM = true;
-			
+
 			ErrorLogging.logError("EventManager.java:logDOMChangeToDB()",
-					"Saving entire DOM. \n Last TS was " + lastEventStoredTS + " and current date is "
-							+ new Date().getTime() + "\n"
-							+ "The difference was " + diffDateMinutes
+					"Saving entire DOM. \n Last TS was " + lastEventStoredTS
+							+ " and current date is " + new Date().getTime()
+							+ "\n" + "The difference was " + diffDateMinutes
 							+ " which is more than "
 							+ interactEpisLengthMinutes, null);
-			
+
 		} else {
 
 			ErrorLogging.logError("EventManager.java:logDOMChangeToDB()",
-					"NOT saving entire DOM. \n Last TS was " + lastEventStoredTS + " and current date is "
+					"NOT saving entire DOM. \n Last TS was "
+							+ lastEventStoredTS + " and current date is "
 							+ new Date().getTime() + "\n"
 							+ "The difference was " + diffDateMinutes
 							+ " which is less than "
@@ -1007,10 +1019,10 @@ public class EventManager {
 					removeNewLines(decodedDomContent), clientIP, time, sd, sid,
 					decodedUrl);
 
-			numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
 
-			if (numberOfDomChanges > 0) {
+			if (DOMdiff.lastNumberOfDomChanges > 0) {
 
+				numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
 				// /Store the changes to the database
 				MongoDAO.MongoDAO().commitJsonToDOMChange(domChangesString);
 			}
@@ -1037,7 +1049,7 @@ public class EventManager {
 	 * 
 	 */
 	public void logEventToDB(String ipAddress, String eventData) {
-		
+
 		// EventDataHashMap will automatically parse the event data,
 		// and by adding the IP address we will have all the information there
 		EventDataHashMap eventHashMap = new EventDataHashMap(eventData);

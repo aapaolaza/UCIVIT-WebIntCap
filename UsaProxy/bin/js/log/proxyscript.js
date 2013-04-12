@@ -135,7 +135,7 @@ var lastResizeDate = 0;
 ////////////////////////////////////////////////////////////////////////
 
 //We infer browser's version only at the start, we want it to be the first thing it does
-inferBrowserInfo();
+inferClientInfo();
 
 //Initializing the array of log requests
 var xmlreqs_UsaProxy = new Array();	/** contains the currently used XMLHttpRequest objects */
@@ -519,7 +519,7 @@ function completeDateValsMilliseconds(dateVal) {
 function writeLog_UsaProxy(text) {
 	
 	//We add the browser version
-	text = appendBrowserName(text);
+	text = appendClientContextInformation(text);
 	
 	
 	// if function is already being executed, defer writeLog_UsaProxy for 50ms
@@ -587,8 +587,6 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	var textContent ="null";
 	if (node.firstChild!=null)
 		textContent = node.firstChild.nodeValue;    
-
-	//We are adding also browser's information
 
 	//eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
 	eventString = eventString + "&nodeType=" + node.tagName + "&textValue=" + encodeURIComponent(node.value);
@@ -750,7 +748,8 @@ function processMousemove_UsaProxy(e) {
 	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
-	
+	if (privacyCheck(ev))
+		return true;
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -788,6 +787,12 @@ function processMouseover_UsaProxy(e) {
 	var ev = (isNotOldIE) ? e : window.event;
 	var target = (isNotOldIE) ? ev.target : ev.srcElement;
 	
+	if (privacyCheck(ev))
+		{
+			console.log("This instance won't be recorded"+target.id);
+			return true;
+		}
+		console.log("This instance will be recorded"+target.id);
 	/* add appliable event listeners to hovered element */
 	/* first, check if element has a type property.
 	 * Secondly, check its type and apply listeners */
@@ -888,6 +893,9 @@ function processMousedown_UsaProxy(e) {
 	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
+	if (privacyCheck(ev))
+		return true;
+	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
@@ -954,6 +962,9 @@ function processChange_UsaProxy(e) {
 	
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	
+	if (privacyCheck(ev))
+		return true;
 	
 	// if select list, log the selected entry's value
 	if (target.type=="select-multiple") {
@@ -1366,6 +1377,9 @@ function processBlur_UsaProxy(e) {
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
+	if (privacyCheck(ev))
+		return true;
+	
 	// log all available target attributes
 	// if element has an id attribute
 	if (target.id) {
@@ -1390,6 +1404,9 @@ function processFocus_UsaProxy(e) {
 	
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	
+	if (privacyCheck(ev))
+		return true;
 	
 	// log all available target attributes
 	// if element has an id attribute
@@ -1441,6 +1458,9 @@ function processSelectionNS_UsaProxy(e) {
 	
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	
+	if (privacyCheck(ev))
+		return true;
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
@@ -1607,6 +1627,9 @@ function processMouseOut_ExtraEvent(e) {
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
+	if (privacyCheck(ev))
+		return true;
+	
 	// log mouseout coordinates and all available target attributes
 	// if element has an id attribute
 	if (target.id) 	writeLog_UsaProxy("mouseout&id=" + target.id + generateEventString_UsaProxy(target));
@@ -1638,6 +1661,9 @@ function processMouseup_ExtraEvent(e) {
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
+	
+	if (privacyCheck(ev))
+		return true;
 	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -1690,6 +1716,9 @@ function processContextMenu_ExtraEvent(e) {
 	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
+	if (privacyCheck(ev))
+		return true;
+	
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
@@ -1710,7 +1739,9 @@ function processCut_ExtraEvent(e) {
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var data 	= (isNotOldIE) ? ev.data : ev.data;
 	
-	
+	if (privacyCheck(ev))
+		return true;
+		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
 		writeLog_UsaProxy("cut&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
@@ -1723,7 +1754,10 @@ function processCopy_ExtraEvent(e) {
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var data 	= (isNotOldIE) ? ev.data : ev.data;
-	
+		
+	if (privacyCheck(ev))
+		return true;
+		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
 		writeLog_UsaProxy("copy&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
@@ -1736,6 +1770,9 @@ function processPaste_ExtraEvent(e) {
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var data 	= (isNotOldIE) ? ev.data : ev.data;
 	
+	if (privacyCheck(ev))
+		return true;
+		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
 		writeLog_UsaProxy("paste&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
@@ -1751,6 +1788,9 @@ function processDblClick_ExtraEvent(e) {
 	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
+	if (privacyCheck(ev))
+		return true;
+		
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
@@ -1807,6 +1847,9 @@ function processKeydown_ExtraEvent(e) {
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var KeyID 				= ev.which ? ev.which : ev.keyCode;
 
+	if (privacyCheck(ev))
+		return true;
+		
 	keyName_UsaProxy = returnKeyValue(KeyID);
 	
 	writeLog_UsaProxy("keydown&key=" + keyName_UsaProxy + generateEventString_UsaProxy(target));
@@ -1823,6 +1866,9 @@ function processKeypress_ExtraEvent(e) {
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var KeyID 	= ev.which ? ev.which : ev.keyCode;
 	
+	if (privacyCheck(ev))
+		return true;
+		
 	writeLog_UsaProxy("keypress&key=" + String.fromCharCode(KeyID) + generateEventString_UsaProxy(target));
 }
 
@@ -1840,6 +1886,9 @@ function processKeyUp_ExtraEvent(e) {
 	//keyName_UsaProxy = String.fromKeyCode(KeyID);
 	keyName_UsaProxy = returnKeyValue(KeyID);
 
+	if (privacyCheck(ev))
+		return true;
+		
 	writeLog_UsaProxy("keyup&key=" + keyName_UsaProxy + generateEventString_UsaProxy(target));
 	//saveLog_UsaProxy();
 	keyName_UsaProxy = "";
@@ -1965,6 +2014,9 @@ function processSelectText_ExtraEvent(e) {
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	
+	if (privacyCheck(ev))
+		return true;
+		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
 		writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&selectedContent=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
@@ -2004,32 +2056,37 @@ function processIfHtmlIsSelected(selectionTool, target){
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * Adding the browser's name to the event
+ * Adding the Client's context information to the event string,
+ * such as browser's name and operating system
  * 
  * 
  */
-  function appendBrowserName(text){
+  function appendClientContextInformation(text){
 	  
 	if (browserName=="undefined"){
-		inferBrowserInfo();
+		inferClientInfo();
 	}
 	
-	return text + "&browser=" + browserName+fullVersion;
+	return text + "&platform=" + platform+ "&browser=" + browserName + fullVersion;
   }
 
 //////////////CODE FOR GETTING BROWSER INFORMATION
 //code obtained from http://www.javascripter.net/faq/browsern.htm
 
-var nVer, nAgt, browserName, fullVersion, majorVersion, nameOffset, verOffset, ix;
+var nVer, nAgt, browserName, fullVersion, majorVersion, nameOffset, verOffset, ix, platform;
 
 
-function inferBrowserInfo(){
+function inferClientInfo(){
 	nVer = navigator.appVersion;
 	nAgt = navigator.userAgent;
 	browserName  = navigator.appName;
 	fullVersion  = ''+parseFloat(navigator.appVersion); 
 	majorVersion = parseInt(navigator.appVersion,10);
 	nameOffset,verOffset,ix;
+	
+	//This will give us the operating system
+	platform = navigator.platform.toString().toLowerCase();
+
 	
 	// In Opera, the true version is after "Opera" or after "Version"
 	if ((verOffset=nAgt.indexOf("Opera"))!=-1) {
@@ -2093,14 +2150,14 @@ function inferBrowserInfo(){
 }
 /**
  * Dirty function to make the browser wait
- * 
- */
+
 
 function pausecomp(ms) {
 	ms += new Date().getTime();
 	while (new Date() < ms){}
 }
-
+ * 
+ */
 
 /**
  * Returns currently selected (highlighted) text in the web page
@@ -2354,8 +2411,41 @@ DEBUG CODE END*/
 		sessionID = null;
 		return false;
 }
-      
-      
+
+/**
+ * This function will take an event as input, and it will compare its target's parents' id
+ * against the ones contained in the "protectedIds" variable. It returns a boolean
+ * indicating if the given target is protected or not
+ * 
+ * BEWARE!!! The ids comparison is case sensitive!
+ */ 
+function privacyCheck(ev){
+	
+	jqueryTarget = $(ev.target);
+	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	targetId = target.id;
+	
+	for (i=0;i<protectedIds.length;i++)
+	{
+		if (targetId == protectedIds[i]){
+			console.log("Target has banned ID!! " + protectedIds[i]);
+			return true;
+		}
+		
+		//The '#' is required for jQuery to know it's an id
+		if (jqueryTarget.parents('#' + protectedIds[i]).length){
+			console.log("Target is child of banned ID!! " + protectedIds[i]);
+			return true;
+		}
+
+    }
+
+	return false;
+}
+
+
+
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
