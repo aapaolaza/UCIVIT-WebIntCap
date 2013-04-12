@@ -8,7 +8,6 @@ import com.google.gson.Gson;
  * 
  */
 public class GenericEvent {
-
 	
 	/**
 	 * Empty constructor
@@ -16,141 +15,64 @@ public class GenericEvent {
 	
 	public GenericEvent(){
 		super();
-//		this.ip = "";
-//		this.timestamp = "";
-//		this.sd = "";
-//		this.sid = "";
-//		this.event = "";
-//		this.mouseCoordinates = null;
-//		this.nodeInfo = null;
-//		this.browser = "";
-//		this.url = "";
-//		//Change
-//		this.type = "";
-//		this.checked = "";
-//		this.value = "";
-//		this.selected = "";
-//		
-//		//SelectContent
-//		this.selectionTool = "";
-//		this.selectedContent = "";
-//		
-//		//Scroll
-//		this.scrollX = null;
-//		this.scrollY = null;
-//		
-//		//Resize
-//		this.size = "";
-//		
-//		//Cut, Copy & Paste
-//		this.content = "";
-//		
-//		//mousewheel
-//		this.delta = null;
-//		
-//		//mousedown, mouseup
-//		this.button = "";
-//		
-//		//keyboard event
-//		this.key = "";
-//		
-//		//domchange
-//		this.numberOfChanges = null;
 
 	}
 	
 	
-	///TODO This function needs to be finished 
-	/**
-	 * @param ip
-	 * @param timestamp
-	 * @param sd
-	 * @param sid
-	 * @param event
-	 * @param nodeInfo
-	 * @param browser
-	 * @param url
-	 * 
-	 * @param type
-	 * @param checked //in case of checkbox
-	 * @param value //in case of text or file field and selection menus
-	 * @param selected //in case of single selection menus
-	 * 
-	 * @param selectionTool
-	 * @param selectedContent
-	 * 
-	 * @param scrollX
-	 * @param scrollY
-	 * 
-	 * @param size
-	 * 
-	 * @param content
-	 * 
-	 * @param delta
-	 * 
-	 * @param button
-	 * @param mouseCoordinates
-
-	 */
-	public GenericEvent(String ip, String timestamp, String sd, String sid,
-			String event, NodeInfo nodeInfo, String browser, String url) {
-		super();
+//	///TODO This function needs to be finished 
+//	/**
+//	 * @param ip
+//	 * @param timestamp
+//	 * @param sd
+//	 * @param sid
+//	 * @param event
+//	 * @param nodeInfo
+//	 * @param browser
+//	 * @param url
+//	 * 
+//	 * @param type
+//	 * @param checked //in case of checkbox
+//	 * @param value //in case of text or file field and selection menus
+//	 * @param selected //in case of single selection menus
+//	 * 
+//	 * @param selectionTool
+//	 * @param selectedContent
+//	 * 
+//	 * @param scrollX
+//	 * @param scrollY
+//	 * 
+//	 * @param size
+//	 * 
+//	 * @param content
+//	 * 
+//	 * @param delta
+//	 * 
+//	 * @param button
+//	 * @param mouseCoordinates
+//
+//	 */
+//	public GenericEvent(String ip, String timestamp, String sd, String sid,
+//			String event, String browser, String url) {
 //		this.ip = ip;
 //		this.timestamp = timestamp;
 //		this.sd = sd;
 //		this.sid = sid;
 //		this.event = event;
-//		this.nodeInfo = nodeInfo;
 //		this.browser = browser;
 //		this.url = url;
-	}
+//
+//	}
 
-	/**
-	 * Deserialise given JSON and creates a generic element with the result
-	 * 
-	 * @param serialised
-	 *            class in JSON
-	 */
-
-	public GenericEvent(String json) {
-		
-//		Gson gson = new Gson();
-//		GenericEvent tempClass = gson.fromJson(json, GenericEvent.class);
+//	/**
+//	 * Deserialise given JSON and creates a generic element with the result
+//	 * 
+//	 * @param serialised
+//	 *            class in JSON
+//	 */
 //
-//		this.ip = tempClass.ip;
-//		this.timestamp = tempClass.timestamp;
-//		this.sd = tempClass.sd;
-//		this.sid = tempClass.sid;
-//		this.event = tempClass.event;
-//		this.nodeInfo = tempClass.nodeInfo;
-//		this.browser = tempClass.browser;
-//		this.url = tempClass.url;
+//	public GenericEvent(String json) {
 //		
-//		//Change
-//		this.type = tempClass.type;
-//		this.checked = tempClass.checked;
-//		this.value = tempClass.value;
-//		this.selected = tempClass.selected;
-//
-//		//SelectContent
-//		this.selectionTool = tempClass.selectionTool;
-//		this.selectedContent = tempClass.selectedContent;
-//
-//		//Scroll
-//		this.scrollX = tempClass.scrollX;
-//		this.scrollY = tempClass.scrollY;
-//		
-//		//Resize
-//		this.size = tempClass.size;
-//		
-//		//Cut, Copy & Paste
-//		this.content = tempClass.content;
-//		
-//		//Mousewheel
-//		this.delta = tempClass.delta;
-		
-		//I stopped writing here as it made no sense
-	}
+//	}
 
 	/**
 	 * Serialise the class into a JSON, and returns the String containing it
@@ -185,159 +107,78 @@ public class GenericEvent {
 	 * 
 	 * 
 	 */
-	public static GenericEvent parseFromHash(EventDataHashMap eventData) {
+	protected GenericEvent(EventDataHashMap eventData) {
+		
+		this.ip = eventData.get(EventConstants.IPADDRESS);
 
-//		GenericEvent classObject = new GenericEvent();
-//		
-//		classObject.ip = eventData.get(EventConstants.IPADDRESS);
-//
-//		classObject.timestamp = eventData.get(EventConstants.TIMESTAMP);
-//
-//		classObject.sd = eventData.get(EventConstants.SD);
-//
-//		classObject.sid = eventData.get(EventConstants.SID);
-//
-//		classObject.event = eventData.get(EventConstants.EVENTNAME);
-//		
-//		classObject.nodeInfo = NodeInfo.parseFromHash(eventData);
-//
-//		classObject.browser = eventData.get(EventConstants.BROWSER);
-//
-//		classObject.url = eventData.get(EventConstants.URL);
-//
-//		return classObject;
-		return null;
+		this.timestamp = eventData.get(EventConstants.TIMESTAMP);
+
+		this.sd = eventData.get(EventConstants.SD);
+
+		this.sid = eventData.get(EventConstants.SID);
+
+		this.event = eventData.get(EventConstants.EVENTNAME);
+
+		this.platform = eventData.get(EventConstants.PLATFORM);
+		
+		this.browser = eventData.get(EventConstants.BROWSER);
+
+		this.url = eventData.get(EventConstants.URL);
+
+	}
+	
+	public GenericEvent(GenericEvent tempClass){
+		this.ip = tempClass.ip;
+		this.timestamp = tempClass.timestamp;
+		this.sd = tempClass.sd;
+		this.sid = tempClass.sid;
+		this.event = tempClass.event;
+		this.platform = tempClass.platform;
+		this.browser = tempClass.browser;
+		this.url = tempClass.url;
 	}
 
-//	
-//	/**
-//	 * User's IP
-//	 */
-//	private String ip;
-//
-//	/**
-//	 * Timestamp of the event
-//	 */
-//	private String timestamp;
-//
-//	/**
-//	 * Id of the website
-//	 */
-//	private String sd;
-//
-//	/**
-//	 * User's ID
-//	 */
-//	private String sid;
-//
-//	/**
-//	 * Event's name
-//	 */
-//	private String event;
-//
-//	/**
-//	 * NodeInfo element with all the information available of the node
-//	 */
-//	private NodeInfo nodeInfo;
-//
-//	/**
-//	 * Name of the browser
-//	 */
-//	private String browser;
-//
-//	/**
-//	 * URL wheree the event happened
-//	 */
-//	private String url;
-//	
-//	//Change
-//	
-//	/**
-//	 * Type of element susceptible to a "change" event
-//	 */
-//	private String type;
-//
-//	/**
-//	 * In the case of a checkbox, indicates if it's checked or not
-//	 */
-//	private String checked;
-//	/**
-//	 * In the case of text or file field and selection menus, indicates the value of the element
-//	 */
-//	private String value;
-//
-//	/**
-//	 * In the case of single selection menus, indicates the index of the selected element
-//	 */
-//	private String selected;
-//
-//	//SelectContent
-//	/**
-//	 * Name of the tool employed for the selection of the content (at the moment only mouse).
-//	 * It may not be available.
-//	 * 
-//	 */
-//	private String selectionTool;
-//
-//	/**
-//	 * String with the selected content.
-//	 * 
-//	 */
-//	private String selectedContent;
-//	
-//	//Scroll
-//
-//	/**
-//	 * X coordinate of the scroll
-//	 */
-//	private Integer scrollX;
-//
-//	/**
-//	 * Y coordinate of the scroll
-//	 */
-//	private Integer scrollY;
-//
-//	//size
-//	/**
-//	 * String representing the size of the new screen (in the format 1440x900)
-//	 */
-//	private String size;
-//	
-//	//Cut, Copy & Paste
-//	/**
-//	 * Text content which is being pasted
-//	 */
-//	private String content;
-//	
-//	//Mousewheel
-//
-//	/**
-//	 * Value of the delta indicates the amount of wheel movement
-//	 */
-//	private Integer delta;
-//	
-//	//mousedown mouseup
-//	/**
-//	 * Which button was pressed (l for left, r for right and m for middle)
-//	 */
-//	private String button;
-//	/**
-//	 * MouseCoordinates element with all the information available of the mouse coordinates
-//	 */
-//	private MouseCoordinates mouseCoordinates;
-//	
-//	//Keyboard
-//	/**
-//	 * Name of the key involved in the event
-//	 */
-//	private String key;
-//	
-//	//Domchange
-//	/**
-//	 * Number of changes since the last DOM change
-//	 */
-//	private Integer numberOfChanges;
 
+	/**
+	 * User's IP
+	 */
+	protected String ip ="";
+
+	/**
+	 * Timestamp of the event
+	 */
+	protected String timestamp ="";
+
+	/**
+	 * Id of the website
+	 */
+	protected String sd ="";
+
+	/**
+	 * User's ID
+	 */
+	protected String sid ="";
+
+	/**
+	 * Event's name
+	 */
+	protected String event ="";
+	
+	/**
+	 * Name of the operating system
+	 */
+	protected String platform ="";
+	
+	/**
+	 * Name of the browser
+	 */
+	protected String browser ="";
+
+	/**
+	 * URL wheree the event happened
+	 */
+	protected String url ="";
+	
 	/**
 	 * @return the ip
 	 */
@@ -383,6 +224,13 @@ public class GenericEvent {
 	 */
 	public NodeInfo getNodeInfo() {
 		return null;
+	}
+
+	/**
+	 * @return the platform
+	 */
+	public String getPlatform() {
+		return "";
 	}
 
 

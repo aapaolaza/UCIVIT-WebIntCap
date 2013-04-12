@@ -12,7 +12,7 @@ import com.google.gson.Gson;
  * 
  * 
  */
-public class NodeInfo extends GenericEvent{
+public class NodeInfo{
 	
 	/**
 	 * Empty constructor

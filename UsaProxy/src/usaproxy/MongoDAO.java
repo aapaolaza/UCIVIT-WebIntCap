@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -197,16 +198,26 @@ public class MongoDAO {
 					break;
 				case "DOMCHANGECOLL":
 					dbDOMChangeCollection = dbInfoPair[1];
+					break;
 				case "DOMTEMPCOLL":
 					dbDOMTempCollection = dbInfoPair[1];
+					break;
 				case "USER":
 					dbUser = dbInfoPair[1];
+					break;
 				case "PASSWORD":
 					dbPassword = dbInfoPair[1];
+					break;
+				case "":
+					//we do nothing, an em[pty value may slip in the switch
+					break;
 				default:
-					// this case should not happen
-					ErrorLogging.logError("EventManager.java:logDOMChangeToDB",
-							"This switch case should never happen", null);
+					// As free text is permitted, this case should be ignored.
+					/*ErrorLogging.logError("MongoDAO.java:getDBInfoFromFile()",
+							"This switch case should never happen: " + dbInfoPair[0]
+									+"\n the original paramstring was: \n" + lineList.get(i), null);
+					*/
+					break;
 				}
 			}
 			System.out.println("Database info is:" + dbIP + "," + dbName
@@ -217,7 +228,7 @@ public class MongoDAO {
 		} catch (Exception e) {
 			ErrorLogging
 					.logError(
-							"Constants.java:getDBInfoFromFile()",
+							"MongoDAO.java:getDBInfoFromFile()",
 							"Error obtaining the database user and password, is the file there?",
 							e);
 		}
@@ -354,7 +365,7 @@ public class MongoDAO {
 		DBCursor cursor = eventsColl.find();
 		try {
 			while (cursor.hasNext()) {
-				eventList.add(FactoryEvent.getEventFromDBObject(cursor.curr()));
+				eventList.add(FactoryEvent.getEventFromDBObject(cursor.next()));
 			}
 		} catch (Exception e) {
 			ErrorLogging
@@ -387,7 +398,7 @@ public class MongoDAO {
 
 		try {
 			while (cursor.hasNext()) {
-				eventList.add(FactoryEvent.getEventFromDBObject(cursor.curr()));
+				eventList.add(FactoryEvent.getEventFromDBObject(cursor.next()));
 			}
 		} catch (Exception e) {
 			ErrorLogging
@@ -516,6 +527,7 @@ public class MongoDAO {
 			domData.put("timestamp", domObject.getTimestamp());
 			domData.put("sd", domObject.getSd());
 			domData.put("sid", domObject.getSid());
+			domData.put("clientIP", domObject.getClientIP());
 			domData.put("url", domObject.getUrl());
 			domData.put("domContent", domObject.getDomContent());
 			
@@ -538,6 +550,49 @@ public class MongoDAO {
 		
 		return false;
 	}
+	
+	
+	/**
+	 * Returns the timestamp (long ms) of the last event recorded for that user
+	 * 
+	 * @param String ID for the user to request the timestamp for
+	 * 
+	 * @return long timestamp value in ms, "0" if there is any error
+	 * 
+	 */
+	public Long getLastEventTimestampForUser(String sid) {
+
+		String timeString = null;
+		try {
+
+			BasicDBObject query = new BasicDBObject("sid", sid);
+
+			BasicDBObject sortPredicate = new BasicDBObject();
+			sortPredicate.put("timestamp", -1);
+
+			DBCursor cur = eventsColl.find(query).sort(sortPredicate);
+
+			while (cur.hasNext()) {
+				timeString = FactoryEvent.getEventFromDBObject(cur.next()).getTimestamp();
+				
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd,HH:mm:ss:SSS");
+				
+				return (sdf.parse(timeString).getTime());
+				
+			}
+
+		} catch (Exception e) {
+			ErrorLogging
+					.logError(
+							"MongoDAO.java/getLastEventTimestampForUser()",
+							"Error occurred when obtaining the timestamp for the last inserted event",
+							e);
+		}
+		
+		return (long) 0;
+	}
+	
 	
 	
 	

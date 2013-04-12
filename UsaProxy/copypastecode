@@ -1,6 +1,10 @@
 <!-- usaProxy script start-->
 	<script type="text/javascript">
 		
+		//Sensitive fields' IDs should be in this array. It will be empty by default.
+		//The comparison will be case sensitive!!
+		var protectedIds=["quicklinks"];
+		
 		//The webpageindex will be specific to each site
 		window.webpageIndex = '10001';
 		//window.usaProxyServerIP = '130.88.193.26:2727';

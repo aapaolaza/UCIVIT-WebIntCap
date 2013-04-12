@@ -17,16 +17,22 @@ public class DOMBean{
 		this.timestamp = "";
 		this.sd = "";
 		this.sid = "";
-		this.domContent = "";
+		this.clientIP = "";
 		this.url = "";
+		this.browser = "";
+		this.domContent = "";
 	}
 
-	public DOMBean(String timestamp, String sd, String sid,
-			String domContent, String url) {
+	public DOMBean(String timestamp, String sd, String sid, String clientIP, String url, String browser,
+			String domContent) {
 		super();
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
+		this.clientIP = clientIP;
+		this.url = url;		
+		this.browser = browser;
+
 //		try {
 //			ErrorLogging.logError("DOMBean.java:DOMBean", 
 //					"The following DOM should not be encoded: \n"+domContent, null);
@@ -38,7 +44,7 @@ public class DOMBean{
 //		}
 		
 		this.domContent = domContent;
-		this.url = url;
+
 	}
 
 	/** Deserialise given JSON and creates a DOMBean element with the result
@@ -52,9 +58,10 @@ public class DOMBean{
 		this.timestamp = tempClass.timestamp;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
-		this.domContent = tempClass.domContent;
+		this.clientIP = tempClass.clientIP;
 		this.url = tempClass.url;
-
+		this.browser = tempClass.browser;
+		this.domContent = tempClass.domContent;
 	}
 
 	/** Serialise the class into a JSON, and returns the String containing it 
@@ -85,12 +92,17 @@ public class DOMBean{
 	/**
 	 * Client's IP
 	 */
-	public String clientIP; 
+	private String clientIP;
 
 	/**
 	 * Web page url
 	 */
 	private String url;
+	
+	/**
+	 * Client's browser
+	 */
+	private String browser;
 	
 	/**
 	 * Content of the DOM, it would be either 
@@ -151,5 +163,21 @@ public class DOMBean{
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getClientIP() {
+		return clientIP;
+	}
+
+	public void setClientIP(String clientIP) {
+		this.clientIP = clientIP;
+	}
+
+	public String getBrowser() {
+		return browser;
+	}
+
+	public void setBrowser(String browser) {
+		this.browser = browser;
 	}
 }

@@ -14,7 +14,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -66,7 +65,7 @@ public class EventManager {
 	 * Number of minutes that define the threshold to discern different
 	 * interaction episodes
 	 */
-	private final static int interactEpisLengthMinutes = 20;
+	private final static int interactEpisLengthMinutes = 30;
 
 	/**
 	 * Maximum size of the log file in bytes. If bigger than this, it will
@@ -239,7 +238,19 @@ public class EventManager {
 			// recorded for this user
 			// It will be used to discern if the recording of a new milestone
 			// DOM is necessary
-			String lastEventStoredTS = dataArray[0];
+
+			Long lastEventStoredTS = (long) 0;
+			
+			try {
+				lastEventStoredTS = Long.parseLong(dataArray[0]);
+				
+			} catch (NumberFormatException e) {
+				ErrorLogging
+						.logError(
+								"EventManager.java:logDOMChangeToDB",
+								"There was a parsing error with the lastEventStoredTS (it happens with every new user) which value is: "
+										+ dataArray[0], e);
+			}
 
 			data = "";
 
@@ -264,12 +275,16 @@ public class EventManager {
 					if (isEventDOMChange(dataArray[m])) {
 
 						System.out.println("There was a dom CHANGE");
-						
-						//numberOfDomChanges = logDOMChange(lastEventStoredTS, dataArray[m], clientIP);
-						
-						numberOfDomChanges = logDOMChangeToDB(lastEventStoredTS,
-								dataArray[m], clientIP);
-						
+
+						// numberOfDomChanges = logDOMChange(lastEventStoredTS,
+						// dataArray[m], clientIP);
+
+						numberOfDomChanges = logDOMChangeToDB(
+								lastEventStoredTS, dataArray[m], clientIP);
+						ErrorLogging.logError("EventManager.java:log()", "Updating timestamp from " + lastEventStoredTS
+								+ " to " + new Date().getTime(), null);
+						lastEventStoredTS = new Date().getTime();
+
 						// If it's a DOM change event, then we need to remove
 						// the information from the traditional log
 						// I will use regex with the information obtained from:
@@ -824,7 +839,7 @@ public class EventManager {
 	 *         first time it will be 0, and -1 in case of error.
 	 */
 
-	public int logDOMChangeToDB(String lastEventStoredTS, String newdomData,
+	public int logDOMChangeToDB(Long lastEventStoredTS, String newdomData,
 			String clientIP) {
 
 		int numberOfDomChanges;// variable that will contain the number of DOM
@@ -838,10 +853,10 @@ public class EventManager {
 		// event=domchange domContent= ”encodedDOM”
 
 		String[] paramList = newdomData.split(" ");
-		String time = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "";
+		String time = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "", browser = "";
 
-		String decodedDomContent="";
-		
+		String decodedDomContent = "", decodedUrl = "";
+
 		for (int i = 0; i < paramList.length; i++) {
 			String[] paramItemPair = paramList[i].split("=");
 
@@ -859,23 +874,48 @@ public class EventManager {
 				encodedDomContent = paramItemPair[1];
 				break;
 			case "event":
-				event = paramItemPair[1];
+				// We do nothing, as we know it was a domChange already
+				break;
 			case "url":
 				url = paramItemPair[1];
+				break;
+			case "browser":
+				browser = paramItemPair[1];
+				break;
+			case "":
+				// do nothing, the parser shows an empty attribute
+				break;
 			default:
 				// this case should not happen
 				ErrorLogging.logError("EventManager.java:logDOMChangeToDB",
-						"This switch case should never happen: " + paramItemPair[0], null);
+						"This switch case should never happen: "
+								+ paramItemPair[0]
+								+ "\n the original paramstring was: \n"
+								+ newdomData, null);
+				break;
 			}
 		}
 
 		try {
 			decodedDomContent = URLDecoder.decode(encodedDomContent, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			ErrorLogging.logError("EventManager.java:logDOMChangeToDB()", 
-					"There was an error trying to decode the domContent received as a parameter", e);
+			ErrorLogging
+					.logError(
+							"EventManager.java:logDOMChangeToDB()",
+							"There was an error trying to decode the DOM CONTENT received as a parameter",
+							e);
 		}
-		
+
+		try {
+			decodedUrl = URLDecoder.decode(url, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			ErrorLogging
+					.logError(
+							"EventManager.java:logDOMChangeToDB()",
+							"There was an error trying to decode the URL received as a parameter",
+							e);
+		}
+
 		boolean saveEntireDOM = false;
 
 		/*
@@ -895,21 +935,38 @@ public class EventManager {
 		// entire DOM
 		long diffDateMinutes = interactEpisLengthMinutes + 10;
 
-		try {
+		// lastEventTS = MongoDAO.MongoDAO().getLastEventTimestampForUser(sid);
 
-			diffDateMinutes = ((new Date().getTime() / 60000) 
-					- (Long.parseLong(lastEventStoredTS)/ 60000));
+		diffDateMinutes = ((new Date().getTime() / 60000) - (lastEventStoredTS / 60000));
 
-		} catch (NumberFormatException e) {
-			ErrorLogging.logError("EventManager.java:logDOMChangeToDB",
-					"There was a parsing error with the lastEventStoredTS which value is: "
-							+ lastEventStoredTS, e);
-		}
+		// ErrorLogging.logError("EventManager.java:logDOMChangeToDB()",
+		// "Last TS was "+ Long.parseLong(lastEventStoredTS)
+		// + " and current date is " + new Date().getTime(), null);
+		//
+		// diffDateMinutes = ((new Date().getTime() / 60000)
+		// - (Long.parseLong(lastEventStoredTS)/ 60000));
 
 		if (diffDateMinutes > interactEpisLengthMinutes) {
 			// We need to store the entire DOM, and the successive
 			// recordings will be modifications to this DOM
 			saveEntireDOM = true;
+			
+			ErrorLogging.logError("EventManager.java:logDOMChangeToDB()",
+					"Saving entire DOM. \n Last TS was " + lastEventStoredTS + " and current date is "
+							+ new Date().getTime() + "\n"
+							+ "The difference was " + diffDateMinutes
+							+ " which is more than "
+							+ interactEpisLengthMinutes, null);
+			
+		} else {
+
+			ErrorLogging.logError("EventManager.java:logDOMChangeToDB()",
+					"NOT saving entire DOM. \n Last TS was " + lastEventStoredTS + " and current date is "
+							+ new Date().getTime() + "\n"
+							+ "The difference was " + diffDateMinutes
+							+ " which is less than "
+							+ interactEpisLengthMinutes, null);
+
 		}
 
 		/** append complete entry */
@@ -919,7 +976,8 @@ public class EventManager {
 		// Read the last milestone TEMP DOM from the database for that user
 		DOMBean latestDOMTemp = MongoDAO.MongoDAO().getTempMilestoneForSid(sid);
 
-		DOMBean domToSave = new DOMBean(time, sd, sid, decodedDomContent, url);
+		DOMBean domToSave = new DOMBean(time, sd, sid, clientIP, decodedUrl,
+				browser, decodedDomContent);
 
 		// if there was no temporary DOM, then store entire DOM
 		if (latestDOMTemp == null)
@@ -945,8 +1003,9 @@ public class EventManager {
 			String decodedDOM = latestDOMTemp.getDomContent();
 
 			String domChangesString = DOMdiff.getChangesLogJSON(
-					removeNewLines(decodedDOM), removeNewLines(decodedDomContent),
-					clientIP, time, sd, sid, url);
+					removeNewLines(decodedDOM),
+					removeNewLines(decodedDomContent), clientIP, time, sd, sid,
+					decodedUrl);
 
 			numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
 
@@ -978,7 +1037,7 @@ public class EventManager {
 	 * 
 	 */
 	public void logEventToDB(String ipAddress, String eventData) {
-
+		
 		// EventDataHashMap will automatically parse the event data,
 		// and by adding the IP address we will have all the information there
 		EventDataHashMap eventHashMap = new EventDataHashMap(eventData);

@@ -74,6 +74,9 @@ var combMembers_UsaProxy;		// Integer: number of remaining unreleased keys if a 
 
 var lastSelection_UsaProxy;		// String: last selected text
 
+		console.log("At the start of the script" + getCookie(lastEventTSCookieName));
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////New Constants////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +166,10 @@ else window.attachEvent('onload', includeJquery);
  */
 function init_UsaProxy() {
 	
+	
+			console.log("Cookie value at init_UsaProxy()" + getCookie(lastEventTSCookieName));
+
+
 	logVal_UsaProxy 			= "";
 	window.status 				= "";
 	FLG_writingLogVal_UsaProxy 	= false;
@@ -474,6 +481,20 @@ function datestamp_UsaProxy() {
 	  
 }
 
+/**
+ * Returns the same timestamp as datestamp_UsaProxy() but in milliseconds
+ */
+ 
+function datestamp_UsaProxyInMillisec() {
+	if (loadDate_UsaProxy==null) loadDate_UsaProxy = new Date();
+	var currentDate 	= new Date();
+	// get milliseconds from load time
+	var diffSecs 		= Math.abs(currentDate.getTime() - loadDate_UsaProxy.getTime());
+	
+	// return the value in ms of a new Date object according to UsaProxy start time + diffMSecs
+	return new Date(startDate_UsaProxy + diffSecs).valueOf();
+}
+
 /** Completes single-digit numbers by a "0"-prefix
  *  */
 function completeDateVals(dateVal) {
@@ -670,10 +691,12 @@ function saveLog_UsaProxy() {
 
 	if(logVal_UsaProxy!="") {
 		//timestamp shjould come from cookie
+		console.log("Before sending info" + getCookie(lastEventTSCookieName));
 		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
 		
 		//we record current time as the last event recorded
-		setCookie(lastEventTSCookieName, new Date().getTime(), cookieLife);
+		setCookie(lastEventTSCookieName, datestamp_UsaProxyInMillisec(), cookieLife);
+		console.log("After sending info" + getCookie(lastEventTSCookieName));
 
 		logVal_UsaProxy = ""; // reset log data
 	}
@@ -2126,10 +2149,13 @@ function getCookie(c_name)
 		x=x.replace(/^\s+|\s+$/g,"");
 		if (x==c_name)
 		{
+			console.log("Cookie value at getCookie()" + unescape(y));
 			return unescape(y);
+			
+
 		}
 	}
-	
+	console.log("Cookie value at getCookie() is null");
 	//we didn't find the cookie, so we return null
 	return "null";
 }
@@ -2142,6 +2168,8 @@ function getCookie(c_name)
  */
 function setCookie(c_name,value,exdays)
 {
+				console.log("Cookie value at setCookie()" + value);
+
 	var exdate=new Date();
 	exdate.setDate(exdate.getDate() + exdays);
 	var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());

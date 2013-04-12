@@ -32,6 +32,8 @@ public class EventConstants {
 	public final static String SID = "sid";
 	
 	public final static String EVENTNAME = "event";
+	
+	public final static String PLATFORM = "platform";
 
 	public final static String BROWSER = "browser";
 	

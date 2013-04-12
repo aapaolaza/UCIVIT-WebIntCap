@@ -54,7 +54,7 @@ public class ErrorLogging {
 				errorSystemMessage = "";
 			
 			SimpleDateFormat sdf = new SimpleDateFormat(
-					"MM/dd/yyyy HH:mm:ss.SSS");
+					"dd/MM/yyyy HH:mm:ss.SSS");
 			Date dt = new Date();
 			String timeStamp = sdf.format(dt);
 			
