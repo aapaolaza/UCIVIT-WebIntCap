@@ -1,33 +1,5 @@
 /**CHANGES!!! This is not the original proxyscript, it was modified to allow developers to copypaste a script initialitation instead of a proxy approach. All the changes are tagged "CHANGE"**/
 
-//CHANGE!! I added jquery to use certain interesting functions
-//<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
-
-function includeJquery(){
-//	
-//	if (typeof jQuery != 'undefined') {
-// 
-//    alert("jQuery library is correctly loaded!");
-// 
-//}else{
-// 
-//    alert("jQuery library is not found!");
-// 
-//}
-
-	var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
-	
-	//we add the script dinamically
-	var jQueryScriptNode = document.createElement('script');
-	jQueryScriptNode.id='proxyScript_jQuery';
-	jQueryScriptNode.type = 'text/javascript';
-	jQueryScriptNode.src = jQuerySrc;
-
-	document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
-	
-	//alert("jQuery was added");
-	//jQueryListeners();
-}
 
 /** Core UsaProxy JavaScript part.
 	This proxyscript.js is used for pure logging of user activity
@@ -144,7 +116,6 @@ var xmlreqs_UsaProxy = new Array();	/** contains the currently used XMLHttpReque
 /* Now init_UsaProxy is called from handleCookieButton and getSessionFromCookie
  * This way we make sure we don't record information from users who don't want to be recorded.*/
  
- 
 if(document.attachEvent)
 	isNotOldIE = false;
 else
@@ -153,12 +124,52 @@ else
 //if(document.attachEvent) window.attachEvent('onload', askForCookiePermission);
 //if(document.addEventListener) window.addEventListener('load', askForCookiePermission, false);
 
+/*I have to imitate the previous statements to add the jQuery function*/
+if (isNotOldIE)
+{
+	window.addEventListener('load', includeJquery, false);
+	console.log("is not IE");
+}
+else {
+	window.attachEvent('onload', includeJquery);
+	console.log("is IE");
+}
+
+
+
+
+/*askForCookiePermission is the first function to load, to check for the cookie and
+ * Then start the capture. As some functions use Jquery, I could call it after
+ * loading it, from the includeJquery() function
+*/
+
 if (isNotOldIE) window.addEventListener('load', askForCookiePermission, false);
 else window.attachEvent('onload', askForCookiePermission);
 
-/*I have to imitate the previous statements to add the jQuery function*/
-if (isNotOldIE) window.addEventListener('load', includeJquery, false);
-else window.attachEvent('onload', includeJquery);
+
+
+//$(document).ready(askForCookiePermission());
+
+
+
+//CHANGE!! I added jquery to use certain interesting functions
+//<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
+
+function includeJquery(){
+
+	var jQuerySrc="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"
+	
+	//we add the script dinamically
+	var jQueryScriptNode = document.createElement('script');
+	jQueryScriptNode.id='proxyScript_jQuery';
+	jQueryScriptNode.type = 'text/javascript';
+	jQueryScriptNode.src = jQuerySrc;
+
+	document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
+//alert("asd");
+//$(document).ready(askForCookiePermission());
+
+}
 
 
 /** Initializes all variables, event handlers, and interval functions and
@@ -199,6 +210,9 @@ function init_UsaProxy() {
 	//CHANGES: we get all data from our global variables (the inclussion of a port number breaks the parsing so the code didn't work)
 	
 	serverdataId_UsaProxy	= window.webpageIndex;
+	
+	protectedIds = window.protectedIds;
+	
 	//set_date_UsaProxy();
 	//startDate_UsaProxy=date_UsaProxy(window.usaProxyDate);
 	
@@ -580,6 +594,16 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	var eventString = "";
 	eventString = eventString + "&dom=" + getDOMPath(node);  // append DOM path
 	
+	//if target has an id property
+	if (node.id){
+		eventString = eventString + "&id=" + node.id;
+	}
+	
+	//if target has a name property
+	if (node.name){
+		eventString = eventString + "&name=" + node.name;  // append DOM path
+	}
+
 	// if target has a href property
 	if (node.href) {
 		/* image detection IE: IE doesn't register any src property
@@ -773,8 +797,13 @@ function processMousemove_UsaProxy(e) {
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
 	
 	if (privacyCheck(ev))
-		return true;
+	{
+		//console.log("PRIVACY check was TRUE " + datestamp_UsaProxy());
+			return true;
+}
 	
+	//console.log("PRIVACY check was FALSE " + datestamp_UsaProxy() + " " + getDOMPath(target));
+
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
@@ -813,10 +842,10 @@ function processMouseover_UsaProxy(e) {
 	
 	if (privacyCheck(ev))
 		{
-			console.log("This instance won't be recorded"+target.id);
+			//console.log("This instance won't be recorded"+target.id);
 			return true;
 		}
-		console.log("This instance will be recorded"+target.id);
+		//console.log("This instance will be recorded"+target.id);
 	/* add appliable event listeners to hovered element */
 	/* first, check if element has a type property.
 	 * Secondly, check its type and apply listeners */
@@ -880,17 +909,7 @@ function processMouseover_UsaProxy(e) {
 	}
 	
 	// log mouseover coordinates and all available target attributes
-	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mouseover&id=" + target.id + generateEventString_UsaProxy(target));
-	else {
-		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mouseover&name=" + target.name + generateEventString_UsaProxy(target));
-		else {
-			// if element has an href or src attribute
-			if (target.href || target.src)
-				writeLog_UsaProxy("mouseover" + generateEventString_UsaProxy(target));
-		}
-	}
+	writeLog_UsaProxy("mouseover" + generateEventString_UsaProxy(target));
 }
 
 /** Processes mouse release event.
@@ -943,7 +962,7 @@ function processMousedown_UsaProxy(e) {
 		//alert("TEST");
 		//printCookiesOnConsole();
 		////DEBUG END
-		writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 		return;
 	}
@@ -960,15 +979,8 @@ function processMousedown_UsaProxy(e) {
 	*/
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
-	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
-	else {
-		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
-		else {
-			writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
-		}
-	}
+	writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+	
 	
 	recordCurrentDOM();
 	//saveLog_UsaProxy();
@@ -995,41 +1007,33 @@ function processChange_UsaProxy(e) {
 		var value = "";
 		// check which entries were selected
 		for (var i = 0; i < target.options.length; i++)
-			if (target.options[ i ].selected) value = value + target.options[ i ].value;
+			if (target.options[ i ].selected)
+				{value = value + target.options[ i ].value;}
+				
 		// log entries
-		if (target.id) {
-			writeLog_UsaProxy("change&type=select-multiple&id=" + target.id
-						+ generateEventString_UsaProxy(target) + "&value=" + escape(value));
-		} else { if (target.name)
-					writeLog_UsaProxy("change&type=select-multiple&name=" + target.name
+		writeLog_UsaProxy("change&type=select-multiple"
 						+ generateEventString_UsaProxy(target) + "&value=" + escape(value)) ;
-		}
+		
 		//saveLog_UsaProxy();
 	}
 	
 	// if dropdown menu, log the selected entry's value
 	else if (target.type=="select-one") { 
-		if (target.id) {
-			writeLog_UsaProxy("change&type=select-one&id=" + target.id + generateEventString_UsaProxy(target) + "&value="
-					+ escape(target.options[target.selectedIndex].value) + "&selected=" + target.selectedIndex);
-		} else { if (target.name)
-					writeLog_UsaProxy("change&type=select-one&name=" + target.name
-							+ generateEventString_UsaProxy(target) + "&value=" 
-							+ escape(target.options[target.selectedIndex].value)
-							+ "&selected=" + target.selectedIndex);
-		}
+		
+		writeLog_UsaProxy("change&type=select-one"
+			+ generateEventString_UsaProxy(target) + "&value=" 
+			+ escape(target.options[target.selectedIndex].value)
+			+ "&selected=" + target.selectedIndex);
+		
 		//saveLog_UsaProxy();
 	}
 	
 	// if text field/area, file field, log changed value
 	else if (target.type=="text" || target.type=="textarea" || target.type=="file") {
-		if (target.id) {
-			writeLog_UsaProxy("change&type=" + target.type + "&id=" + target.id
-							  + generateEventString_UsaProxy(target) + "&value=" + escape(target.value));
-		} else { if (target.name)
-					writeLog_UsaProxy("change&type=" + target.type + "&name="
-							+ target.name + generateEventString_UsaProxy(target) + "&value=" + escape(target.value));
-		}
+		
+		writeLog_UsaProxy("change&type=" + target.type 
+			+ generateEventString_UsaProxy(target) + "&value=" + escape(target.value));
+		
 		//saveLog_UsaProxy();
 	}
 	
@@ -1046,38 +1050,21 @@ function processChange_UsaProxy(e) {
 		// single checkbox
 		} else {value==target.checked}
 		// log entries
-		if (target.id) {
-			writeLog_UsaProxy("change&type=" + target.type + "&id=" + target.id
-							  + "&checked=" + target.checked + generateEventString_UsaProxy(target));
-		} else { if (target.name)
-					writeLog_UsaProxy("change&type=" + target.type + "&name="
-							+ target.name + "&checked=" + target.checked + generateEventString_UsaProxy(target));
-		}
-		//saveLog_UsaProxy();
+		
+		writeLog_UsaProxy("change&type=" + target.type + "&checked=" + target.checked + generateEventString_UsaProxy(target));
 	}
+		//saveLog_UsaProxy();
 	
 	// in the case of a password field, log only THAT content was modified
 	else if (target.type=="password") {
-		if (target.id) {
-			writeLog_UsaProxy("change&type=" + target.type + "&id="
-							  + target.id + generateEventString_UsaProxy(target));
-		} else { if (target.name)
-					writeLog_UsaProxy("change&type=" + target.type + "&name="
-									  + target.name + generateEventString_UsaProxy(target));
-		}
 		//saveLog_UsaProxy();
+		writeLog_UsaProxy("change&type=" + target.type + generateEventString_UsaProxy(target));
 	}
 	
 	// log that radio button was clicked
 	else if (target.type=="radio") {
 		// log entries
-		if (target.id) {
-			writeLog_UsaProxy("change&type=" + target.type + "&id=" + target.id
-							  + generateEventString_UsaProxy(target));
-		} else { if (target.name)
-					writeLog_UsaProxy("change&type=" + target.type + "&name="
-							+ target.name + generateEventString_UsaProxy(target));
-		}
+		writeLog_UsaProxy("change&type=" + target.type + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 	
@@ -1406,15 +1393,8 @@ function processBlur_UsaProxy(e) {
 		return true;
 	
 	// log all available target attributes
-	// if element has an id attribute
-	if (target.id) {
-		writeLog_UsaProxy("blur&id=" + target.id + generateEventString_UsaProxy(target));
-	// if element has a name attribute
-	} else {if (target.name) writeLog_UsaProxy("blur&name=" + target.name + generateEventString_UsaProxy(target));
-			// all others
-			else
-				writeLog_UsaProxy("blur" + generateEventString_UsaProxy(target));
-	}
+	
+	writeLog_UsaProxy("blur" + generateEventString_UsaProxy(target));
 	//saveLog_UsaProxy();
 }
 
@@ -1435,14 +1415,8 @@ function processFocus_UsaProxy(e) {
 	
 	// log all available target attributes
 	// if element has an id attribute
-	if (target.id) {
-		writeLog_UsaProxy("focus&id=" + target.id + generateEventString_UsaProxy(target));
-	// if element has a name attribute
-	} else { if (target.name) writeLog_UsaProxy("focus&name=" + target.name + generateEventString_UsaProxy(target));
-			// all others
-			else
-				writeLog_UsaProxy("focus" + generateEventString_UsaProxy(target));
-	}
+	
+	writeLog_UsaProxy("focus" + generateEventString_UsaProxy(target));
 	//saveLog_UsaProxy();
 }
 
@@ -1657,16 +1631,9 @@ function processMouseOut_ExtraEvent(e) {
 	
 	// log mouseout coordinates and all available target attributes
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mouseout&id=" + target.id + generateEventString_UsaProxy(target));
-	else {
-		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mouseout&name=" + target.name + generateEventString_UsaProxy(target));
-		else {
-			// if element has an href or src attribute
-			if (target.href || target.src)
-				writeLog_UsaProxy("mouseout" + generateEventString_UsaProxy(target));
-		}
-	}
+	
+	writeLog_UsaProxy("mouseout" + generateEventString_UsaProxy(target));
+
 }
 
 
@@ -1710,7 +1677,7 @@ function processMouseup_ExtraEvent(e) {
 	// log middle and right button events, continue if left button was clicked
 	if (mbutton!="l") {
 
-		writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 		return;
 	}
 	// end mouse button detection 
@@ -1718,14 +1685,8 @@ function processMouseup_ExtraEvent(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
-	else {
-		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
-		else {
-			writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
-		}
-	}
+	
+	writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 	
 	//Was this mouose event employed to select something?
 	processIfHtmlIsSelected("mouse", target);
@@ -1747,15 +1708,8 @@ function processContextMenu_ExtraEvent(e) {
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 	
-	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
-	else {
-		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
-		else {
-			writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
-		}
-	}
+	writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+
 }
 
 function processCut_ExtraEvent(e) {
@@ -1845,14 +1799,7 @@ function processDblClick_ExtraEvent(e) {
 	/* if regular click, log click coordinates relative to the clicked element
 	   and all available target properties */
 	// if element has an id attribute
-	if (target.id) 	writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&id=" + target.id + generateEventString_UsaProxy(target) );
-	else {
-		// if element has a name attribute
-		if(target.name) writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&name=" + target.name + generateEventString_UsaProxy(target));
-		else {
-			writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
-		}
-	}
+	writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 	
 }
 
@@ -2317,9 +2264,11 @@ function printCookiesOnConsole(){
  * 
  */ 
 function askForCookiePermission(){
-		
-	//If we can get the Session ID from the cookie, we finish
+	
+	console.log("asking for cookie permission");
+	//If we can get the Session ID from the cookie, we start the tool and finish
 	if (getSessionFromCookie()){
+		init_UsaProxy();
 		return true;
 	}
 	
@@ -2408,7 +2357,7 @@ function askForCookiePermission(){
 function handleCookieButton(){
 	//console.log("getSessionFromCookie");
 	setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
-	sessionID = getCookie(sessionIDCookieName);
+	sessionID = sessionID_Proxy;
 	//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
 	var div = document.getElementById("proxyCookieDiscalimer");
 	div.parentNode.removeChild(div);
@@ -2450,10 +2399,9 @@ DEBUG CODE END*/
 		{
 			//We don't have our cookie deployed, but there were other cookies, so we should be able to create one
 			setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
-			sessionID = getCookie(sessionIDCookieName);
+			sessionID = sessionID_Proxy;
 			//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
 		}
-		init_UsaProxy();
 		return true;
 	}
 	else
@@ -2470,7 +2418,11 @@ DEBUG CODE END*/
  */ 
 function privacyCheck(ev){
 	
+	//console.log("PRIVACY check " + datestamp_UsaProxy());
+	
 	jqueryTarget = $(ev.target);
+	//console.log("PRIVACY check after jquery function " + datestamp_UsaProxy());
+
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	targetId = target.id;
 	

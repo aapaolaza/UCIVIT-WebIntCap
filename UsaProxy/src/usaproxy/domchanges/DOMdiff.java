@@ -46,7 +46,7 @@ public class DOMdiff {
 	 *         written to a text file
 	 */
 	public static String getChangesLogJSON(String origDOM, String newDOM,
-			String clientIP, String time, String sd, String sid, String url) {
+			String clientIP, String time, String sd, String sid, String url, String browser, String platform) {
 
 		// /Recording differences to a DOMChangesLogList
 		// element////////////////////
@@ -57,15 +57,14 @@ public class DOMdiff {
 		ErrorLogging.logError("DOMdiff.java:getChangesLogJSON DEBUG", "Content of origDOM is: \n"+origDOM, null);
 		ErrorLogging.logError("DOMdiff.java:getChangesLogJSON DEBUG", "Content of newDOM is: \n"+newDOM, null);
 
-		System.out
-				.println("DOMdiff.java/getChangesLogJSON: Amount of differences:"
-						+ diffList.size());
+		ErrorLogging.logError("DOMdiff.java/getChangesLogJSON","Amount of differences:"
+						+ diffList.size(), null);
 
 		dmp.diff_cleanupSemantic(diffList);
 
-		System.out
-				.println("DOMdiff.java/getChangesLogJSON: Amount of semantic differences:"
-						+ diffList.size());
+//		System.out
+//				.println("DOMdiff.java/getChangesLogJSON: Amount of semantic differences:"
+//						+ diffList.size());
 
 		// System.out.println(dmp.diff_prettyHtml(diffList));
 
@@ -114,10 +113,10 @@ public class DOMdiff {
 		}
 
 		lastNumberOfDomChanges = domChangesLogList.list.size();
-		System.out.println("DOMdiff: number of changes were: "
-				+ lastNumberOfDomChanges);
+		ErrorLogging.logError("DOMdiff.java:getChangesLogJSON()", "DOMdiff: number of changes were: "
+				+ lastNumberOfDomChanges, null);
 
-		domChangesLogList.setContextInfo(time, sd, sid, clientIP, url);
+		domChangesLogList.setContextInfo(time, sd, sid, clientIP, url, browser, platform);
 
 		// converting the Java object to JSON
 		return domChangesLogList.toGson();
@@ -187,8 +186,7 @@ public class DOMdiff {
 													// be too knew as well
 
 				} catch (ParseException e) {
-					System.out
-							.println("DOMdiff.java/computeLastDOM(): There was a problem when parsing the date");
+					ErrorLogging.logCriticalError("DOMdiff.java/computeLastDOM()","There was a problem when parsing the date", null);
 					e.printStackTrace();
 				}
 			}

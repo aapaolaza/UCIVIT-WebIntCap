@@ -20,17 +20,20 @@ public class DOMBean{
 		this.clientIP = "";
 		this.url = "";
 		this.browser = "";
+		this.platform ="";
 		this.domContent = "";
 	}
 
 	public DOMBean(String timestamp, String sd, String sid, String clientIP, String url, String browser,
-			String domContent) {
+			String platform, String domContent) {
 		super();
 		this.timestamp = timestamp;
 		this.sd = sd;
 		this.sid = sid;
 		this.clientIP = clientIP;
-		this.url = url;		
+		this.url = url;
+		this.browser = browser;
+		this.platform = platform;
 		this.browser = browser;
 
 //		try {
@@ -61,6 +64,7 @@ public class DOMBean{
 		this.clientIP = tempClass.clientIP;
 		this.url = tempClass.url;
 		this.browser = tempClass.browser;
+		this.platform = tempClass.platform;
 		this.domContent = tempClass.domContent;
 	}
 
@@ -103,6 +107,11 @@ public class DOMBean{
 	 * Client's browser
 	 */
 	private String browser;
+	
+	/**
+	 * Client's operating system
+	 */
+	private String platform;
 	
 	/**
 	 * Content of the DOM, it would be either 
@@ -179,5 +188,13 @@ public class DOMBean{
 
 	public void setBrowser(String browser) {
 		this.browser = browser;
+	}
+
+	public String getPlatform() {
+		return platform;
+	}
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
 	}
 }

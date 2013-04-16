@@ -96,12 +96,11 @@ public class Domchange extends GenericEvent{
 	
 	private Domchange(EventDataHashMap eventData) {
 		super(eventData);
-		
 		try{
 			this.numberOfChanges = Integer.parseInt(eventData.get(EventConstants.NUMBEROFCHANGES));
 		}
 		catch(Exception e){
-			ErrorLogging.logError("Domchange.java/parseDomchangeObject", 
+			ErrorLogging.logCriticalError("Domchange.java/parseDomchangeObject", 
 					"Error parsing the number of changes", e);
 		}
 

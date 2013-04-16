@@ -1,8 +1,16 @@
 package usaproxy;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Calendar;
 
 /**
  * UsaProxy - HTTP proxy for the tracking, logging, and the replay of user
@@ -71,7 +79,6 @@ public class ClientRequest extends Thread {
 
 		this.client = new SocketData(socket);
 		this.usaProxy = usaProxy;
-
 		/** start this */
 		start();
 	}
@@ -171,7 +178,8 @@ public class ClientRequest extends Thread {
 			if (debugIndex > url.length())
 				debugIndex = url.length();
 
-			System.out.println(url.substring(0, debugIndex));
+			ErrorLogging.logError("ClientRequest.java: processRequest()",
+					url.substring(0, debugIndex), null);
 			// client.getHeaders().printHeaders();
 
 			/** iterative request-line detection in case url doesn't contain it */
@@ -1233,15 +1241,19 @@ public class ClientRequest extends Thread {
 
 		/** try to retrieve session ID from request url */
 		String sessionID = HTTPData.getValue(requestURL.getQuery(), "sid");
-		System.out.println("The request was:" + requestURL.getQuery());
-		System.out.println("Session ID in the request was:" + sessionID);
+		ErrorLogging.logError("ClientRequest.java:getCookieSessionIDFromRequest()",
+				"The request was:" + requestURL.getQuery(), null);
+		ErrorLogging.logError("ClientRequest.java:getCookieSessionIDFromRequest()",
+				"Session ID in the request was:" + sessionID, null);
 
 		if (sessionID == null || sessionID.equals("null")
 				|| sessionID.equals("")) {
-			System.out.println("Generating a new ID");
+			ErrorLogging.logError("ClientRequest.java:getCookieSessionIDFromRequest()",
+					"Generating a new ID", null);
 			sessionID = generateSessionID(12);
 		} else
-			System.out.println("There was no need for a new ID");
+			ErrorLogging.logError("ClientRequest.java:getCookieSessionIDFromRequest()",
+					"There was no need for a new ID",null);
 
 		/**
 		 * if session ID not yet registered in Users Hashtable, add user with an
@@ -1629,7 +1641,7 @@ public class ClientRequest extends Thread {
 								+ server.getSocket().getInetAddress()
 										.getHostName() + ":\n" + e);
 				
-				ErrorLogging.logError("ClientRequest.java: insertJavaScript()",
+				ErrorLogging.logCriticalError("ClientRequest.java: insertJavaScript()",
 	        			"ERROR occured while enhancing response" + "from server "
 								+ server.getSocket().getInetAddress()
 								.getHostName(), e);

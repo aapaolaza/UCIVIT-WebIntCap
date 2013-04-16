@@ -220,14 +220,14 @@ public class MongoDAO {
 					break;
 				}
 			}
-			System.out.println("Database info is:" + dbIP + "," + dbName
+			ErrorLogging.logError("MongoDAO.java:getDBInfoFromFile()","Database info is:" + dbIP + "," + dbName
 					+ "," + dbEventsCollection + "," + dbDOMCollection + ","
 					+ dbDOMChangeCollection + "," + dbDOMTempCollection + ","
-					+ dbUser + "," + dbPassword);
+					+ dbUser + "," + dbPassword, null);
 
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java:getDBInfoFromFile()",
 							"Error obtaining the database user and password, is the file there?",
 							e);
@@ -258,7 +258,7 @@ public class MongoDAO {
 			return true;
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java/commitJson()",
 							"Error trying to commit the following Json to the Database",
 							e);
@@ -286,7 +286,7 @@ public class MongoDAO {
 			return true;
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java/commitJson()",
 							"Error trying to commit the following Json to the Database",
 							e);
@@ -315,7 +315,7 @@ public class MongoDAO {
 			return true;
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java/commitJson()",
 							"Error trying to commit the following Json to the Database",
 							e);
@@ -343,7 +343,7 @@ public class MongoDAO {
 			return true;
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java/commitJson()",
 							"Error trying to commit the following Json to the Database",
 							e);
@@ -369,7 +369,7 @@ public class MongoDAO {
 			}
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAo.java/getAllDocuments()",
 							"Error occurred when querying for all documents in the collection",
 							e);
@@ -402,7 +402,7 @@ public class MongoDAO {
 			}
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAo.java/getAllDocuments()",
 							"Error occurred when querying for all documents in the collection",
 							e);
@@ -445,7 +445,7 @@ public class MongoDAO {
 
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java/getCountOfUserDomMilestones()",
 							"Error occurred when counting the number of DOM milestones for a user",
 							e);
@@ -480,9 +480,8 @@ public class MongoDAO {
 			while (cursor.hasNext()) {
 				queryResult = cursor.next();
 				tempDOM = new DOMBean(queryResult.toString());
-				System.out
-						.println("MongoDAO.java: getLastTempMilestoneForSid: "
-								+ queryResult);
+				ErrorLogging.logError("MongoDAO.java: getLastTempMilestoneForSid()", 
+						"The last temp milestone was: " + queryResult, null);
 			}
 
 		} catch (Exception e) {
@@ -529,6 +528,8 @@ public class MongoDAO {
 			domData.put("sid", domObject.getSid());
 			domData.put("clientIP", domObject.getClientIP());
 			domData.put("url", domObject.getUrl());
+			domData.put("browser", domObject.getBrowser());
+			domData.put("platform", domObject.getPlatform());
 			domData.put("domContent", domObject.getDomContent());
 			
 			//System.out.println("domContent: " +  domObject.getDomContent());
@@ -584,7 +585,7 @@ public class MongoDAO {
 
 		} catch (Exception e) {
 			ErrorLogging
-					.logError(
+					.logCriticalError(
 							"MongoDAO.java/getLastEventTimestampForUser()",
 							"Error occurred when obtaining the timestamp for the last inserted event",
 							e);

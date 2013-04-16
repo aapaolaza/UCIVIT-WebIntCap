@@ -406,8 +406,7 @@ public class FileSender {
 		} catch (FileNotFoundException e) {
 			/** If no such file, then display the famous 404 message. */
 			/** If log file doesn't exist, display the famous 404 message. */
-			System.err.println("\nAn ERROR occured: file " + filename
-					+ " not found:\n" + e);
+
 			ErrorLogging.logError("FileSender.java: getHTMLData()", "file "
 					+ filename + " not found", e);
 			return null;

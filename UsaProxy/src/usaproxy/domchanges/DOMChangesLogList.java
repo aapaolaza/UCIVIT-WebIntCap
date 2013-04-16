@@ -23,6 +23,16 @@ public class DOMChangesLogList {
 	public String clientIP;
 
 	private String url;
+	
+	/**
+	 * Client's browser
+	 */
+	private String browser;
+	
+	/**
+	 * Client's operating system
+	 */
+	private String platform;
 
 	public ArrayList<DOMChangeLogElement> list = new ArrayList<DOMChangeLogElement>();
 
@@ -39,14 +49,20 @@ public class DOMChangesLogList {
 	 *            , the IP address of the client
 	 * @param url
 	 *            , url of the Web page
+	 * @param browser
+	 *            , client's browser
+	 * @param platform
+	 *            , client's operating system
 	 */
 	public void setContextInfo(String time, String sd, String sid,
-			String clientIP, String url) {
+			String clientIP, String url, String browser, String platform) {
 		this.timestamp = time;
 		this.sd = sd;
 		this.sid = sid;
 		this.clientIP = clientIP;
 		this.url = url;
+		this.browser= browser;
+		this.platform = platform;
 	}
 
 	/**
@@ -200,10 +216,8 @@ public class DOMChangesLogList {
 
 	public void fromGson(String json) {
 		Gson gson = new Gson();
-		System.out.println(json);
 		this.list = gson.fromJson(json, DOMChangesLogList.class).list;
-		System.out.println("Deserializing from json this many elements: "
-				+ this.list.size());
+
 	}
 
 }

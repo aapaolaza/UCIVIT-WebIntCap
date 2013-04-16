@@ -127,6 +127,8 @@ public class UsaProxy {
 		    		(logMode.equals("pagereq") ? "on (only page requests)":"on")
 		    		:"off"));
 			System.out.println("UsaProxy ready for accepting incoming connections !\n");
+			
+			ErrorLogging.logCriticalError("UsaProxy.java:proxyStart()", "UsaProxy tool started", null);
 	
 		    /** endless loop */
 		    while (true) { 

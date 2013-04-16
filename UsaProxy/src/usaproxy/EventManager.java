@@ -242,13 +242,14 @@ public class EventManager {
 			Long lastEventStoredTS = (long) 0;
 
 			try {
-				lastEventStoredTS = Long.parseLong(dataArray[0]);
+				if (!dataArray[0].equals("null"))
+					lastEventStoredTS = Long.parseLong(dataArray[0]);
 
 			} catch (NumberFormatException e) {
 				ErrorLogging
 						.logError(
 								"EventManager.java:logDOMChangeToDB",
-								"There was a parsing error with the lastEventStoredTS (it happens with every new user) which value is: "
+								"There was a parsing error with the lastEventStoredTS which value is: "
 										+ dataArray[0], e);
 			}
 
@@ -274,7 +275,7 @@ public class EventManager {
 					// being recorded in order to send it to logDOMChange
 					if (isEventDOMChange(dataArray[m])) {
 
-						System.out.println("There was a dom CHANGE");
+						ErrorLogging.logError("EventManager.java: log()","There was a dom CHANGE",null);
 
 						// numberOfDomChanges = logDOMChange(lastEventStoredTS,
 						// dataArray[m], clientIP);
@@ -658,176 +659,176 @@ public class EventManager {
 
 	}
 
-	/**
-	 * Records the specific event of DOM change, the folder and name of file
-	 * will depend on the values of sid and sd. A timestamped file will hold a
-	 * screenshot of the current DOM
-	 * 
-	 * @param lastEventStoredTS
-	 *            is the timestamp (2013-03-31,18:12:09:939 format) of the last
-	 *            event stored for that user
-	 * 
-	 * @param newdomData
-	 *            is the string to be examined, which will include the complete
-	 *            encoded DOM
-	 * @param clientIP
-	 *            is the client's machine IP address
-	 * 
-	 * @return An integer with the count of DOM changes that happened with
-	 *         respect to the last recorded DOM. If the DOM is saved for the
-	 *         first time it will be 0, and -1 in case of error.
-	 */
-
-	public int logDOMChange(String lastEventStoredTS, String newdomData,
-			String clientIP) {
-
-		int numberOfDomChanges;// variable that will contain the number of DOM
-		// changes. If it records a new DOM it will be
-		// 0.
-
-		try {
-			// /First we need to get all the data, it should arrive in the
-			// following format, and we have already tested it is a "domchange"
-			// event
-			// time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7
-			// event=domchange domContent= ”encodedDOM”
-
-			String[] paramList = newdomData.split(" ");
-			String time = "", sd = "", sid = "", domContent = "", event = "", url = "";
-
-			for (int i = 0; i < paramList.length; i++) {
-				String[] paramItemPair = paramList[i].split("=");
-
-				switch (paramItemPair[0]) {
-				case "time":
-					time = paramItemPair[1];
-					break;
-				case "sd":
-					sd = paramItemPair[1];
-					break;
-				case "sid":
-					sid = paramItemPair[1];
-					break;
-				case "domContent":
-					domContent = paramItemPair[1];
-					break;
-				case "event":
-					event = paramItemPair[1];
-				case "url":
-					url = paramItemPair[1];
-				default:
-					// this case should not happen
-					ErrorLogging.logError("EventManager.java:logDOMChange",
-							"This switch case should never happen", null);
-				}
-			}
-
-			domContent = URLDecoder.decode(domContent, "UTF-8");
-
-			boolean saveEntireDOM = false;
-			/** Create a folder with the session ID if it doesn't exist */
-			File dir = new File("DOMchanges", sid);
-			if (!dir.exists()) {
-				dir.mkdir();
-				// If the folder doesn't exist, that means this will be the
-				// first DOM to log.
-				// We need to store the entire DOM, and the successive
-				// recordings will be modifications to this DOM
-				saveEntireDOM = true;
-			}
-
-			/** append complete entry */
-			newdomData = domContent;
-
-			// We need to read the previous state of the DOM
-			File latestDOM = new File(dir, "currentStateDOM");
-
-			// if it's the first file then we store the entire DOM,
-			// including the temporal copy representing the latest DOM
-			if (saveEntireDOM) {
-
-				// WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will
-				// leave an empty file
-				// The name of the file where the dom/changes will be stored
-
-				// we need to replace : in time for - so it doens't provoke any
-				// error in windows file systems
-				File filename = new File(dir, time.replace(":", "-") + ";" + sd);
-				/** Open a stream to the log file. */
-				FileOutputStream fos = new FileOutputStream(filename, false);
-
-				numberOfDomChanges = 0;
-				fos.write(newdomData.getBytes());
-				fos.flush();
-				fos.close();
-			}
-			// otherwise we store the differences with the current last DOM
-			// We will only save it IF there were any, if not we don't save
-			// anything
-			else {
-
-				String latestDOMString = getStringFromFile(latestDOM);
-
-				// System.out.println("The original DOM was: " +
-				// latestDOMString);
-				// System.out.println();
-				// System.out.println("The new DOM is: " + newdomData);
-				String domChangesString = DOMdiff.getChangesLogJSON(
-						removeNewLines(latestDOMString),
-						removeNewLines(newdomData), clientIP, time, sd, sid,
-						url);
-
-				numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
-
-				if (numberOfDomChanges > 0) {
-
-					// WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will
-					// leave an empty file
-					// The name of the file where the dom/changes will be stored
-					File filename = new File(dir, time.replace(":", "-") + ";"
-							+ sd);
-					/** Open a stream to the log file. */
-					FileOutputStream fos = new FileOutputStream(filename, false);
-
-					fos.write(domChangesString.getBytes());
-					fos.flush();
-					fos.close();
-				}
-			}
-
-			FileOutputStream latestDOMOutput = new FileOutputStream(latestDOM,
-					false);
-
-			latestDOMOutput.write(newdomData.getBytes());
-			latestDOMOutput.flush();
-			latestDOMOutput.close();
-
-			return numberOfDomChanges;
-
-		} catch (FileNotFoundException e) {
-			/** If log file doesn't exist, send 404 message. */
-			System.err
-					.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
-							+ e);
-
-			ErrorLogging
-					.logError(
-							"EventManager.java: logDOMChange()",
-							"ERROR occured: problems accessing the log file for DOM change",
-							e);
-		}
-
-		catch (IOException ie) {
-			System.err
-					.println("\nAn ERROR occured while logging DOM change event data:\n"
-							+ ie);
-
-			ErrorLogging.logError("EventManager.java: logDOMChange()",
-					"ERROR occured while logging DOM change event data", ie);
-		}
-		return -1;
-
-	}
+//	/**
+//	 * Records the specific event of DOM change, the folder and name of file
+//	 * will depend on the values of sid and sd. A timestamped file will hold a
+//	 * screenshot of the current DOM
+//	 * 
+//	 * @param lastEventStoredTS
+//	 *            is the timestamp (2013-03-31,18:12:09:939 format) of the last
+//	 *            event stored for that user
+//	 * 
+//	 * @param newdomData
+//	 *            is the string to be examined, which will include the complete
+//	 *            encoded DOM
+//	 * @param clientIP
+//	 *            is the client's machine IP address
+//	 * 
+//	 * @return An integer with the count of DOM changes that happened with
+//	 *         respect to the last recorded DOM. If the DOM is saved for the
+//	 *         first time it will be 0, and -1 in case of error.
+//	 */
+//
+//	public int logDOMChange(String lastEventStoredTS, String newdomData,
+//			String clientIP) {
+//
+//		int numberOfDomChanges;// variable that will contain the number of DOM
+//		// changes. If it records a new DOM it will be
+//		// 0.
+//
+//		try {
+//			// /First we need to get all the data, it should arrive in the
+//			// following format, and we have already tested it is a "domchange"
+//			// event
+//			// time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7
+//			// event=domchange domContent= ”encodedDOM”
+//
+//			String[] paramList = newdomData.split(" ");
+//			String time = "", sd = "", sid = "", domContent = "", event = "", url = "";
+//
+//			for (int i = 0; i < paramList.length; i++) {
+//				String[] paramItemPair = paramList[i].split("=");
+//
+//				switch (paramItemPair[0]) {
+//				case "time":
+//					time = paramItemPair[1];
+//					break;
+//				case "sd":
+//					sd = paramItemPair[1];
+//					break;
+//				case "sid":
+//					sid = paramItemPair[1];
+//					break;
+//				case "domContent":
+//					domContent = paramItemPair[1];
+//					break;
+//				case "event":
+//					event = paramItemPair[1];
+//				case "url":
+//					url = paramItemPair[1];
+//				default:
+//					// this case should not happen
+//					ErrorLogging.logError("EventManager.java:logDOMChange",
+//							"This switch case should never happen", null);
+//				}
+//			}
+//
+//			domContent = URLDecoder.decode(domContent, "UTF-8");
+//
+//			boolean saveEntireDOM = false;
+//			/** Create a folder with the session ID if it doesn't exist */
+//			File dir = new File("DOMchanges", sid);
+//			if (!dir.exists()) {
+//				dir.mkdir();
+//				// If the folder doesn't exist, that means this will be the
+//				// first DOM to log.
+//				// We need to store the entire DOM, and the successive
+//				// recordings will be modifications to this DOM
+//				saveEntireDOM = true;
+//			}
+//
+//			/** append complete entry */
+//			newdomData = domContent;
+//
+//			// We need to read the previous state of the DOM
+//			File latestDOM = new File(dir, "currentStateDOM");
+//
+//			// if it's the first file then we store the entire DOM,
+//			// including the temporal copy representing the latest DOM
+//			if (saveEntireDOM) {
+//
+//				// WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will
+//				// leave an empty file
+//				// The name of the file where the dom/changes will be stored
+//
+//				// we need to replace : in time for - so it doens't provoke any
+//				// error in windows file systems
+//				File filename = new File(dir, time.replace(":", "-") + ";" + sd);
+//				/** Open a stream to the log file. */
+//				FileOutputStream fos = new FileOutputStream(filename, false);
+//
+//				numberOfDomChanges = 0;
+//				fos.write(newdomData.getBytes());
+//				fos.flush();
+//				fos.close();
+//			}
+//			// otherwise we store the differences with the current last DOM
+//			// We will only save it IF there were any, if not we don't save
+//			// anything
+//			else {
+//
+//				String latestDOMString = getStringFromFile(latestDOM);
+//
+//				// System.out.println("The original DOM was: " +
+//				// latestDOMString);
+//				// System.out.println();
+//				// System.out.println("The new DOM is: " + newdomData);
+//				String domChangesString = DOMdiff.getChangesLogJSON(
+//						removeNewLines(latestDOMString),
+//						removeNewLines(newdomData), clientIP, time, sd, sid,
+//						url);
+//
+//				numberOfDomChanges = DOMdiff.lastNumberOfDomChanges;
+//
+//				if (numberOfDomChanges > 0) {
+//
+//					// WE ONLY CREATE THE FILE IF WE NEED IT, otherwise it will
+//					// leave an empty file
+//					// The name of the file where the dom/changes will be stored
+//					File filename = new File(dir, time.replace(":", "-") + ";"
+//							+ sd);
+//					/** Open a stream to the log file. */
+//					FileOutputStream fos = new FileOutputStream(filename, false);
+//
+//					fos.write(domChangesString.getBytes());
+//					fos.flush();
+//					fos.close();
+//				}
+//			}
+//
+//			FileOutputStream latestDOMOutput = new FileOutputStream(latestDOM,
+//					false);
+//
+//			latestDOMOutput.write(newdomData.getBytes());
+//			latestDOMOutput.flush();
+//			latestDOMOutput.close();
+//
+//			return numberOfDomChanges;
+//
+//		} catch (FileNotFoundException e) {
+//			/** If log file doesn't exist, send 404 message. */
+//			System.err
+//					.println("\nAn ERROR occured: problems accessing the log file for DOM change:\n"
+//							+ e);
+//
+//			ErrorLogging
+//					.logError(
+//							"EventManager.java: logDOMChange()",
+//							"ERROR occured: problems accessing the log file for DOM change",
+//							e);
+//		}
+//
+//		catch (IOException ie) {
+//			System.err
+//					.println("\nAn ERROR occured while logging DOM change event data:\n"
+//							+ ie);
+//
+//			ErrorLogging.logError("EventManager.java: logDOMChange()",
+//					"ERROR occured while logging DOM change event data", ie);
+//		}
+//		return -1;
+//
+//	}
 
 	/**
 	 * Records the specific event of DOM change to the MongoDB. It works the
@@ -857,55 +858,27 @@ public class EventManager {
 		// changes. If it records a new DOM it will be
 		// 0.
 
-		// /First we need to get all the data, it should arrive in the
-		// following format, and we have already tested it is a "domchange"
-		// event
-		// time=2012-11-05,18:15:39:981 sd=20002 sid=4WIUpRFctOr7
-		// event=domchange domContent= ”encodedDOM”
-
-		String[] paramList = newdomData.split(" ");
-		String time = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "", browser = "";
+		EventDataHashMap eventHashMap = new EventDataHashMap(newdomData);
+		
+		//We parse the data we need from the hashmap
+		String time = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "", browser = "", platform = "";
 
 		String decodedDomContent = "", decodedUrl = "";
 
-		for (int i = 0; i < paramList.length; i++) {
-			String[] paramItemPair = paramList[i].split("=");
+		time = eventHashMap.get(EventConstants.TIMESTAMP);
+		
+		sd = eventHashMap.get(EventConstants.SD);
+		
+		sid = eventHashMap.get(EventConstants.SID);
+		
+		encodedDomContent = eventHashMap.get(EventConstants.DOMCONTENT);
+		
+		url = eventHashMap.get(EventConstants.URL);
+		
+		browser = eventHashMap.get(EventConstants.BROWSER);
+		
+		platform = eventHashMap.get(EventConstants.PLATFORM);
 
-			switch (paramItemPair[0]) {
-			case "time":
-				time = paramItemPair[1];
-				break;
-			case "sd":
-				sd = paramItemPair[1];
-				break;
-			case "sid":
-				sid = paramItemPair[1];
-				break;
-			case "domContent":
-				encodedDomContent = paramItemPair[1];
-				break;
-			case "event":
-				// We do nothing, as we know it was a domChange already
-				break;
-			case "url":
-				url = paramItemPair[1];
-				break;
-			case "browser":
-				browser = paramItemPair[1];
-				break;
-			case "":
-				// do nothing, the parser shows an empty attribute
-				break;
-			default:
-				// this case should not happen
-				ErrorLogging.logError("EventManager.java:logDOMChangeToDB",
-						"This switch case should never happen: "
-								+ paramItemPair[0]
-								+ "\n the original paramstring was: \n"
-								+ newdomData, null);
-				break;
-			}
-		}
 
 		try {
 			decodedDomContent = URLDecoder.decode(encodedDomContent, "UTF-8");
@@ -989,7 +962,7 @@ public class EventManager {
 		DOMBean latestDOMTemp = MongoDAO.MongoDAO().getTempMilestoneForSid(sid);
 
 		DOMBean domToSave = new DOMBean(time, sd, sid, clientIP, decodedUrl,
-				browser, decodedDomContent);
+				browser, platform, decodedDomContent);
 
 		// if there was no temporary DOM, then store entire DOM
 		if (latestDOMTemp == null)
@@ -1017,7 +990,7 @@ public class EventManager {
 			String domChangesString = DOMdiff.getChangesLogJSON(
 					removeNewLines(decodedDOM),
 					removeNewLines(decodedDomContent), clientIP, time, sd, sid,
-					decodedUrl);
+					decodedUrl, browser, platform);
 
 
 			if (DOMdiff.lastNumberOfDomChanges > 0) {

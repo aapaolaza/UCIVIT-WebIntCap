@@ -174,7 +174,7 @@ public class HTTPTraffic {
         	/** If httpTraffic file doesn't exist, display error message. */
         	System.err.println("\nAn ERROR occured: httpTraffic file not found:\n"
 									+ e );
-        	ErrorLogging.logError("HTTPTraffic.java: increaseHttpTrafficIndex()",
+        	ErrorLogging.logCriticalError("HTTPTraffic.java: increaseHttpTrafficIndex()",
         			"httpTraffic file not found",e);
         }
         
@@ -313,11 +313,8 @@ public class HTTPTraffic {
 			}
 			
 		} catch (IOException e) {
-    		System.err.println("\nAn ERROR occured while retrieving HTTPTraffic response: "
-					+ "\n"
-					+ e );
     		
-    		ErrorLogging.logError("HTTPTraffic.java: getResponseData())",
+    		ErrorLogging.logCriticalError("HTTPTraffic.java: getResponseData())",
     				"ERROR occured while retrieving HTTPTraffic response", e);
     				
 		}

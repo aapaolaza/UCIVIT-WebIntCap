@@ -98,5 +98,8 @@ public class EventConstants {
 	//particular to selectContent
 	public final static String SELECTIONTOOL= "selectionTool";
 	public final static String SELECTEDCONTENT= "selectedContent";
+
+	//particular to DOM events
+	public static final String DOMCONTENT = "domContent";
 	
 }

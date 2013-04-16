@@ -43,7 +43,7 @@ public class EventDataHashMap {
 				else
 					dataMap.put(paramItemPair[0],  decodeValue(paramItemPair[1]));
 			} catch (Exception e) {
-				ErrorLogging.logError(
+				ErrorLogging.logCriticalError(
 						"EventDataHashMap.java/EventDataHashMap()",
 						"Error trying to add the following keypair to the HashMap: "
 								+ paramList[i], e);
@@ -84,8 +84,8 @@ public class EventDataHashMap {
 			value = URLDecoder.decode(value, "UTF-8");
 			return value;
 
-		} catch (UnsupportedEncodingException e) {
-			ErrorLogging.logError("EventManager.java/logEventToDB()",
+		} catch (Exception e) {
+			ErrorLogging.logCriticalError("EventManager.java/logEventToDB()",
 					"An error occurred trying to decode the event data string. Its value is: \n"
 							+ value, e);
 		}
