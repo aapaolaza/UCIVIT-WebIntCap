@@ -56,6 +56,8 @@ public class EventConstants {
 	public final static String NODETYPE = "nodeType";
 	
 	public final static String NODETEXTVALUE = "textValue";
+	
+	public final static String NODETEXTCONTENT = "textContent";
 
 	//Particular to MouseCoordinates
 	

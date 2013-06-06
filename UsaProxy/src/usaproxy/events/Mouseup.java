@@ -129,5 +129,28 @@ public class Mouseup extends GenericEvent{
 	 * Nodeinfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
+	public String getButton() {
+		return button;
+	}
+
+	public void setButton(String button) {
+		this.button = button;
+	}
+
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
 
 }

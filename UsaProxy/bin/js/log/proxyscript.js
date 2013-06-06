@@ -46,7 +46,7 @@ var combMembers_UsaProxy;		// Integer: number of remaining unreleased keys if a 
 
 var lastSelection_UsaProxy;		// String: last selected text
 
-		console.log("At the start of the script" + getCookie(lastEventTSCookieName));
+		//console.log("At the start of the script" + getCookie(lastEventTSCookieName));
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,11 +128,11 @@ else
 if (isNotOldIE)
 {
 	window.addEventListener('load', includeJquery, false);
-	console.log("is not IE");
+	//console.log("is not IE");
 }
 else {
 	window.attachEvent('onload', includeJquery);
-	console.log("is IE");
+	//console.log("is IE");
 }
 
 
@@ -178,7 +178,7 @@ function includeJquery(){
 function init_UsaProxy() {
 	
 	
-			console.log("Cookie value at init_UsaProxy()" + getCookie(lastEventTSCookieName));
+			//console.log("Cookie value at init_UsaProxy()" + getCookie(lastEventTSCookieName));
 
 
 	logVal_UsaProxy 			= "";
@@ -210,6 +210,8 @@ function init_UsaProxy() {
 	//CHANGES: we get all data from our global variables (the inclussion of a port number breaks the parsing so the code didn't work)
 	
 	serverdataId_UsaProxy	= window.webpageIndex;
+	
+	protectedIds = [];
 	
 	protectedIds = window.protectedIds;
 	
@@ -383,7 +385,7 @@ function init_UsaProxy() {
 		if(!windowIsFocused){
 			processWindowFocusEvent();
 			windowIsFocused = true;
-			console.log("window focused");
+			//console.log("window focused");
 		}
 	}; 
 
@@ -391,7 +393,7 @@ function init_UsaProxy() {
 		if(windowIsFocused){
 			processWindowBlurEvent();
 			windowIsFocused = false;
-			console.log("window blurred");
+			//console.log("window blurred");
 		}
 	}; 
 		
@@ -618,9 +620,9 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 		else if(node.nodeName=="a" || node.nodeName=="A") {  // if anchor tag
 			// IE: innertext property contains link text
 			if (node.innerText)
-				eventString = eventString + "&link=" + node.href + "&text=" + escape(node.innerText);
+				eventString = eventString + "&link=" + node.href + "&text=" + encodeURIComponent(node.innerText);
 			// NS: text property contains link text
-			else eventString = eventString + "&link=" + node.href + "&text=" + escape(node.text);
+			else eventString = eventString + "&link=" + node.href + "&text=" + encodeURIComponent(node.text);
 		}
 	} else {
 		// image detection NS
@@ -636,8 +638,8 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	if (node.firstChild!=null)
 		textContent = node.firstChild.nodeValue;    
 
-	//eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
-	eventString = eventString + "&nodeType=" + node.tagName + "&textValue=" + encodeURIComponent(node.value);
+	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent.substring(0,100)) + "&textValue=" + encodeURIComponent(node.value);
+	//eventString = eventString + "&nodeType=" + node.tagName + "&textValue=" + encodeURIComponent(node.value);
 		
 	return eventString;
 }
@@ -737,12 +739,12 @@ function saveLog_UsaProxy() {
 
 	if(logVal_UsaProxy!="") {
 		//timestamp shjould come from cookie
-		console.log("Before sending info" + getCookie(lastEventTSCookieName));
+		//console.log("Before sending info" + getCookie(lastEventTSCookieName));
 		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
 		
 		//we record current time as the last event recorded
 		setCookie(lastEventTSCookieName, datestamp_UsaProxyInMillisec(), cookieLife);
-		console.log("After sending info" + getCookie(lastEventTSCookieName));
+		//console.log("After sending info" + getCookie(lastEventTSCookieName));
 
 		logVal_UsaProxy = ""; // reset log data
 	}
@@ -1012,7 +1014,7 @@ function processChange_UsaProxy(e) {
 				
 		// log entries
 		writeLog_UsaProxy("change&type=select-multiple"
-						+ generateEventString_UsaProxy(target) + "&value=" + escape(value)) ;
+						+ generateEventString_UsaProxy(target) + "&value=" + encodeURIComponent(value)) ;
 		
 		//saveLog_UsaProxy();
 	}
@@ -1022,7 +1024,7 @@ function processChange_UsaProxy(e) {
 		
 		writeLog_UsaProxy("change&type=select-one"
 			+ generateEventString_UsaProxy(target) + "&value=" 
-			+ escape(target.options[target.selectedIndex].value)
+			+ encodeURIComponent(target.options[target.selectedIndex].value)
 			+ "&selected=" + target.selectedIndex);
 		
 		//saveLog_UsaProxy();
@@ -1032,7 +1034,7 @@ function processChange_UsaProxy(e) {
 	else if (target.type=="text" || target.type=="textarea" || target.type=="file") {
 		
 		writeLog_UsaProxy("change&type=" + target.type 
-			+ generateEventString_UsaProxy(target) + "&value=" + escape(target.value));
+			+ generateEventString_UsaProxy(target) + "&value=" + encodeURIComponent(target.value));
 		
 		//saveLog_UsaProxy();
 	}
@@ -1380,7 +1382,7 @@ function processKeypress_UsaProxy(e) {
 /** Processes blur event */
 function processBlur_UsaProxy(e) {
 	
-	console.log("blur event");
+	//console.log("blur event");
 	/* get event target
 	 * NS: first case (window.Event available); IE: second case */
 	/*var ev 		= (window.Event) ? e : window.event;
@@ -1433,7 +1435,7 @@ function processSelection_UsaProxy() {
 		
 		// if selection is not empty and new text was selected, log select event
 		if(currentSelection != "" && lastSelection_UsaProxy != currentSelection) {
-			writeLog_UsaProxy("select&selectedContent=" + escape(currentSelection));
+			writeLog_UsaProxy("select&selectedContent=" + encodeURIComponent(currentSelection));
 			// set last selected text
 			lastSelection_UsaProxy = currentSelection;
 			saveLog_UsaProxy();
@@ -1463,7 +1465,7 @@ function processSelectionNS_UsaProxy(e) {
 	
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("select" + generateEventString_UsaProxy(target) + "&text=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		writeLog_UsaProxy("select" + generateEventString_UsaProxy(target) + "&text=" + encodeURIComponent(target.value.substring(target.selectionStart,target.selectionEnd)));
 		saveLog_UsaProxy();
 	}
 }
@@ -1723,7 +1725,7 @@ function processCut_ExtraEvent(e) {
 		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("cut&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("cut&content=" + encodeURIComponent(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1739,7 +1741,7 @@ function processCopy_ExtraEvent(e) {
 		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("copy&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("copy&content=" + encodeURIComponent(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1754,7 +1756,7 @@ function processPaste_ExtraEvent(e) {
 		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("paste&content=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
+		writeLog_UsaProxy("paste&content=" + encodeURIComponent(target.value.substring(target.selectionStart,target.selectionEnd)) + generateEventString_UsaProxy(target));
 		//saveLog_UsaProxy();
 	}
 }
@@ -1991,7 +1993,7 @@ function processSelectText_ExtraEvent(e) {
 		
 	// if selection is not empty, log select event with the selected text
 	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&selectedContent=" + escape(target.value.substring(target.selectionStart,target.selectionEnd)));
+		writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(target.value.substring(target.selectionStart,target.selectionEnd)));
 		//saveLog_UsaProxy();
 	}
 }
@@ -2202,13 +2204,13 @@ function getCookie(c_name)
 		x=x.replace(/^\s+|\s+$/g,"");
 		if (x==c_name)
 		{
-			console.log("Cookie value at getCookie()" + unescape(y));
-			return unescape(y);
+			//console.log("Cookie value at getCookie()" + decodeURIComponent(y));
+			return decodeURIComponent(y);
 			
 
 		}
 	}
-	console.log("Cookie value at getCookie() is null");
+	//console.log("Cookie value at getCookie() is null");
 	//we didn't find the cookie, so we return null
 	return "null";
 }
@@ -2221,11 +2223,11 @@ function getCookie(c_name)
  */
 function setCookie(c_name,value,exdays)
 {
-				console.log("Cookie value at setCookie()" + value);
+				//console.log("Cookie value at setCookie()" + value);
 
 	var exdate=new Date();
 	exdate.setDate(exdate.getDate() + exdays);
-	var c_value = escape(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
+	var c_value = encodeURIComponent(value) + ((exdays==null) ? "" : "; expires="+exdate.toUTCString());
 	
 	//We want the cookie to be available through all pages in the domain, to do that we have to remove the www from the start
 	var domain = document.domain;
@@ -2251,7 +2253,7 @@ function printCookiesOnConsole(){
 		//console.log(x);
 		/*if (x==c_name)
 		{
-			return unescape(y);
+			return decodeURIComponent(y);
 		}*/
 	}
 	
@@ -2265,7 +2267,7 @@ function printCookiesOnConsole(){
  */ 
 function askForCookiePermission(){
 	
-	console.log("asking for cookie permission");
+	//console.log("asking for cookie permission");
 	//If we can get the Session ID from the cookie, we start the tool and finish
 	if (getSessionFromCookie()){
 		init_UsaProxy();
@@ -2330,10 +2332,10 @@ function askForCookiePermission(){
 	
 	if (document.body.firstChild){
       	document.body.insertBefore(htmlDivContent, document.body.firstChild);
-		console.log("inserting before");
+		//console.log("inserting before");
 	} else {
       	document.body.appendChild(htmlDivContent);
-      	console.log("appending before");
+      	//console.log("appending before");
 	}
 	
 	
@@ -2390,7 +2392,8 @@ function getSessionFromCookie(){
 DEBUG CODE END*/
 	
 	//We check if there are cookies in the Web page
-	if (document.cookie.length > 0)
+	//if (document.cookie.length > 0)
+	if (true)
 	{
 		
 		sessionID = getCookie(sessionIDCookieName);

@@ -871,34 +871,13 @@ public class EventManager {
 		
 		sid = eventHashMap.get(EventConstants.SID);
 		
-		encodedDomContent = eventHashMap.get(EventConstants.DOMCONTENT);
+		decodedDomContent = eventHashMap.get(EventConstants.DOMCONTENT);
 		
-		url = eventHashMap.get(EventConstants.URL);
+		decodedUrl = eventHashMap.get(EventConstants.URL);
 		
 		browser = eventHashMap.get(EventConstants.BROWSER);
 		
 		platform = eventHashMap.get(EventConstants.PLATFORM);
-
-
-		try {
-			decodedDomContent = URLDecoder.decode(encodedDomContent, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			ErrorLogging
-					.logError(
-							"EventManager.java:logDOMChangeToDB()",
-							"There was an error trying to decode the DOM CONTENT received as a parameter",
-							e);
-		}
-
-		try {
-			decodedUrl = URLDecoder.decode(url, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			ErrorLogging
-					.logError(
-							"EventManager.java:logDOMChangeToDB()",
-							"There was an error trying to decode the URL received as a parameter",
-							e);
-		}
 
 		boolean saveEntireDOM = false;
 

@@ -260,7 +260,8 @@ public class MongoDAO {
 			ErrorLogging
 					.logCriticalError(
 							"MongoDAO.java/commitJson()",
-							"Error trying to commit the following Json to the Database",
+							"Error trying to commit the following Json to the Database: \n"
+							+ jsonString,
 							e);
 		}
 		return false;

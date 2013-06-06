@@ -146,5 +146,21 @@ public class Scroll extends GenericEvent{
 	 * Percentage of scroll in the Y axis
 	 */
 	private Float scrollY;
+
+	public Float getScrollX() {
+		return scrollX;
+	}
+
+	public void setScrollX(Float scrollX) {
+		this.scrollX = scrollX;
+	}
+
+	public Float getScrollY() {
+		return scrollY;
+	}
+
+	public void setScrollY(Float scrollY) {
+		this.scrollY = scrollY;
+	}
 	
 }

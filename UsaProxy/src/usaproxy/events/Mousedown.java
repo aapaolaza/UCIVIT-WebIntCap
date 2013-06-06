@@ -126,5 +126,9 @@ public class Mousedown extends GenericEvent{
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
+	
+	public String getButton(){
+		return button;
+	}
 
 }

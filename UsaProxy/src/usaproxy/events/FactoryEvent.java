@@ -1,8 +1,8 @@
 package usaproxy.events;
 
-import com.mongodb.DBObject;
-
 import usaproxy.ErrorLogging;
+
+import com.mongodb.DBObject;
 
 /**
  * This class will serve as an interface to the rest of events.
@@ -114,8 +114,7 @@ public class FactoryEvent {
 			default:
 				ErrorLogging
 				.logError(
-						"EventManager.java/logEventToDB",
-						"This error most likely appears because the following string "
+						"FactoryEvent.java/getJsonFromEventHashMap()",						"This error most likely appears because the following string "
 								+ "doesn't relate to any registered event: "
 								+ eventHashMap.get(EventConstants.EVENTNAME),null);
 				break;
@@ -216,11 +215,18 @@ public class FactoryEvent {
 			case "unload":
 				classObject = new Unload(com.mongodb.util.JSON.serialize(dbObject));
 				break;
-	
+				
+			case "windowfocus":
+				classObject = new WindowFocus(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+				
+			case "windowblur":
+				classObject = new WindowBlur(com.mongodb.util.JSON.serialize(dbObject));
+				break;
 			default:
 				ErrorLogging
 				.logError(
-						"EventManager.java/logEventToDB",
+						"FactoryEvent.java/getEventFromDBObject",
 						"This error most likely appears because the following string "
 								+ "doesn't relate to any registered event: "
 								+ dbObject.get(EventConstants.EVENTNAME).toString(),null);

@@ -191,7 +191,7 @@ public class GenericEvent {
 	 * @return the timestamp
 	 */
 	public String getTimestamp() {
-		return "";
+		return this.timestamp;
 	}
 
 
@@ -215,7 +215,7 @@ public class GenericEvent {
 	 * @return the event
 	 */
 	public String getEvent() {
-		return "";
+		return this.event;
 	}
 
 
@@ -246,7 +246,7 @@ public class GenericEvent {
 	 * @return the url
 	 */
 	public String getUrl() {
-		return "";
+		return this.url;
 	}
 
 

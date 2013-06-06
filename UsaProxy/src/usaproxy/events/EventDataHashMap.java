@@ -1,6 +1,5 @@
 package usaproxy.events;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 

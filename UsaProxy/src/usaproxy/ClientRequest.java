@@ -193,11 +193,16 @@ public class ClientRequest extends Thread {
 			/** remove request line from headers stucture */
 			client.getHeaders().remove(url);
 
-			/** retrieve request method */
-			method = url.substring(0, url.indexOf(" ")).trim();
+			try {
+				/** retrieve request method */
+				method = url.substring(0, url.indexOf(" ")).trim();
 
-			/** crop method */
-			url = url.substring(url.indexOf(" ")).trim();
+				/** crop method */
+				url = url.substring(url.indexOf(" ")).trim();
+			} catch (Exception e){
+				ErrorLogging.logCriticalError("ClientRequest.java: processRequest()", 
+						"A critical error occurred when splitting following input: \n "+ url, e);
+			}
 
 			/** crop HTTP version */
 			if (url.toUpperCase().lastIndexOf("HTTP") >= 0)

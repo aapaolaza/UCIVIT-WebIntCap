@@ -26,6 +26,7 @@ public class NodeInfo{
 		this.nodeLink = "";
 		this.nodeText = "";
 		this.nodeType = null;
+		this.nodeTextContent = "";
 		this.nodeTextValue = "";
 	}
 	
@@ -37,11 +38,12 @@ public class NodeInfo{
 	 * @param nodeLink
 	 * @param nodeText
 	 * @param nodeType
+ 	 * @param nodeTextContent
 	 * @param nodeTextValue
 	 */
 	public NodeInfo(String nodeId, String nodeName, String nodeDom,
 			String nodeImg, String nodeLink, String nodeText, String nodeType,
-			String nodeTextValue) {
+			String nodeTextContent, String nodeTextValue) {
 		super();
 		this.nodeId = nodeId;
 		this.nodeName = nodeName;
@@ -50,6 +52,7 @@ public class NodeInfo{
 		this.nodeLink = nodeLink;
 		this.nodeText = nodeText;
 		this.nodeType = nodeType;
+		this.nodeTextContent = nodeTextContent;
 		this.nodeTextValue = nodeTextValue;
 	}
 
@@ -64,6 +67,7 @@ public class NodeInfo{
 		this.nodeLink = tempClass.nodeLink;
 		this.nodeText = tempClass.nodeText;
 		this.nodeType = tempClass.nodeType;
+		this.nodeTextContent = tempClass.nodeTextContent;
 		this.nodeTextValue = tempClass.nodeTextValue;
 	}
 	
@@ -115,7 +119,9 @@ public class NodeInfo{
 		classObject.nodeText = nodeData.get(EventConstants.NODETEXT);
 
 		classObject.nodeType = nodeData.get(EventConstants.NODETYPE);
-
+		
+		classObject.nodeTextContent = nodeData.get(EventConstants.NODETEXTCONTENT);
+		
 		classObject.nodeTextValue = nodeData.get(EventConstants.NODETEXTVALUE);
 
 		return classObject;
@@ -149,6 +155,12 @@ public class NodeInfo{
 	 * Node type of the hovered element
 	 */
 	private String nodeType;
+	
+	/**
+	 * Text content of the node
+	 */
+	private String nodeTextContent;
+	
 	
 	/**
 	 * Possible text value of the node 

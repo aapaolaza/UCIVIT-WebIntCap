@@ -122,5 +122,21 @@ public class Mousewheel extends GenericEvent{
 	 */
 	private NodeInfo nodeInfo;
 
+	public Integer getDelta() {
+		return delta;
+	}
+
+	public void setDelta(Integer delta) {
+		this.delta = delta;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
+
 
 }
