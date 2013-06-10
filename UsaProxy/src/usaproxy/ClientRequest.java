@@ -201,7 +201,8 @@ public class ClientRequest extends Thread {
 				url = url.substring(url.indexOf(" ")).trim();
 			} catch (Exception e){
 				ErrorLogging.logCriticalError("ClientRequest.java: processRequest()", 
-						"A critical error occurred when splitting following input: \n "+ url, e);
+						"A critical error occurred when splitting following input: \n "+ url 
+						+ "\n From request: \n" +in , e);
 			}
 
 			/** crop HTTP version */
@@ -1164,15 +1165,12 @@ public class ClientRequest extends Thread {
 		} catch (IOException e) {
 			// e.printStackTrace();
 			if (client.getSocket() != null) {
-				System.err
-						.println("\nAn ERROR occured while processing request:\n"
+				ErrorLogging.logCriticalError("ClientRequest.java/process Request","\nAn IO ERROR occured while processing request:\n"
 								+ client.getHeaders().elementAt(0)
 								+ " from client "
 								+ client.getSocket().getInetAddress()
-										.getHostName()/*
-													 * + ":\n" + e
-													 */);
-				if (client.getSocket().isClosed()) {
+										.getHostName(),e);
+				/*if (client.getSocket().isClosed()) {
 					System.err
 							.println("Reason: Client closed his socket (maybe left for www.weg.de)\n");
 				} else {
@@ -1183,11 +1181,10 @@ public class ClientRequest extends Thread {
 					else
 						System.err
 								.println("Reason: Maybe the client's Outputstream is already closed\n");
-				}
+				}*/
 			} else {
-				System.err
-						.println("\nAn ERROR occured while processing request: "
-								+ "\n" + e + "\n");
+				ErrorLogging.logCriticalError("ClientRequest.java/process Request",
+						"\nAn IO ERROR occured while processing request", e);
 			}
 		}
 
