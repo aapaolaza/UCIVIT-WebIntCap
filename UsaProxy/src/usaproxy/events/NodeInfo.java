@@ -278,4 +278,12 @@ public class NodeInfo{
 	public void setNodeTextValue(String nodeTextValue) {
 		this.nodeTextValue = nodeTextValue;
 	}
+
+	public String getNodeTextContent() {
+		return nodeTextContent;
+	}
+
+	public void setNodeTextContent(String nodeTextContent) {
+		this.nodeTextContent = nodeTextContent;
+	}
 }

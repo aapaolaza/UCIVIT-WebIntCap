@@ -150,8 +150,8 @@ public class ClientRequest extends Thread {
 
 		String method = "";
 
-		try {
 
+		try {
 			/** read in HTTP request headers */
 			in = client.getHeaders().readHeaders(in);
 
@@ -1045,121 +1045,121 @@ public class ClientRequest extends Thread {
 			else {
 				
 				/////////We removed the possibility of acting as a Proxy, minimizing the overload the server will have
-//
-//				/**
-//				 * other undefined "usaproxylolo" requests: Reject request
-//				 */
-//				if (requestURL.getPath().startsWith("/usaproxylolo")) {
-//					SocketData.send403(new DataOutputStream(client.getOut()),
-//							"Forbidden usaproxylolo request !");
-//					return;
-//				}
-//
-//				/** Display message: Client and requested URL */
-//				if (UsaProxy.DEBUG)
-//					System.out.println("New REQUEST:");
-//				if (UsaProxy.DEBUG)
-//					System.out.println("From client "
-//							+ client.getSocket().getInetAddress().getHostName()
-//							+ " ("
-//							+ client.getSocket().getInetAddress()
-//									.getHostAddress() + ") with request GET "
-//							+ url + "\n");
-//
-//				/** HTTP headers processing */
-//
-//				/**
-//				 * add X-Forwarded-For header to ensure the server gets the
-//				 * client IP
-//				 */
-//				client.getHeaders().put(HTTPData.HEADER_X_FORWARDED_FOR,
-//						client.getSocket().getInetAddress().getHostAddress());
-//
-//				/**
-//				 * add accept-encoding header value "identity" to avoid gzip
-//				 * content-encoding
-//				 */
-//				client.getHeaders().put(HTTPData.HEADER_ACCEPT_ENCODING,
-//						"identity");
-//
-//				/** add connection header value "close" */
-//				client.getHeaders().put(HTTPData.HEADER_CONNECTION, "close");
-//
-//				/** remove proxy-connection and keep-alive header */
-//				if (client.getHeaders().containsKey(
-//						HTTPData.HEADER_PROXY_CONNECTION))
-//					client.getHeaders()
-//							.remove(HTTPData.HEADER_PROXY_CONNECTION);
-//				if (client.getHeaders().containsKey(
-//						HTTPData.HEADER_CONNECTION_KEEPALIVE))
-//					client.getHeaders().remove(
-//							HTTPData.HEADER_CONNECTION_KEEPALIVE);
-//
-//				/** add UsaProxy header for Apache mod_rewrite */
-//				client.getHeaders().put(HTTPData.HEADER_X_USAPROXY, "client");
-//
-//				// client.getHeaders().printHeaders();
-//				// requestURL.toString();
-//
-//				/** end HTTP headers processing */
-//
-//				/** connect with the web server depending on the proxy mode */
-//				try {
-//					this.server = new SocketData(usaProxy.getMode()
-//							.getServerConnect());
-//				}
-//				/** if server could not be detected or didn't respond */
-//				catch (Exception err) {
-//
-//					System.err
-//							.println("\nAn ERROR occured while connecting to the server:\n"
-//									+ err);
-//					err.printStackTrace();
-//
-//					/**
-//					 * send error message to client with the error, the
-//					 * requested url, and the host
-//					 */
-//					SocketData.send403(new DataOutputStream(client.getOut()),
-//							err.getMessage());
-//
-//					/** Close streams and sockets */
-//					client.closeInputStream();
-//					client.closeOutputStream();
-//					client.closeSocket();
-//					if (server != null)
-//						server.closeSocket();
-//
-//					/** End of run */
-//					return;
-//				}
-//
-//				if (method.equals("POST"))
-//					client.setIn(in);
-//				else
-//					client.setIn(null);
-//
-//				/** Create server streams */
-//				/** Create client streams */
-//				server.bindInputStream();
-//				server.bindOutputStream();
-//
-//				/**
-//				 * retrieve new httptraffic index for the storage of request and
-//				 * response
-//				 */
-//				if (usaProxy.getHttpTraffic().isCachingEnabled())
-//					httpTrafficIndex = usaProxy.getHttpTraffic()
-//							.getHttpTrafficIndex(true);
-//
-//				/**
-//				 * Create new Thread that manages the posting of the client
-//				 * request to the web server
-//				 */
-//				new ServerRequest(client, server, this);
-//
-//				/** Receive server response and process it */
-//				processResponse(server.getIn());
+
+				/**
+				 * other undefined "usaproxylolo" requests: Reject request
+				 */
+				if (requestURL.getPath().startsWith("/usaproxylolo")) {
+					SocketData.send403(new DataOutputStream(client.getOut()),
+							"Forbidden usaproxylolo request !");
+					return;
+				}
+
+				/** Display message: Client and requested URL */
+				if (UsaProxy.DEBUG)
+					System.out.println("New REQUEST:");
+				if (UsaProxy.DEBUG)
+					System.out.println("From client "
+							+ client.getSocket().getInetAddress().getHostName()
+							+ " ("
+							+ client.getSocket().getInetAddress()
+									.getHostAddress() + ") with request GET "
+							+ url + "\n");
+
+				/** HTTP headers processing */
+
+				/**
+				 * add X-Forwarded-For header to ensure the server gets the
+				 * client IP
+				 */
+				client.getHeaders().put(HTTPData.HEADER_X_FORWARDED_FOR,
+						client.getSocket().getInetAddress().getHostAddress());
+
+				/**
+				 * add accept-encoding header value "identity" to avoid gzip
+				 * content-encoding
+				 */
+				client.getHeaders().put(HTTPData.HEADER_ACCEPT_ENCODING,
+						"identity");
+
+				/** add connection header value "close" */
+				client.getHeaders().put(HTTPData.HEADER_CONNECTION, "close");
+
+				/** remove proxy-connection and keep-alive header */
+				if (client.getHeaders().containsKey(
+						HTTPData.HEADER_PROXY_CONNECTION))
+					client.getHeaders()
+							.remove(HTTPData.HEADER_PROXY_CONNECTION);
+				if (client.getHeaders().containsKey(
+						HTTPData.HEADER_CONNECTION_KEEPALIVE))
+					client.getHeaders().remove(
+							HTTPData.HEADER_CONNECTION_KEEPALIVE);
+
+				/** add UsaProxy header for Apache mod_rewrite */
+				client.getHeaders().put(HTTPData.HEADER_X_USAPROXY, "client");
+
+				// client.getHeaders().printHeaders();
+				// requestURL.toString();
+
+				/** end HTTP headers processing */
+
+				/** connect with the web server depending on the proxy mode */
+				try {
+					this.server = new SocketData(usaProxy.getMode()
+							.getServerConnect());
+				}
+				/** if server could not be detected or didn't respond */
+				catch (Exception err) {
+
+					System.err
+							.println("\nAn ERROR occured while connecting to the server:\n"
+									+ err);
+					err.printStackTrace();
+
+					/**
+					 * send error message to client with the error, the
+					 * requested url, and the host
+					 */
+					SocketData.send403(new DataOutputStream(client.getOut()),
+							err.getMessage());
+
+					/** Close streams and sockets */
+					client.closeInputStream();
+					client.closeOutputStream();
+					client.closeSocket();
+					if (server != null)
+						server.closeSocket();
+
+					/** End of run */
+					return;
+				}
+
+				if (method.equals("POST"))
+					client.setIn(in);
+				else
+					client.setIn(null);
+
+				/** Create server streams */
+				/** Create client streams */
+				server.bindInputStream();
+				server.bindOutputStream();
+
+				/**
+				 * retrieve new httptraffic index for the storage of request and
+				 * response
+				 */
+				if (usaProxy.getHttpTraffic().isCachingEnabled())
+					httpTrafficIndex = usaProxy.getHttpTraffic()
+							.getHttpTrafficIndex(true);
+
+				/**
+				 * Create new Thread that manages the posting of the client
+				 * request to the web server
+				 */
+				new ServerRequest(client, server, this);
+
+				/** Receive server response and process it */
+				processResponse(server.getIn());
 			}
 
 		} catch (IOException e) {
@@ -1573,7 +1573,8 @@ public class ClientRequest extends Thread {
 					 * ID/httptrafficindex, the ts attribute, and the UsaProxy
 					 * instance id
 					 */
-					scriptString = insertPars(scriptString);
+					//scriptString = insertPars(scriptString);
+					scriptString = insertParsNew();
 
 					/**
 					 * if shared browsing page requested, add also
@@ -1695,9 +1696,34 @@ public class ClientRequest extends Thread {
 		scriptStringID.insert(insertPos, "?sd=" + httpTrafficIndex + "&amp;ts="
 				+ timeStamp + "&amp;id=" + usaProxy.getId());
 		scriptString = scriptStringID.toString();
+		System.out.println("ClientRequest.java: SCRIPT TO INJECT IS: "+scriptString);
 		return scriptString;
 	}
-
+	
+	/**
+	 * As insertPars, it injects the necessary script, 
+	 * but instead of the original UsaProxy script, it injects
+	 * the customized one from the copypaste approach we took.
+	 * 
+	 * 
+	 * @return String containing the script to inject
+	 */
+	private String insertParsNew() {
+		
+		
+		//I took the literal copypaste text and used an online tool (http://www.htmlescape.net/javaescape_tool.html)
+		//to obtain the correspondent escaped string
+		
+		//String with webpageIndex = 10010 and server IP = wel-experimental
+		String scriptToInject = "<!-- usaProxy script start-->\n\t<script type=\"text/javascript\">\n\t\t\n\t\t//Sensitive fields\' IDs should be in this array. It will be empty by default.\n\t\t//The comparison will be case sensitive!!\n\t\twindow.protectedIds=[];\n\t\t\n\t\t//The webpageindex will be specific to each site\n\t\twindow.webpageIndex = \'10010\';\n\t\twindow.usaProxyServerIP = \'wel-experimental.cs.man.ac.uk:2727\'; \n\t\twindow.sessionId = getCookie(\"proxyUserID\");\n\t\t\n\t\twindow.usaProxySrc = \"http://\"+window.usaProxyServerIP+\"/usaproxylolo/file/proxyscript.js?sd=\"+window.webpageIndex+\"&sid=\"+window.sessionId\n\n\t\t//we add the script dinamically\n\t\tvar usaProxyScriptNode = document.createElement(\'script\');\n\t\tusaProxyScriptNode.id = \'proxyScript_UsaProxy\';\n\t\tusaProxyScriptNode.type = \'text/javascript\';\n\t\tusaProxyScriptNode.src = window.usaProxySrc;\n\n\t\tdocument.getElementsByTagName(\'head\')[0].appendChild(usaProxyScriptNode);\n\t\t\n\t\tfunction getCookie(c_name)\n\t\t{\n\t\t\tvar i,x,y,ARRcookies=document.cookie.split(\";\");\n\t\t\tfor (i=0;i<ARRcookies.length;i++)\n\t\t\t{\n\t\t\t\tx=ARRcookies[i].substr(0,ARRcookies[i].indexOf(\"=\"));\n\t\t\t\ty=ARRcookies[i].substr(ARRcookies[i].indexOf(\"=\")+1);\n\t\t\t\tx=x.replace(/^\\s+|\\s+$/g,\"\");\n\t\t\t\tif (x==c_name)\n\t\t\t\t{\n\t\t\t\t\treturn unescape(y);\n\t\t\t\t}\n\t\t\t}\n\t\t\t\n\t\t\t//we didn\'t find the cookie, so we return null\n\t\t\treturn \"null\";\n\t\t}\n\t\t\n\t</script>\n<!-- usaProxy script end -->\n";
+		
+		//String with webpageIndex = 10010 and server IP = 130.88.193.26
+		String testingScriptToInject = "<!-- usaProxy script start-->\n\t<script type=\"text/javascript\">\n\t\t\n\t\t//Sensitive fields\' IDs should be in this array. It will be empty by default.\n\t\t//The comparison will be case sensitive!!\n\t\twindow.protectedIds=[];\n\t\t\n\t\t//The webpageindex will be specific to each site\n\t\twindow.webpageIndex = \'10010\';\n\t\twindow.usaProxyServerIP = \'130.88.193.26:2727\'; \n\t\twindow.sessionId = getCookie(\"proxyUserID\");\n\t\t\n\t\twindow.usaProxySrc = \"http://\"+window.usaProxyServerIP+\"/usaproxylolo/file/proxyscript.js?sd=\"+window.webpageIndex+\"&sid=\"+window.sessionId\n\n\t\t//we add the script dinamically\n\t\tvar usaProxyScriptNode = document.createElement(\'script\');\n\t\tusaProxyScriptNode.id = \'proxyScript_UsaProxy\';\n\t\tusaProxyScriptNode.type = \'text/javascript\';\n\t\tusaProxyScriptNode.src = window.usaProxySrc;\n\n\t\tdocument.getElementsByTagName(\'head\')[0].appendChild(usaProxyScriptNode);\n\t\t\n\t\tfunction getCookie(c_name)\n\t\t{\n\t\t\tvar i,x,y,ARRcookies=document.cookie.split(\";\");\n\t\t\tfor (i=0;i<ARRcookies.length;i++)\n\t\t\t{\n\t\t\t\tx=ARRcookies[i].substr(0,ARRcookies[i].indexOf(\"=\"));\n\t\t\t\ty=ARRcookies[i].substr(ARRcookies[i].indexOf(\"=\")+1);\n\t\t\t\tx=x.replace(/^\\s+|\\s+$/g,\"\");\n\t\t\t\tif (x==c_name)\n\t\t\t\t{\n\t\t\t\t\treturn unescape(y);\n\t\t\t\t}\n\t\t\t}\n\t\t\t\n\t\t\t//we didn\'t find the cookie, so we return null\n\t\t\treturn \"null\";\n\t\t}\n\t\t\n\t</script>\n<!-- usaProxy script end -->\n"; 
+		
+		System.out.println("ClientRequest.java: SCRIPT TO INJECT IS: "+testingScriptToInject);
+		return testingScriptToInject;
+	}
+	
 	/**
 	 * Sends the response headers to the client. In the case a recorded web page
 	 * is requested ("usaproxyload"), or when HTML is processed, a corresponding
@@ -1819,15 +1845,14 @@ public class ClientRequest extends Thread {
 					 * rest of the response data) to the corresponding
 					 * httptraffic txt-file
 					 */
-					// TEST-REMOVAL if((isHtmlStream &&
-					// (isNotFoundMessage==false))
-					// TEST-REMOVAL &&
-					// usaProxy.getHttpTraffic().isCachingEnabled()) {
+					if((isHtmlStream && (isNotFoundMessage==false))
+							&&
+							usaProxy.getHttpTraffic().isCachingEnabled()) {
 
 					/** store data to indexed txt-file */
 					usaProxy.getHttpTraffic().store(httpTrafficIndex, response,
 							0, responseLength);
-					// TEST-REMOVAL }
+					}
 				}
 			}
 		} catch (IOException e) {

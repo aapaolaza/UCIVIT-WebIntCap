@@ -14,6 +14,7 @@ public class Dblclick extends GenericEvent{
 	 */
 	public Dblclick(){
 		super();
+		this.button = "";
 		this.mouseCoordinates = null;
 		this.nodeInfo = null;
 	}
@@ -55,6 +56,8 @@ public class Dblclick extends GenericEvent{
 	
 	public Dblclick (Dblclick tempClass){
 		super(tempClass);
+		
+		this.button = tempClass.button;
 		
 		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
@@ -102,11 +105,18 @@ public class Dblclick extends GenericEvent{
 	private Dblclick(EventDataHashMap eventData) {
 		super(eventData);
 		
+		this.button = eventData.get(EventConstants.BUTTON);
+
 		this.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
 
 		this.nodeInfo = NodeInfo.parseFromHash(eventData);
 
 	}
+	
+	/**
+	 * Which button was pressed (l for left, r for right and m for middle)
+	 */
+	private String button;
 	
 	/**
 	 * MouseCoordinates element with all the information available of the mouse coordinates
@@ -116,5 +126,30 @@ public class Dblclick extends GenericEvent{
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
+
+	
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
+
+	public String getButton() {
+		return button;
+	}
+
+	public void setButton(String button) {
+		this.button = button;
+	}
 
 }

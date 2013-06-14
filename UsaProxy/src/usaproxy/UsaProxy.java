@@ -116,7 +116,9 @@ public class UsaProxy {
 		try {
 	
 		    /** Create server socket */
-		    ServerSocket server = new ServerSocket(port); 
+		    //ServerSocket server = new ServerSocket(port);
+			//we increase the maximum size of the queue, the default size is 50. I will try with 200 for the time being
+			ServerSocket server = new ServerSocket(port,200);
 		    
 		    /** Display start message */
 			System.out.println("UsaProxy started at port " + port + " with ID: " + (id=="" ? "undefined":id));

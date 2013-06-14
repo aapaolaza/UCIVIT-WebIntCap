@@ -132,4 +132,28 @@ public class SelectContent extends GenericEvent{
 	 */
 	private String selectedContent;
 
+	public String getSelectionTool() {
+		return selectionTool;
+	}
+
+	public void setSelectionTool(String selectionTool) {
+		this.selectionTool = selectionTool;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
+
+	public String getSelectedContent() {
+		return selectedContent;
+	}
+
+	public void setSelectedContent(String selectedContent) {
+		this.selectedContent = selectedContent;
+	}
+
 }

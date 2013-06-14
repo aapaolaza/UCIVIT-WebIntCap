@@ -117,5 +117,20 @@ public class Keydown extends GenericEvent{
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
 
 }

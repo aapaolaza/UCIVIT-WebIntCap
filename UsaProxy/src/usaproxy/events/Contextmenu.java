@@ -118,6 +118,21 @@ public class Contextmenu extends GenericEvent{
 	 * Nodeinfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
 	
 		
 }

@@ -112,6 +112,10 @@ public class GenericEvent {
 		this.ip = eventData.get(EventConstants.IPADDRESS);
 
 		this.timestamp = eventData.get(EventConstants.TIMESTAMP);
+		
+		this.sessionstartms = eventData.get(EventConstants.SESSIONSTARTMS);
+		
+		this.sessionstartparsed = eventData.get(EventConstants.SESSIONSTARTPARSED);
 
 		this.sd = eventData.get(EventConstants.SD);
 
@@ -149,6 +153,17 @@ public class GenericEvent {
 	 */
 	protected String timestamp ="";
 
+	/**
+	 * Timestamp in milisecons of the start of the session
+	 */
+	protected String sessionstartms ="";
+
+	/**
+	 * Timestamp parsed of the start of the session
+	 */
+	protected String sessionstartparsed ="";
+
+	
 	/**
 	 * Id of the website
 	 */
@@ -367,6 +382,66 @@ public class GenericEvent {
 	 */
 	public Integer getNumberOfChanges() {
 		return null;
+	}
+
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+
+	public void setTimestamp(String timestamp) {
+		this.timestamp = timestamp;
+	}
+
+
+	public void setSd(String sd) {
+		this.sd = sd;
+	}
+
+
+	public void setSid(String sid) {
+		this.sid = sid;
+	}
+
+
+	public void setEvent(String event) {
+		this.event = event;
+	}
+
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+
+
+	public void setBrowser(String browser) {
+		this.browser = browser;
+	}
+
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+
+	public String getSessionstartms() {
+		return sessionstartms;
+	}
+
+
+	public void setSessionstartms(String sessionstartms) {
+		this.sessionstartms = sessionstartms;
+	}
+
+
+	public String getSessionstartparsed() {
+		return sessionstartparsed;
+	}
+
+
+	public void setSessionstartparsed(String sessionstartparsed) {
+		this.sessionstartparsed = sessionstartparsed;
 	}
 
 //

@@ -580,7 +580,8 @@ function writeLog_UsaProxy(text) {
 	
 	// generate and append log entry
 	var logline;
-	logLine = "time=" + datestamp_UsaProxy() + "&sd=" + serverdataId_UsaProxy + "&sid="
+	logLine = "time=" + datestamp_UsaProxy() + "&sessionStartTimeRaw=" + startDate_UsaProxy 
+	+ "&sessionStartTimeParsed=" + getSessionStartTimeParsed() + "&sd=" + serverdataId_UsaProxy + "&sid="
 	+ sessionID + "&event=" + text+ "&url=" + encodeURIComponent(url);
 	
 	// set synchronization flag (block function)
@@ -589,6 +590,15 @@ function writeLog_UsaProxy(text) {
 	// reset synchronization flag (release function)
 	FLG_writingLogVal_UsaProxy = false;
 }
+
+function getSessionStartTimeParsed(){
+	startDate_UsaProxy.getFullYear() + "-" + completeDateVals(startDate_UsaProxy.getMonth()+1) + "-"
+	  + completeDateVals(startDate_UsaProxy.getDate()) + "," + completeDateVals(startDate_UsaProxy.getHours())
+	  + ":" + completeDateVals(startDate_UsaProxy.getMinutes())
+	  + ":" + completeDateVals(startDate_UsaProxy.getSeconds())
+	  + ":" + completeDateValsMilliseconds(startDate_UsaProxy.getMilliseconds()
+	  
+  }
 
 //CHANGE!!! now this function returns textContent as well, it will be useful!!
 /** Returns all available node information such as the DOM path, an image name, href, etc. */
@@ -1788,20 +1798,8 @@ function processDblClick_ExtraEvent(e) {
 			case 2: mbutton = "r"; break;
 		}
 	}
-	
-	// log middle and right button events, continue if left button was clicked
-	if (mbutton!="left") {
 
-		writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&but=" + mbutton + generateEventString_UsaProxy(target));
-		return;
-	}
-
-	// end mouse button detection 
-	
-	/* if regular click, log click coordinates relative to the clicked element
-	   and all available target properties */
-	// if element has an id attribute
-	writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+	writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset +"&but=" + mbutton + generateEventString_UsaProxy(target));
 	
 }
 

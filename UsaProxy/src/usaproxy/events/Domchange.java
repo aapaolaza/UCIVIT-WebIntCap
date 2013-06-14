@@ -110,4 +110,12 @@ public class Domchange extends GenericEvent{
 	 * Number of changes since the last DOM change
 	 */
 	private Integer numberOfChanges;
+
+	public Integer getNumberOfChanges() {
+		return numberOfChanges;
+	}
+
+	public void setNumberOfChanges(Integer numberOfChanges) {
+		this.numberOfChanges = numberOfChanges;
+	}
 }

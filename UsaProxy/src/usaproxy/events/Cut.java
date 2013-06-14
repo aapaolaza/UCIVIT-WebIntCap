@@ -115,5 +115,20 @@ public class Cut extends GenericEvent{
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
 	
 }
