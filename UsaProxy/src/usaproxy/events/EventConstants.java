@@ -106,8 +106,6 @@ public class EventConstants {
 
 	
 	//Server provided timestamp
-	public static final String SESSIONSTARTMS = "sessionStartTimeRaw";
-
-	public static final String SESSIONSTARTPARSED = "sessionStartTimeParsed";
+	public static final String SESSIONSTARTMS = "sessionStartTime";
 	
 }

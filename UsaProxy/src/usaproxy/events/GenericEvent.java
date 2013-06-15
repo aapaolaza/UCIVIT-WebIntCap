@@ -1,6 +1,11 @@
 package usaproxy.events;
 
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import usaproxy.ErrorLogging;
+
 import com.google.gson.Gson;
 
 /**
@@ -111,11 +116,13 @@ public class GenericEvent {
 		
 		this.ip = eventData.get(EventConstants.IPADDRESS);
 
-		this.timestamp = eventData.get(EventConstants.TIMESTAMP);
+		
+				
+		this.timestamp = formatDateFromMs(eventData.get(EventConstants.TIMESTAMP));
 		
 		this.sessionstartms = eventData.get(EventConstants.SESSIONSTARTMS);
 		
-		this.sessionstartparsed = eventData.get(EventConstants.SESSIONSTARTPARSED);
+		this.sessionstartparsed = formatDateFromMs(eventData.get(EventConstants.SESSIONSTARTMS));
 
 		this.sd = eventData.get(EventConstants.SD);
 
@@ -140,6 +147,29 @@ public class GenericEvent {
 		this.platform = tempClass.platform;
 		this.browser = tempClass.browser;
 		this.url = tempClass.url;
+	}
+	
+	/**
+	 * Takes a string containing a timestamp in milliseconds and try to 
+	 * parse it into the following format: yyyy-MM-dd,HH:mm:ss:SSS
+	 * 
+	 * @param timestamp
+	 * @return formatted string with timestamp, or the input if parsing exception occurs
+	 */
+	public String formatDateFromMs(String timestamp){
+		
+		try{
+			SimpleDateFormat parserSDF=new SimpleDateFormat("yyyy-MM-dd,HH:mm:ss:SSS");
+		
+			timestamp = parserSDF.format(new Date(Long.parseLong(timestamp)));
+		}catch (Exception e){
+			
+			ErrorLogging.logCriticalError("GenericEvent.java:formatDateFromMs", 
+					"A problem occurred when trying to format the following string from milliseconds to a readable date:/n" + timestamp, e);
+		}
+		
+		return timestamp;
+		
 	}
 
 

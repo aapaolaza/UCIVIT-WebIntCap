@@ -20,7 +20,11 @@ var serverdataId_UsaProxy;      /* String: contains related serverdata ID define
 /* Date: Initialised by UsaProxy. Load completion timestamp is  
    calculated relative to this timestamp.
    * Doesn't need to be created as the server add it with its corresponding value*/
-//var startDate_UsaProxy;			
+//var startDate_UsaProxy;
+startDate_UsaProxy = parseInt(startDate_UsaProxy);
+
+var parsedStartDateServer = new Date(startDate_UsaProxy);
+
 
 var loadDate_UsaProxy = new Date();	// Date: Initialised on load. All further timestamps are calculated
 								// by adding the ms passed since page load completion to this
@@ -218,7 +222,6 @@ function init_UsaProxy() {
 	//set_date_UsaProxy();
 	//startDate_UsaProxy=date_UsaProxy(window.usaProxyDate);
 	
-	startDate_UsaProxy = parseInt(startDate_UsaProxy);
 	
 	//id_UsaProxy=window.usaProxyId;
 	
@@ -502,9 +505,11 @@ function date_UsaProxy(datestamp /*string*/) {
 
 /** Returns a timestamp string of the form "2004-12-31,23:59:59".
  * Takes UsaProxy's httptraffic log entry time as start time and adds
- * the difference between load time and current time */
- 
- //CHANGE: now it returns the date with milliseconds
+ * the difference between load time and current time 
+ * DEPRECATED!!! No function should call this one, as parsing the date in the client results in
+ * problems with the time zones
+ **/
+/*
 function datestamp_UsaProxy() {
 	if (loadDate_UsaProxy==null) loadDate_UsaProxy = new Date();
 	var currentDate 	= new Date();
@@ -520,19 +525,20 @@ function datestamp_UsaProxy() {
 	  + ":" + completeDateValsMilliseconds(currentUPDate.getMilliseconds());
 	  
 }
+* */
 
 /**
  * Returns the same timestamp as datestamp_UsaProxy() but in milliseconds
  */
  
-function datestamp_UsaProxyInMillisec() {
+function datestampInMillisec() {
 	if (loadDate_UsaProxy==null) loadDate_UsaProxy = new Date();
 	var currentDate 	= new Date();
 	// get milliseconds from load time
 	var diffSecs 		= Math.abs(currentDate.getTime() - loadDate_UsaProxy.getTime());
-	
+
 	// return the value in ms of a new Date object according to UsaProxy start time + diffMSecs
-	return new Date(startDate_UsaProxy + diffSecs).valueOf();
+	return (startDate_UsaProxy + diffSecs);
 }
 
 /** Completes single-digit numbers by a "0"-prefix
@@ -580,9 +586,9 @@ function writeLog_UsaProxy(text) {
 	
 	// generate and append log entry
 	var logline;
-	logLine = "time=" + datestamp_UsaProxy() + "&sessionStartTimeRaw=" + startDate_UsaProxy 
-	+ "&sessionStartTimeParsed=" + getSessionStartTimeParsed() + "&sd=" + serverdataId_UsaProxy + "&sid="
-	+ sessionID + "&event=" + text+ "&url=" + encodeURIComponent(url);
+	logLine = "time=" + datestampInMillisec() + "&sessionStartTime=" + startDate_UsaProxy 
+		+ "&sd=" + serverdataId_UsaProxy + "&sid=" + sessionID + "&event=" + text
+		+ "&url=" + encodeURIComponent(url);
 	
 	// set synchronization flag (block function)
 	FLG_writingLogVal_UsaProxy = true;
@@ -590,15 +596,6 @@ function writeLog_UsaProxy(text) {
 	// reset synchronization flag (release function)
 	FLG_writingLogVal_UsaProxy = false;
 }
-
-function getSessionStartTimeParsed(){
-	startDate_UsaProxy.getFullYear() + "-" + completeDateVals(startDate_UsaProxy.getMonth()+1) + "-"
-	  + completeDateVals(startDate_UsaProxy.getDate()) + "," + completeDateVals(startDate_UsaProxy.getHours())
-	  + ":" + completeDateVals(startDate_UsaProxy.getMinutes())
-	  + ":" + completeDateVals(startDate_UsaProxy.getSeconds())
-	  + ":" + completeDateValsMilliseconds(startDate_UsaProxy.getMilliseconds()
-	  
-  }
 
 //CHANGE!!! now this function returns textContent as well, it will be useful!!
 /** Returns all available node information such as the DOM path, an image name, href, etc. */
@@ -645,10 +642,10 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	
 	//Get textContent of the variable
 	var textContent ="null";
-	if (node.firstChild!=null)
-		textContent = node.firstChild.nodeValue;    
+	if (node.firstChild.nodeValue!=null)
+		textContent = node.firstChild.nodeValue.substring(0,100);    
 
-	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent.substring(0,100)) + "&textValue=" + encodeURIComponent(node.value);
+	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
 	//eventString = eventString + "&nodeType=" + node.tagName + "&textValue=" + encodeURIComponent(node.value);
 		
 	return eventString;
@@ -753,7 +750,7 @@ function saveLog_UsaProxy() {
 		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
 		
 		//we record current time as the last event recorded
-		setCookie(lastEventTSCookieName, datestamp_UsaProxyInMillisec(), cookieLife);
+		setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
 		//console.log("After sending info" + getCookie(lastEventTSCookieName));
 
 		logVal_UsaProxy = ""; // reset log data
@@ -810,11 +807,9 @@ function processMousemove_UsaProxy(e) {
 	
 	if (privacyCheck(ev))
 	{
-		//console.log("PRIVACY check was TRUE " + datestamp_UsaProxy());
 			return true;
 }
 	
-	//console.log("PRIVACY check was FALSE " + datestamp_UsaProxy() + " " + getDOMPath(target));
 
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
 	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
@@ -2418,11 +2413,8 @@ DEBUG CODE END*/
  * BEWARE!!! The ids comparison is case sensitive!
  */ 
 function privacyCheck(ev){
-	
-	//console.log("PRIVACY check " + datestamp_UsaProxy());
-	
+		
 	jqueryTarget = $(ev.target);
-	//console.log("PRIVACY check after jquery function " + datestamp_UsaProxy());
 
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	targetId = target.id;
