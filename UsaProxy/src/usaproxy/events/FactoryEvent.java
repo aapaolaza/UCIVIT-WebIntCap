@@ -223,6 +223,15 @@ public class FactoryEvent {
 			case "windowblur":
 				classObject = new WindowBlur(com.mongodb.util.JSON.serialize(dbObject));
 				break;
+			
+			case "cookiedisclaimershown":
+				classObject = new CookieDisclaimerShown(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+				
+			case "cookiedisclaimeraccepted":
+				classObject = new CookieDisclaimerAccepted(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+
 			default:
 				ErrorLogging
 				.logError(

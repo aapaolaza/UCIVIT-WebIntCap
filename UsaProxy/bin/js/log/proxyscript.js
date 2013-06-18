@@ -2267,6 +2267,11 @@ function askForCookiePermission(){
 		return true;
 	}
 	
+	//We showed the disclaimer so we store an event
+	
+	writeLog_UsaProxy("cookiedisclaimershown" + generateEventString_UsaProxy(target));
+
+	
 	//if not, we show the disclaimer
 	//alert("showing cookie disclaimer");
 	
@@ -2274,7 +2279,7 @@ function askForCookiePermission(){
 	
 	var htmlDivContent = document.createElement("div");
 	
-	htmlDivContent.id = "proxyCookieDiscalimer";
+	htmlDivContent.id = "proxyCookieDisclaimer";
 	htmlDivContent.style.backgroundColor = "silver";
 	htmlDivContent.style.border = "1px solid black";
 	
@@ -2350,11 +2355,14 @@ function askForCookiePermission(){
  * 
  */ 
 function handleCookieButton(){
+	//User clicked in the cookie disclaimer button, we record the user accepted to be tracked
+	writeLog_UsaProxy("cookiedisclaimeraccepted" + generateEventString_UsaProxy(target));
+	
 	//console.log("getSessionFromCookie");
 	setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
 	sessionID = sessionID_Proxy;
 	//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
-	var div = document.getElementById("proxyCookieDiscalimer");
+	var div = document.getElementById("proxyCookieDisclaimer");
 	div.parentNode.removeChild(div);
     
 	init_UsaProxy();
@@ -2385,8 +2393,8 @@ function getSessionFromCookie(){
 DEBUG CODE END*/
 	
 	//We check if there are cookies in the Web page
-	//if (document.cookie.length > 0)
-	if (true)
+	if (document.cookie.length > 0)
+	//if (false)
 	{
 		
 		sessionID = getCookie(sessionIDCookieName);

@@ -12,7 +12,7 @@ import usaproxy.ErrorLogging;
  */
 public class EventDataHashMap {
 
-	HashMap<String, String> dataMap;
+	public HashMap<String, String> dataMap;
 
 	/**
 	 * Constructor. It will take the event data as an argument, and it will

@@ -104,8 +104,8 @@ public class EventConstants {
 	//particular to DOM events
 	public static final String DOMCONTENT = "domContent";
 
-	
 	//Server provided timestamp
 	public static final String SESSIONSTARTMS = "sessionStartTime";
+	
 	
 }

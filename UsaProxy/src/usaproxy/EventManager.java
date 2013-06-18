@@ -1005,10 +1005,29 @@ public class EventManager {
 		EventDataHashMap eventHashMap = new EventDataHashMap(eventData);
 		eventHashMap.put(EventConstants.IPADDRESS, ipAddress);
 
-		MongoDAO.MongoDAO().commitJsonToEvents(
+		try{
+			
+			// We look the type of event, to then create the corresponding Java
+			// class and serialize into a JSON
+			MongoDAO.MongoDAO().commitJsonToEvents(
 				FactoryEvent.getJsonFromEventHashMap(eventHashMap));
-		// We look the type of event, to then create the corresponding Java
-		// class and serialize into a JSON
+			
+		}catch (Exception e){
+			
+			//We put in a printable String all the information contained in the tab
+			String hashMapContents ="";
+			for (int hashIndex = 0; hashIndex < eventHashMap.dataMap.keySet().size(); hashIndex++){
+				
+				hashMapContents += eventHashMap.dataMap.keySet().toArray()[hashIndex]
+						+ ":"
+						+ eventHashMap.dataMap.get(eventHashMap.dataMap
+								.keySet().toArray()[hashIndex]) + "\n";
+			}
+			ErrorLogging.logCriticalError("EventManager.java:logEventToDB", 
+					"There was an error when trying to commit the following event to the database from a Hashtable:\n" + hashMapContents, e);		
+			
+		}
+
 
 	}
 
