@@ -22,51 +22,6 @@ public class GenericEvent {
 		super();
 
 	}
-	
-	
-//	///TODO This function needs to be finished 
-//	/**
-//	 * @param ip
-//	 * @param timestamp
-//	 * @param sd
-//	 * @param sid
-//	 * @param event
-//	 * @param nodeInfo
-//	 * @param browser
-//	 * @param url
-//	 * 
-//	 * @param type
-//	 * @param checked //in case of checkbox
-//	 * @param value //in case of text or file field and selection menus
-//	 * @param selected //in case of single selection menus
-//	 * 
-//	 * @param selectionTool
-//	 * @param selectedContent
-//	 * 
-//	 * @param scrollX
-//	 * @param scrollY
-//	 * 
-//	 * @param size
-//	 * 
-//	 * @param content
-//	 * 
-//	 * @param delta
-//	 * 
-//	 * @param button
-//	 * @param mouseCoordinates
-//
-//	 */
-//	public GenericEvent(String ip, String timestamp, String sd, String sid,
-//			String event, String browser, String url) {
-//		this.ip = ip;
-//		this.timestamp = timestamp;
-//		this.sd = sd;
-//		this.sid = sid;
-//		this.event = event;
-//		this.browser = browser;
-//		this.url = url;
-//
-//	}
 
 //	/**
 //	 * Deserialise given JSON and creates a generic element with the result
@@ -117,12 +72,15 @@ public class GenericEvent {
 		this.ip = eventData.get(EventConstants.IPADDRESS);
 
 		
-				
-		this.timestamp = formatDateFromMs(eventData.get(EventConstants.TIMESTAMP));
+		this.timestampms = eventData.get(EventConstants.TIMESTAMP);
 		
+		this.timestamp = formatDateFromMs(eventData.get(EventConstants.TIMESTAMP));
+				
 		this.sessionstartms = eventData.get(EventConstants.SESSIONSTARTMS);
 		
 		this.sessionstartparsed = formatDateFromMs(eventData.get(EventConstants.SESSIONSTARTMS));
+		
+		this.usertimezoneoffset = eventData.get(EventConstants.USERTIMEZONEOFFSET);
 
 		this.sd = eventData.get(EventConstants.SD);
 
@@ -140,7 +98,11 @@ public class GenericEvent {
 	
 	public GenericEvent(GenericEvent tempClass){
 		this.ip = tempClass.ip;
+		this.timestampms = tempClass.timestampms;
 		this.timestamp = tempClass.timestamp;
+		this.sessionstartms = tempClass.sessionstartms;
+		this.sessionstartparsed = tempClass.sessionstartparsed;	
+		this.usertimezoneoffset = tempClass.usertimezoneoffset;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.event = tempClass.event;
@@ -165,7 +127,7 @@ public class GenericEvent {
 		}catch (Exception e){
 			
 			ErrorLogging.logCriticalError("GenericEvent.java:formatDateFromMs", 
-					"A problem occurred when trying to format the following string from milliseconds to a readable date:/n" + timestamp, e);
+					"A problem occurred when trying to format the following string from milliseconds to a readable date:\n" + timestamp, e);
 		}
 		
 		return timestamp;
@@ -178,13 +140,19 @@ public class GenericEvent {
 	 */
 	protected String ip ="";
 
+
+	/**
+	 * Timestamp of the event in milliseconds
+	 */
+	protected String timestampms ="";
+	
 	/**
 	 * Timestamp of the event
 	 */
 	protected String timestamp ="";
 
 	/**
-	 * Timestamp in milisecons of the start of the session
+	 * Timestamp in millisecons of the start of the session
 	 */
 	protected String sessionstartms ="";
 
@@ -193,6 +161,10 @@ public class GenericEvent {
 	 */
 	protected String sessionstartparsed ="";
 
+	/**
+	 * User's timezoneoffset
+	 */
+	protected String usertimezoneoffset ="";
 	
 	/**
 	 * Id of the website
@@ -474,188 +446,12 @@ public class GenericEvent {
 		this.sessionstartparsed = sessionstartparsed;
 	}
 
-//
-//	/**
-//	 * @param ip the ip to set
-//	 */
-//	public void setIp(String ip) {
-//		this.ip = ip;
-//	}
-//
-//
-//	/**
-//	 * @param timestamp the timestamp to set
-//	 */
-//	public void setTimestamp(String timestamp) {
-//		this.timestamp = timestamp;
-//	}
-//
-//
-//	/**
-//	 * @param sd the sd to set
-//	 */
-//	public void setSd(String sd) {
-//		this.sd = sd;
-//	}
-//
-//
-//	/**
-//	 * @param sid the sid to set
-//	 */
-//	public void setSid(String sid) {
-//		this.sid = sid;
-//	}
-//
-//
-//	/**
-//	 * @param event the event to set
-//	 */
-//	public void setEvent(String event) {
-//		this.event = event;
-//	}
-//
-//
-//	/**
-//	 * @param nodeInfo the nodeInfo to set
-//	 */
-//	public void setNodeInfo(NodeInfo nodeInfo) {
-//		this.nodeInfo = nodeInfo;
-//	}
-//
-//
-//	/**
-//	 * @param browser the browser to set
-//	 */
-//	public void setBrowser(String browser) {
-//		this.browser = browser;
-//	}
-//
-//
-//	/**
-//	 * @param url the url to set
-//	 */
-//	public void setUrl(String url) {
-//		this.url = url;
-//	}
-//
-//
-//	/**
-//	 * @param type the type to set
-//	 */
-//	public void setType(String type) {
-//		this.type = type;
-//	}
-//
-//
-//	/**
-//	 * @param checked the checked to set
-//	 */
-//	public void setChecked(String checked) {
-//		this.checked = checked;
-//	}
-//
-//
-//	/**
-//	 * @param value the value to set
-//	 */
-//	public void setValue(String value) {
-//		this.value = value;
-//	}
-//
-//
-//	/**
-//	 * @param selected the selected to set
-//	 */
-//	public void setSelected(String selected) {
-//		this.selected = selected;
-//	}
-//
-//
-//	/**
-//	 * @param selectionTool the selectionTool to set
-//	 */
-//	public void setSelectionTool(String selectionTool) {
-//		this.selectionTool = selectionTool;
-//	}
-//
-//
-//	/**
-//	 * @param selectedContent the selectedContent to set
-//	 */
-//	public void setSelectedContent(String selectedContent) {
-//		this.selectedContent = selectedContent;
-//	}
-//
-//
-//	/**
-//	 * @param scrollX the scrollX to set
-//	 */
-//	public void setScrollX(Integer scrollX) {
-//		this.scrollX = scrollX;
-//	}
-//
-//
-//	/**
-//	 * @param scrollY the scrollY to set
-//	 */
-//	public void setScrollY(Integer scrollY) {
-//		this.scrollY = scrollY;
-//	}
-//
-//
-//	/**
-//	 * @param size the size to set
-//	 */
-//	public void setSize(String size) {
-//		this.size = size;
-//	}
-//
-//
-//	/**
-//	 * @param content the content to set
-//	 */
-//	public void setContent(String content) {
-//		this.content = content;
-//	}
-//
-//
-//	/**
-//	 * @param delta the delta to set
-//	 */
-//	public void setDelta(Integer delta) {
-//		this.delta = delta;
-//	}
-//
-//
-//	/**
-//	 * @param button the button to set
-//	 */
-//	public void setButton(String button) {
-//		this.button = button;
-//	}
-//
-//
-//	/**
-//	 * @param mouseCoordinates the mouseCoordinates to set
-//	 */
-//	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
-//		this.mouseCoordinates = mouseCoordinates;
-//	}
-//
-//
-//	/**
-//	 * @param key the key to set
-//	 */
-//	public void setKey(String key) {
-//		this.key = key;
-//	}
-//
-//
-//	/**
-//	 * @param numberOfChanges the numberOfChanges to set
-//	 */
-//	public void setNumberOfChanges(Integer numberOfChanges) {
-//		this.numberOfChanges = numberOfChanges;
-//	}
+	public String getTimestampms() {
+		return timestampms;
+	}
+
+	public void setTimestampms(String timestampms) {
+		this.timestampms = timestampms;
+	}
 
 }

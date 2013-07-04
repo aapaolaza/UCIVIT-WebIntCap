@@ -110,7 +110,35 @@ public class FactoryEvent {
 			case "windowblur":
 				jsonObject = WindowBlur.parseFromHash(eventHashMap).toGson();
 				break;
-	
+				
+			case "cookiedisclaimershown":
+				jsonObject = CookieDisclaimerShown.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "cookiedisclaimeraccepted":
+				jsonObject = CookieDisclaimerAccepted.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "mobileTouchStart":
+				jsonObject = MobileTouchStart.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "mobileTouchEnd":
+				jsonObject = MobileTouchEnd.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "mobileOrientationChange":
+				jsonObject = MobileOrientationChange.parseFromHash(eventHashMap).toGson();
+				break;
+
+			case "mobileGyroscope":
+				jsonObject = MobileGyroscope.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "mobileMotion":
+				jsonObject = MobileMotion.parseFromHash(eventHashMap).toGson();
+				break;
+
 			default:
 				ErrorLogging
 				.logError(
@@ -230,6 +258,26 @@ public class FactoryEvent {
 				
 			case "cookiedisclaimeraccepted":
 				classObject = new CookieDisclaimerAccepted(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+
+			case "mobileTouchStart":
+				classObject = new MobileTouchStart(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+
+			case "mobileTouchEnd":
+				classObject = new MobileTouchEnd(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+				
+			case "mobileOrientationChange":
+				classObject = new MobileOrientationChange(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+				
+			case "mobileGyroscope":
+				classObject = new MobileGyroscope(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+
+			case "mobileMotion":
+				classObject = new MobileMotion(com.mongodb.util.JSON.serialize(dbObject));
 				break;
 
 			default:

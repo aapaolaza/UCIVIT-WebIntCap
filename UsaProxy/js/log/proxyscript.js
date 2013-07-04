@@ -408,80 +408,225 @@ function init_UsaProxy() {
 	//We ask for implicit permission for logging
 	//askForCookiePermission();
 
+	includeMobileEvents();
+
 }
 
-////This function will be called when DOM is ready, we will include all events that we want to handle with jQuery to maximize compatibility
-//function jQueryListeners(){
-	//$(document).ready(function(){
-		//alert("registering jQuery events");
-		//$(document).mousemove(function(ev){
-			//alert("mousemoved");
-			//$('#status').html(e.pageX +', '+ e.pageY);
-			//var target 	= ev.target;
-			//var x 		= ev.pageX;
-			//var y 		= ev.pageY;
+/**
+ * This function will register the corresponding events for mobile devices.
+ * I put them in a separate function in case it would be useful to call them only
+ * if the found device is mobile.
+ */ 
+function includeMobileEvents(){
+
+	window.addEventListener('touchstart', processMobileTouchStart, false);
+	window.addEventListener('touchend', processMobileTouchEnd, false);
+	window.addEventListener('deviceorientation', processMobileGyroscope, false);
+	
+	window.addEventListener('orientationchange', processMobileOrientationChange, false);
+	
+	window.addEventListener('devicemotion', processMobileMotionEvent, false);
+	window.setInterval("processMobileMotionEventAndSave()",200);
+
+
+}
+
+//See https://developer.mozilla.org/en-US/docs/Web/API/Touch?redirectlocale=en-US&redirectslug=DOM%2FTouch
+function processMobileTouchStart(e) {
+	
+	var eventString ="mobileTouchStart";
+	
+	eventString += "&numberOfTouches=" + e.touches.length
+					+ "&isCtrlKey=" + e.ctrlKey
+					+ "&isShiftKey=" + e.shiftKey
+					+ "&isAltKey=" + e.altKey
+					+ "&isMetaKey=" + e.metaKey;
+
+	var touchObject;
+	//To identify each touch elements' properties, we will add the index to the variable name
+	for (touchIndex = 0; touchIndex < e.touches.length; touchIndex++){
+		touchObject = e.touches[touchIndex];
 		
-			//var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
-			//var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
-			
-			//// if log mousemove flag is false, set it true and log a mousemove event
-			//if (!FLG_LogMousemove_UsaProxy
-				//// if mouse pointer actually moved 
-				//&& !(x==lastMousePosX_UsaProxy && y==lastMousePosY_UsaProxy) ) {
-					//FLG_LogMousemove_UsaProxy = true;
-					//lastMousePosX_UsaProxy = x;
-					//lastMousePosY_UsaProxy = y;
+		eventString += "&identifier"+touchIndex+"=" + touchObject.identifier
+					+ "&screenX"+touchIndex+"=" + touchObject.screenX
+					+ "&screenY"+touchIndex+"=" + touchObject.screenY
+					+ "&clientX"+touchIndex+"=" + touchObject.clientX
+					+ "&clientY"+touchIndex+"=" + touchObject.clientY
+					+ "&pageX"+touchIndex+"=" + touchObject.pageX
+					+ "&pageY"+touchIndex+"=" + touchObject.pageY
+					+ "&radiusX"+touchIndex+"=" + touchObject.radiusX
+					+ "&radiusY"+touchIndex+"=" + touchObject.radiusY
+					+ "&rotationAngle"+touchIndex+"=" + touchObject.rotationAngle
+					+ "&force"+touchIndex+"=" + touchObject.force;
+	}
+	
+	eventString += generateEventString_UsaProxy(e.target);
+	
+	writeLog_UsaProxy(eventString);
+}
+
+
+function processMobileTouchEnd(e) {
+	 
+	var eventString ="mobileTouchEnd";
+	
+	eventString += "&numberOfTouches=" + e.touches.length
+					+ "&isCtrlKey=" + e.ctrlKey
+					+ "&isShiftKey=" + e.shiftKey
+					+ "&isAltKey=" + e.altKey
+					+ "&isMetaKey=" + e.metaKey;
 					
-					//writeLog_UsaProxy("jQuerymousemove&coords=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
-					////saveLog_UsaProxy();
-					//window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
-			//}
-		   //});
-	   
-	//})
-//}
+	var touchObject;
+	//To identify each touch elements' properties, we will add the index to the variable name
+	for (touchIndex = 0; touchIndex < e.touches.length; touchIndex++){
+		touchObject = e.touches[touchIndex];
+		
+		eventString += "&identifier"+touchIndex+"=" + touchObject.identifier
+					+ "&screenY"+touchIndex+"=" + touchObject.screenY
+					+ "&screenY"+touchIndex+"=" + touchObject.screenY
+					+ "&clientX"+touchIndex+"=" + touchObject.clientX
+					+ "&clientY"+touchIndex+"=" + touchObject.clientY
+					+ "&pageX"+touchIndex+"=" + touchObject.pageX
+					+ "&pageY"+touchIndex+"=" + touchObject.pageY
+					+ "&radiusX"+touchIndex+"=" + touchObject.radiusX
+					+ "&radiusY"+touchIndex+"=" + touchObject.radiusY
+					+ "&rotationAngle"+touchIndex+"=" + touchObject.rotationAngle
+					+ "&force"+touchIndex+"=" + touchObject.force;
+	}
+	
+	eventString += generateEventString_UsaProxy(e.target);
+	
+	writeLog_UsaProxy(eventString);
+}
 
-/*document.addEventListener("DOMSubtreeModified", function() {
-    alert("DOMSubtreeModified fired!");
-}, false);*/
-//if(document.attachEvent) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
-//if(document.addEventListener) $("element-root").bind(DOMSubtreeModified,"domChangeListener");
-//$("element-root").bind(DOMSubtreeModified,"domChangeListener");
+var alpha = 0,
+    beta = 0,
+    gamma = 0;
+
+var alphaOld = 0,
+    betaOld = 0,
+    gammaOld = 0;
+    
+    //This threshold will determine what is the minimum value for the motion to be meaningful enough to be recorded
+var gyroscopeThreshold = 10;
+     
+// Update the event handler to do nothing more than store the values from the event
+ 
+function processMobileGyroscope(e) {
+	//alpha: rotation around z-axis
+	alpha = e.alpha;
+	//beta: front back motion
+	beta = e.beta;
+	//gamma: left to right
+	gamma = e.gamma;	
+
+	if ((Math.abs(alphaOld-alpha) > gyroscopeThreshold) || (Math.abs(betaOld-beta) > gyroscopeThreshold) ||  (Math.abs(gammaOld-gamma) > gyroscopeThreshold)){
+		var eventString = "mobileGyroscope";
+
+		//console.log("Alpha: " + alpha + ", Beta: " + beta + ", Gamma: " + gamma);
+		alphaOld = alpha;
+		betaOld = beta;
+		gammaOld = gamma;
+		
+		eventString += "&alpha=" + alpha
+					+ "&beta=" + beta
+					+ "&gamma=" + gamma;
+		writeLog_UsaProxy(eventString);
+	}
+}
+
+function processMobileOrientationChange(e) {
+ 
+	// The device is in portrait orientation if the device is held at 0 or 180 degrees
+	// The device is in landscape orientation if the device is at 90 or -90 degrees
+ 	//console.log("processMobileOrientationChange");
+
+	var isPortrait = window.orientation % 180 === 0;
+ 
+	// Set the class of the <body> tag according to the orientation of the device
+ 
+	var orientation = isPortrait ? 'portrait' : 'landscape';
+	
+	var eventString = "mobileOrientationChange";
+	eventString += "&orientation=" + orientation
+	eventString += "&orientationRaw=" + window.orientation
+	writeLog_UsaProxy(eventString);
+}
+
+// Define an event handler function for processing the device’s acceleration values
+ 
+var accX = 0,
+    accY = 0,
+    accZ = 0;
+
+var maxAcc = 0;
+var maxAccGrav = 0;
+
+var motionThreshold = 2;
+
+/**
+ * Query the sensors and store them if bigger than temp values
+ */ 
+function processMobileMotionEvent(e) {
+ 
+    // Get the current acceleration values in 3 axes and find the greatest of these
+
+	var accTemp = e.acceleration;
+
+	var maxAccTemp = Math.max(Math.abs(accTemp.x), Math.abs(accTemp.y), Math.abs(accTemp.z));
+	if (maxAccTemp > maxAcc)
+		maxAcc = maxAccTemp;
+
+	// Get the acceleration values including gravity and find the greatest of these
+	var accGravity = e.accelerationIncludingGravity;
+	var maxAccGravTemp = Math.max(accGravity.x, accGravity.y, accGravity.z);
+	if (maxAccGravTemp > maxAccGrav)
+		maxAccGrav = maxAccGravTemp;
+
+	if (accTemp.x > accX)
+		accX = accTemp.x;
+	if (accTemp.y > accY)
+		accY = accTemp.y;
+	if (accTemp.z > accZ)
+		accZ = accTemp.z;
+}
+
+/**
+ * It periodically queries the value of the sensors and store them if bigger than the threshold
+ */ 
+function processMobileMotionEventAndSave(e) {
 
 
-//CHANGE: function added to calculate the date
-//DEPRECATED: The time comes from the server now
-/*function set_date_UsaProxy(){
-	var today = new Date();
-	var cDate = today.getDate();
-	var cMonth = today.getMonth()+1;//JavaScript counts the months from 0 to 11
-	var cYear = today.getFullYear();
-	var cHour = today.getHours();
-	var cMin = today.getMinutes();
-	var cSec = today.getSeconds();
-	var cMilliSec = today.getMilliseconds();
+	//if ((accX > motionThreshold) || (accY > motionThreshold) ||  (accZ > motionThreshold)){
+	if (maxAcc > motionThreshold){
 
-	//the time format must include 2 digits each, so we'll modify them
-	if (cDate < 10)
-	  cDate = "0" + cDate
-	if (cMonth < 10)
-	  cMonth = "0" + cMonth
-	if (cHour < 10)
-	  cHour = "0" + cHour
-	if (cMin < 10)
-	  cMin = "0" + cMin
-	if (cSec < 10)
-	  cSec = "0" + cSec
-	  
-	//we want milliseconds to have three digits
-	if (cMilliSec < 10)
-	  cMilliSec = "00" + cMilliSec
-	else if (cMilliSec < 100)
-	  cMilliSec = "0" + cMilliSec
-		  
-	//Server configuration parameters
-	window.usaProxyDate=cYear+"-"+cMonth+"-"+cDate+","+cHour+":"+cMin+":"+cSec;
-}*/
+
+		// Output to the user the greatest current acceleration value in any axis, as
+		// well as the greatest value in any axis including the effect of gravity
+	 
+		//console.log("Current acceleration: " + maxAcc +  "m/s^2");
+		//console.log("Value incl. gravity: " + maxAccGravity + "m/s^2");
+
+
+		var eventString = "mobileMotion";
+		eventString += "&accX=" + accX
+					+ "&accY=" + accY
+					+ "&accZ=" + accZ
+					+ "&maxAcc=" + maxAcc
+					+ "&maxAccWithGrav=" + maxAccGrav;
+	
+		writeLog_UsaProxy(eventString);
+		
+		//We reset the values so they can be refreshed in the next query
+		accX = 0;
+		accY = 0;
+		accZ = 0;
+
+		maxAcc = 0;
+		maxAccGrav = 0;
+	}
+}
+
 
 
 /** Returns a Date object computed from a given datestamp string
@@ -585,9 +730,14 @@ function writeLog_UsaProxy(text) {
 	url=url.replace("#","");
 	
 	// generate and append log entry
+	
+	//we will also store users' timezone
+	var timezoneOffset = new Date().getTimezoneOffset();
+	
 	var logline;
 	logLine = "time=" + datestampInMillisec() + "&sessionStartTime=" + startDate_UsaProxy 
-		+ "&sd=" + serverdataId_UsaProxy + "&sid=" + sessionID + "&event=" + text
+		+ "&timezoneoffset=" + timezoneOffset + "&sd=" + serverdataId_UsaProxy 
+		+ "&sid=" + sessionID + "&event=" + text
 		+ "&url=" + encodeURIComponent(url);
 	
 	// set synchronization flag (block function)
@@ -1076,6 +1226,7 @@ function processChange_UsaProxy(e) {
 	}
 	
 }
+
 
 /** Processes scrolling of the page.
  * Function is invoked periodically since no explicit scroll event is triggered.
@@ -2269,7 +2420,7 @@ function askForCookiePermission(){
 	
 	//We showed the disclaimer so we store an event
 	
-	writeLog_UsaProxy("cookiedisclaimershown" + generateEventString_UsaProxy(target));
+	writeLog_UsaProxy("cookiedisclaimershown");
 
 	
 	//if not, we show the disclaimer
@@ -2356,7 +2507,7 @@ function askForCookiePermission(){
  */ 
 function handleCookieButton(){
 	//User clicked in the cookie disclaimer button, we record the user accepted to be tracked
-	writeLog_UsaProxy("cookiedisclaimeraccepted" + generateEventString_UsaProxy(target));
+	writeLog_UsaProxy("cookiedisclaimeraccepted");
 	
 	//console.log("getSessionFromCookie");
 	setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);

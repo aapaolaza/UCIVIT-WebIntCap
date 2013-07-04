@@ -107,5 +107,45 @@ public class EventConstants {
 	//Server provided timestamp
 	public static final String SESSIONSTARTMS = "sessionStartTime";
 	
+	//User's timezone
+	public static final String USERTIMEZONEOFFSET = "timezoneoffset";
 	
+	//Mobile event constants
+	//TouchStart and TouchEnd
+	public static final String MOBILENUMBEROFTOUCHES = "numberOfTouches";
+	public static final String MOBILEISCTRLKEY = "isCtrlKey";
+	public static final String MOBILEISSHIFTKEY = "isShiftKey";
+	public static final String MOBILEISALTKEY = "isAltKey";
+	public static final String MOBILEISMETAKEY = "isMetaKey";
+	
+	//TouchObject
+	public static final String MOBILETOUCHIDENTIFIER = "identifier";
+	public static final String MOBILETOUCHSCREENX = "screenX";
+	public static final String MOBILETOUCHSCREENY = "screenY";
+	public static final String MOBILETOUCHCLIENTX = "clientX";
+	public static final String MOBILETOUCHCLIENTY = "clientY";
+	public static final String MOBILETOUCHPAGEX = "pageX";
+	public static final String MOBILETOUCHPAGEY = "pageY";
+	public static final String MOBILETOUCHRADIUSX = "radiusX";
+	public static final String MOBILETOUCHRADIUSY = "radiusY";
+	public static final String MOBILETOUCHROTATIONANGLE = "rotationAngle";
+	public static final String MOBILETOUCHFORCE = "force";
+	
+	//Gyroscope
+	public static final String MOBILEGYROSCOPEALPHA = "alpha";
+	public static final String MOBILEGYROSCOPEBETA = "beta";
+	public static final String MOBILEGYROSCOPEGAMMA = "gamma";
+	
+	//orientation
+	public static final String MOBILEORIENTATION = "orientation";
+	public static final String MOBILEORIENTATIONRAW = "orientationRaw";
+	
+	//motion
+	
+	public static final String MOBILEMOTIONACCELX = "accX";
+	public static final String MOBILEMOTIONACCELY = "accY";
+	public static final String MOBILEMOTIONACCELZ = "accZ";
+	public static final String MOBILEMOTIONACCELMAX = "maxAcc";
+	public static final String MOBILEMOTIONACCELMAXINCLGRAV = "maxAccWithGrav";
+
 }
