@@ -10,8 +10,7 @@ var FLG_writingLogVal_UsaProxy;	// Boolean: if flag set, writing log entry to lo
 
 var IVL_saveLog_UsaProxy;		// Interval function variable for sending captured data to UsaProxy
 
-var serverdataId_UsaProxy;      /* String: contains related serverdata ID defined by UsaProxy 
-								 * (page ID assigned by UsaProxy when data was cached)*/
+var websiteID;      /* String: contains the ID of the Web site*/
 
 //var id_UsaProxy;				// String: contains String identifying the current UsaProxy instance
 								 
@@ -92,6 +91,16 @@ var sessionIDCookieName = "proxyUserID";
 
 var lastEventTSCookieName = "proxyLastEventTS";
 
+
+//////////////////////////////Rejection cookie///////////////////
+var cookieRejection = "captureRejection";
+
+
+////////////////////////////Information sensitive Web applications////////////////////
+//List of Web applications in which we'll take the sensitive approach
+var sensitiveWebs=[10008,20002,20006];
+
+
 ////////////////////////////Cookie lifespan////////////////////
 //Will determine the lifespan of the cookie, in days
 var cookieLife = 10000;
@@ -124,40 +133,67 @@ if(document.attachEvent)
 	isNotOldIE = false;
 else
 	isNotOldIE = true;
- 
-//if(document.attachEvent) window.attachEvent('onload', askForCookiePermission);
-//if(document.addEventListener) window.addEventListener('load', askForCookiePermission, false);
+	
+	
+//CHANGES: we get all data from our global variables (the inclussion of a port number breaks the parsing so the code didn't work)
+	
+websiteID	= window.webpageIndex;
+	
+protectedIds = [];
+	
+protectedIds = window.protectedIds;
 
-/*I have to imitate the previous statements to add the jQuery function*/
+/*Call onLoadExectution() function on document load*/
 if (isNotOldIE)
 {
-	window.addEventListener('load', includeJquery, false);
+	window.addEventListener('load', onLoadExectution, false);
 	//console.log("is not IE");
 }
 else {
-	window.attachEvent('onload', includeJquery);
+	window.attachEvent('onload', onLoadExectution);
 	//console.log("is IE");
+}
+
+/*
+ * This function contains all the calls that need to be executed when the Web page is loaded
+ */ 
+function onLoadExectution(){
+	
+	//Include jQuery
+	includeJquery();
+	checkJquery();
+	/*cookieApproachSelector is the first function to load, to check for the cookie and
+	* Then start the capture. As some functions use Jquery, I should call it after
+	* loading it, from the includeJquery() function
+	*/
+	
+}
+
+/** Delays the execution of the rest of the functions until jQuery is ready
+ */ 
+function checkJquery() {
+    if (window.jQuery) {
+        onJQueryReady();
+    } else {
+		//console.log("jQuery not loaded yet");
+        window.setTimeout(checkJquery, 100);
+    }
+}
+
+/**
+ * Functions to be called when jQuery is loaded correctly
+ */ 
+function onJQueryReady(){
+	cookieApproachSelector();	
+	
 }
 
 
 
-
-/*askForCookiePermission is the first function to load, to check for the cookie and
- * Then start the capture. As some functions use Jquery, I could call it after
- * loading it, from the includeJquery() function
+/**
+ * I added jquery to use certain interesting functions
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
 */
-
-if (isNotOldIE) window.addEventListener('load', askForCookiePermission, false);
-else window.attachEvent('onload', askForCookiePermission);
-
-
-
-//$(document).ready(askForCookiePermission());
-
-
-
-//CHANGE!! I added jquery to use certain interesting functions
-//<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
 
 function includeJquery(){
 
@@ -170,8 +206,6 @@ function includeJquery(){
 	jQueryScriptNode.src = jQuerySrc;
 
 	document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
-//alert("asd");
-//$(document).ready(askForCookiePermission());
 
 }
 
@@ -208,23 +242,7 @@ function init_UsaProxy() {
 	FLG_comb_UsaProxy 			= false;
 	combMembers_UsaProxy 		= 0;
 
-	/* retrieve reference string URL parameters */
-	
-	/* GETTING PARAMETERS FROM URL IS DEPRECATED FOR COPYPASTE APPROACH!!*/
-	//CHANGES: we get all data from our global variables (the inclussion of a port number breaks the parsing so the code didn't work)
-	
-	serverdataId_UsaProxy	= window.webpageIndex;
-	
-	protectedIds = [];
-	
-	protectedIds = window.protectedIds;
-	
-	//set_date_UsaProxy();
-	//startDate_UsaProxy=date_UsaProxy(window.usaProxyDate);
-	
-	
-	//id_UsaProxy=window.usaProxyId;
-	
+
 	/* log load event */
 	processLoad_UsaProxy();
 	
@@ -405,8 +423,6 @@ function init_UsaProxy() {
 	IVL_scrollCheck_UsaProxy 	= window.setInterval("processScroll_UsaProxy()",1000);
 	IVL_saveLog_UsaProxy 		= window.setInterval("saveLog_UsaProxy()",3000);
 	
-	//We ask for implicit permission for logging
-	//askForCookiePermission();
 
 	includeMobileEvents();
 
@@ -709,6 +725,7 @@ function completeDateValsMilliseconds(dateVal) {
  * and the current timestamp to logVal_UsaProxy */
 function writeLog_UsaProxy(text) {
 	
+	//console.log("Recording: "+text);
 	//We add the browser version
 	text = appendClientContextInformation(text);
 	
@@ -736,7 +753,7 @@ function writeLog_UsaProxy(text) {
 	
 	var logline;
 	logLine = "time=" + datestampInMillisec() + "&sessionStartTime=" + startDate_UsaProxy 
-		+ "&timezoneoffset=" + timezoneOffset + "&sd=" + serverdataId_UsaProxy 
+		+ "&timezoneoffset=" + timezoneOffset + "&sd=" + websiteID 
 		+ "&sid=" + sessionID + "&event=" + text
 		+ "&url=" + encodeURIComponent(url);
 	
@@ -2404,29 +2421,79 @@ function printCookiesOnConsole(){
 	//alert(document.cookie);
 }
 
+//////////////////////////////////////////////////////////////////////////
+////////////////////////COOKIE DISCLAIMER/////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+/**I have to include two different cookie policy disclaimers
+	 * A) the normal cookie approach. Check for regular cookies:
+	 *  - if they exist, start capturing
+	 *  - If there are no cookies, then we need to ask for permission to deploy cookie, show the disclaimer and wait for implicit consent
+	 * 
+	 * B) The alternative approach giving the alternative to opt-out.
+	 * We start capturing from the start, but giving them the option to opt-out of the capture.
+
+
+*/
+
+function cookieApproachSelector(){
+	
+	var websiteIsSensitive = false;
+	//First we test if the Web application is in the list of information sensitive Web applications
+	for (i=0;i<sensitiveWebs.length;i++)
+	{
+		if (websiteID == sensitiveWebs[i]){
+			websiteIsSensitive = true;
+		}
+    }
+    
+    /*Website is sensitive, so we follow the alternative approach giving the alternative to opt-out.
+	 * We start capturing from the start, but giving them the option to opt-out of the capture.
+	 */
+    if (websiteIsSensitive){
+		//console.log("Sensitive Website");
+		cookieSensitivePermission();
+	}
+	
+	/*Else, Website is NOT sensitive, so we follow the normal cookie approach. Check for regular cookies:
+	 *  - if they exist, start capturing
+	 *  - If there are no cookies, then we need to ask for permission to deploy cookie, show the disclaimer and wait for implicit consent
+	 */
+	else{
+		//console.log("Normal Website");
+		cookieNormalPermission();
+	}
+	
+}
+
+
 /**
- * This function will check if the cookie is available, if not it shows a disclaimer with a button
- * when that button is pressed, a new session ID is created and stored in a cookie
+ * Sensitive Websites cookie approach.
+ *  we follow the alternative approach giving the alternative to opt-out.	
+ *  We start capturing from the start, but giving them the option to opt-out of the capture.
  * 
  */ 
-function askForCookiePermission(){
+function cookieSensitivePermission(){
+		//First we check if the users opted out of the research, if so, stop.
+	if (cookieSensitiveCookieCheck()==true){
+		console.log("User opted out. Capture interrupted");
+		return false;
+	}
 	
-	//console.log("asking for cookie permission");
-	//If we can get the Session ID from the cookie, we start the tool and finish
+	//If we can get the Session ID from the cookie we don't do anything else
 	if (getSessionFromCookie()){
+		//console.log("Tracking cookie found.");
+
 		init_UsaProxy();
 		return true;
 	}
 	
-	//We showed the disclaimer so we store an event
-	
+	//If we cannot find the cookie, we need to ask the user, although we will start the tool anyway
+	//console.log("Tracking cookie NOT found. Asking implicit permission");	
 	writeLog_UsaProxy("cookiedisclaimershown");
-
 	
-	//if not, we show the disclaimer
+	//if not, we show the sensitive disclaimer
 	//alert("showing cookie disclaimer");
-	
-//	htmlDivContent = "<div style=\"text-align:center;border: 1px solid black;background-color:silver\">	<h3>This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site</h3><button  align=\"center\">I don't want to use cookies</button></div>"
 	
 	var htmlDivContent = document.createElement("div");
 	
@@ -2442,12 +2509,16 @@ function askForCookiePermission(){
 	htmlDivContent.style.textAlign = "center";
 	htmlDivContent.style.margin = "0px auto 0px auto";
 	htmlDivContent.style.position = "static";
+	//htmlDivContent.style.width = "50px";
 	
+	//htmlDivContent.style.zIndex="9999"
+	
+	//htmlDivContent.style.width = "720px";
 	
 	var headerNode = document.createElement("h2");
 	headerNode.style.textAlign = "center";
 
-	var headerText = document.createTextNode("Cookies in this website");
+	var headerText = document.createTextNode("Cookies on this website");
 	headerNode.appendChild(headerText);
 	
 	//headerNode.style.float = "left";
@@ -2461,24 +2532,24 @@ function askForCookiePermission(){
 	textNode.style.textAlign = "center";
 
 
-	var disclaimerText = document.createTextNode("This site uses cookies with the sole purpose of remembering that you visited this site. They are completely anonymous and help us improve the usability of this site");
+	var disclaimerText = document.createTextNode("This site uses cookies to help us improve the usability of this site. If you continue to use the site, we will assume you don't mind allowing our cookie. All collected information is anonymous, but you can opt out anytime. Be aware that we will use a cookie as a reminder of your refusal, if you want no cookies at all, you will have to change your browser settings to reject all cookies from this domain.");
 	textNode.appendChild(disclaimerText);
 	htmlDivContent.appendChild(textNode);
 	
 	var htmlButton = document.createElement("button");
 	
-	htmlButton.onclick=handleCookieButton;
+	htmlButton.onclick=cookieSensitiveHandleRejection;
 	
-	var buttonText = document.createTextNode("I don't mind using cookies");
+	var buttonText = document.createTextNode("I do not want to use cookies from this site.");
 	htmlButton.appendChild(buttonText);
 	
 	htmlDivContent.appendChild(htmlButton);
+
 	
-	//document.getElementsByTagName('body')[0].appendChild(htmlDivContent);
+	//We push the HTML down before inserting the disclaimer
 	
-	
-	//document.insertBefore(htmlDivContent, document.getElementsByTagName('html')[0]);
-	
+	pushHTMLDown();
+
 	if (document.body.firstChild){
       	document.body.insertBefore(htmlDivContent, document.body.firstChild);
 		//console.log("inserting before");
@@ -2487,37 +2558,246 @@ function askForCookiePermission(){
       	//console.log("appending before");
 	}
 	
-	
-	///Changing CSS style
-	//document.getElementsByTagName('div')
-	/*divArray = document.body.getElementsByTagName('div');
-	alert( divArray.length);
-	for (var i = divArray.length-1; i >= 0; i--) {
-		divArray[i].style.marginTop = "100px";
-	} */
+	//We have shown the disclaimer, we will now set the cookie and start the tool until the user opts out
 
-	//document.body.style.marginTop = "50px";
-	
-	//htmlDivContent.style.marginTop = "0px";
-}
-
-/**
- * If the user clicks, then we generate the ID, set the cookie and store the ID
- * 
- */ 
-function handleCookieButton(){
-	//User clicked in the cookie disclaimer button, we record the user accepted to be tracked
-	writeLog_UsaProxy("cookiedisclaimeraccepted");
-	
-	//console.log("getSessionFromCookie");
 	setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
 	sessionID = sessionID_Proxy;
-	//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
+	
+	init_UsaProxy();
+
+}
+
+
+/**
+ * In the sensitive approach, if users click on the button, that means they don't
+ * want to take part in the study, we need to put the "rejection" cookie.
+ * 
+ */ 
+function cookieSensitiveHandleRejection(){
+	//User clicked in the cookie disclaimer button, we record the user rejected to be tracked
+	writeLog_UsaProxy("cookiedisclaimerrejected");
+	
+	//Set rejection cookie
+	setCookie(cookieRejection, true, cookieLife);
+	
+	//Delete our tracking cookie
+	setCookie(sessionIDCookieName,"",-1);
+
+	//We remove the cookie disclaimer and we show the new message
 	var div = document.getElementById("proxyCookieDisclaimer");
 	div.parentNode.removeChild(div);
     
-	init_UsaProxy();
+	var htmlDivContent = document.createElement("div");
+	
+	htmlDivContent.id = "proxyCookieDisclaimer";
+	htmlDivContent.style.backgroundColor = "silver";
+	htmlDivContent.style.border = "1px solid black";
+	
+	htmlDivContent.style.textAlign = "center";
+	htmlDivContent.style.margin = "0px auto 0px auto";
+	htmlDivContent.style.position = "static";
+	
+	var headerNode = document.createElement("h2");
+	headerNode.style.textAlign = "center";
+
+	var headerText = document.createTextNode("Cookies on this website");
+	headerNode.appendChild(headerText);
+	
+	htmlDivContent.appendChild(headerNode);
+
+	var textNode = document.createElement("p");
+	textNode.style.textAlign = "center";
+
+
+	var disclaimerText = document.createTextNode("No interaction data will be captured, and all your previously captured data will be erased.");
+	textNode.appendChild(disclaimerText);
+	htmlDivContent.appendChild(textNode);
+
+	if (document.body.firstChild){
+      	document.body.insertBefore(htmlDivContent, document.body.firstChild);
+	} else {
+      	document.body.appendChild(htmlDivContent);
+	}	
+	
 }
+
+/**
+ * This function checks if the rejection cookie was found in the browser.
+ * It returns:
+ * True if the cookie was found with the "true" value, indicating the user doesn't want to take part in the study. 
+ * False, It will return false if the cookie
+ * 'null' if the cookie was not found. 
+ */ 
+function cookieSensitiveCookieCheck(){
+	
+	var cookieValueTemp = getCookie(cookieRejection);
+	
+	if (cookieValueTemp == "true"){
+		//rejection cookie was found and has "true" as value
+		return true;
+	}else if (cookieValueTemp == "false"){
+		//rejection cookie was found and has "false" as value
+		return false;
+	}
+	else if (cookieValueTemp == "null"){
+		//The rejection cookie was not found
+		return "null";
+	}
+}
+
+
+/**
+ * Normal cookie approach.
+ * This function will check if the cookie is available, if not it shows a disclaimer with a button
+ * when that button is pressed, a new session ID is created and stored in a cookie
+ * 
+ */ 
+function cookieNormalPermission(){
+		
+	//console.log("asking for cookie permission");
+	//If we can get the Session ID from the cookie, we start the tool and finish
+	if (getSessionFromCookie()){
+		init_UsaProxy();
+		return true;
+	}
+	
+	//We showed the disclaimer so we store an event
+	
+	writeLog_UsaProxy("cookiedisclaimershown");
+
+	
+	//if not, we show the disclaimer
+	//alert("showing cookie disclaimer");
+	
+	var htmlDivContent = document.createElement("div");
+	
+	htmlDivContent.id = "proxyCookieDisclaimer";
+	htmlDivContent.style.backgroundColor = "silver";
+	htmlDivContent.style.border = "1px solid black";
+	
+	//htmlDivContent.style.height="50px"
+	//htmlDivContent.style.width="500px"
+	
+	//htmlDivContent.style.border.style="";
+	//htmlDivContent.style.border.color="";
+	htmlDivContent.style.textAlign = "center";
+	htmlDivContent.style.margin = "0px auto 0px auto";
+	htmlDivContent.style.position = "static";
+	//htmlDivContent.style.width = "50px";
+	
+	//htmlDivContent.style.zIndex="9999"
+	
+	//htmlDivContent.style.width = "720px";
+	
+	var headerNode = document.createElement("h2");
+	headerNode.style.textAlign = "center";
+
+	var headerText = document.createTextNode("Cookies on this website");
+	headerNode.appendChild(headerText);
+	
+	//headerNode.style.float = "left";
+	//headerNode.style.textAlign = "right";
+	
+	htmlDivContent.appendChild(headerNode);
+
+	
+	
+	var textNode = document.createElement("p");
+	textNode.style.textAlign = "center";
+
+
+	var disclaimerText = document.createTextNode("This site uses cookies to help us improve the usability of this site. If you continue to use the site, we will assume you don't mind allowing our cookie. All collected information is anonymous, but if you want no cookies at all, you will have to change your browser settings to reject all cookies from this domain.");
+	textNode.appendChild(disclaimerText);
+	htmlDivContent.appendChild(textNode);
+		
+	/*LISTENERS
+	 * 
+	 * We don't really need the button any more, so I'll remove it. Now the cookis will get activated as soon as the user clicks somewhere.
+	 * 
+	 * The listener will remain registered, but the function will not do anything if the disclaimer has been hidden already.
+	*/
+	if (isNotOldIE)
+		document.addEventListener('mousedown', cookieNormalHandleImplicitPermission, false);
+	else
+		document.attachEvent('onmousedown', cookieNormalHandleImplicitPermission);
+
+	//var htmlButton = document.createElement("button");
+	//htmlButton.onclick=cookieNormalHandleImplicitPermission;	
+	//var buttonText = document.createTextNode("I do not want to use cookies from this site.");
+	//htmlButton.appendChild(buttonText);
+	//htmlDivContent.appendChild(htmlButton);
+
+	
+	//We look for all 'fixed' elements and pushed them down by a certain height.
+	
+	pushHTMLDown();
+
+	if (document.body.firstChild){
+      	document.body.insertBefore(htmlDivContent, document.body.firstChild);
+		//console.log("inserting before");
+	} else {
+      	document.body.appendChild(htmlDivContent);
+      	//console.log("appending before");
+	}
+}
+
+
+/**
+ * In the normal approach, if the user gives implicit permission, then we generate the ID, set the cookie and store the ID
+ * 
+ */ 
+function cookieNormalHandleImplicitPermission(){
+	//Implicit acceptance event was triggered, we test if the disclaimer was visible, if so, register the cookie.
+	var div = document.getElementById("proxyCookieDisclaimer");
+	
+	if (div != null){
+		//disclaimer is visible
+		writeLog_UsaProxy("cookiedisclaimeraccepted");
+	
+		//console.log("getSessionFromCookie");
+		setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
+		sessionID = sessionID_Proxy;
+		//document.getElementById("proxyCookieDiscalimer").style.visibility = "hidden";
+	
+		div.parentNode.removeChild(div);
+    
+		init_UsaProxy();
+	}
+	else{
+		//disclaimer is not visible, we assume everything is working fine, and this was some residual listener
+		//console.log("the disclaimer was dismissed already");
+	}
+}
+
+/**
+ * This function will push the contents of the Web page down
+ * Solution obtained from http://stackoverflow.com/questions/11436904/how-to-wrap-all-the-body-contents-in-a-div-with-jquery
+ * and http://stackoverflow.com/questions/7135281/how-to-move-all-content-relative-absolute-down
+ */ 
+function pushHTMLDown(){
+	
+	$('body').wrapInner('<div class="pushedDown" />');
+
+	//$('.pushedDown').css('margin-top', '50px');
+   	$('.pushedDown').css('position', 'relative');
+ 
+	/*$('*').filter(function() {
+		return $(this).css("position") === 'absolute';
+	}).css('margin-top', '50px');*/
+}
+
+
+/**
+ * This function will push the contents of the Web page up. It will probably be never used.
+ */ 
+function pushHTMLUp(){
+	
+	$('*').filter(function() {
+		return $(this).css("position") === 'absolute';
+	}).css('margin-top', '50px');
+}
+
+
 
 
 /** The rational for this function is that if there are more cookies
@@ -2529,19 +2809,6 @@ function handleCookieButton(){
  */ 
 function getSessionFromCookie(){
 	//console.log("getSessionFromCookie");
-	
-//DEBUG PURPOSES REMEMBER TO DELETE IT!!!
-
-/*DEBUG CODE START
-	if (document.cookie.length > 0){
-		alert(document.cookie.split(';').length);
-		alert(document.cookie);
-	}
-	else
-		alert("No cookies were found");
-			
-	return false;
-DEBUG CODE END*/
 	
 	//We check if there are cookies in the Web page
 	if (document.cookie.length > 0)

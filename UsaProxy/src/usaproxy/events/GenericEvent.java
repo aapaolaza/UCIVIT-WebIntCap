@@ -2,6 +2,7 @@ package usaproxy.events;
 
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import usaproxy.ErrorLogging;
@@ -453,5 +454,73 @@ public class GenericEvent {
 	public void setTimestampms(String timestampms) {
 		this.timestampms = timestampms;
 	}
+
+	
+	////////MOBILE EVENTS
+	
+	public String getAlpha() {
+		return "";
+	}
+
+	public String getBeta() {
+		return "";
+	}
+
+
+	public String getGamma() {
+		return "";
+	}
+	
+	public String getAccelX() {
+		return "";
+	}
+
+	public String getAccelY() {
+		return "";
+	}
+
+	public String getAccelZ() {
+		return "";
+	}
+
+	public String getMaxAccel() {
+		return "";
+	}
+
+	public String getMaxAccelInclGrav() {
+		return "";
+	}
+	
+	public String getOrientation() {
+		return "";
+	}
+
+	public String getOrientationRaw() {
+		return "";
+	}
+
+	public String getNumberOfTouches() {
+		return "";
+	}
+
+	public String getIsCtrlKey() {
+		return "";
+	}
+
+	public String getIsShiftKey() {
+		return "";
+	}
+
+	public String getIsAltKey() {
+		return "";
+	}
+
+	public String getIsMetaKey() {
+		return "";
+	}
+
+	public ArrayList<MobileTouchObject> getTouchList() {
+		return null;
+	}	
 
 }

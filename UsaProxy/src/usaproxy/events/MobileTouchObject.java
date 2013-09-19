@@ -181,4 +181,92 @@ public class MobileTouchObject {
 	 */
 	private String force;
 
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
+	}
+
+	public String getScreenX() {
+		return screenX;
+	}
+
+	public void setScreenX(String screenX) {
+		this.screenX = screenX;
+	}
+
+	public String getScreenY() {
+		return screenY;
+	}
+
+	public void setScreenY(String screenY) {
+		this.screenY = screenY;
+	}
+
+	public String getClientX() {
+		return clientX;
+	}
+
+	public void setClientX(String clientX) {
+		this.clientX = clientX;
+	}
+
+	public String getClientY() {
+		return clientY;
+	}
+
+	public void setClientY(String clientY) {
+		this.clientY = clientY;
+	}
+
+	public String getPageX() {
+		return pageX;
+	}
+
+	public void setPageX(String pageX) {
+		this.pageX = pageX;
+	}
+
+	public String getPageY() {
+		return pageY;
+	}
+
+	public void setPageY(String pageY) {
+		this.pageY = pageY;
+	}
+
+	public String getRadiusX() {
+		return radiusX;
+	}
+
+	public void setRadiusX(String radiusX) {
+		this.radiusX = radiusX;
+	}
+
+	public String getRadiusY() {
+		return radiusY;
+	}
+
+	public void setRadiusY(String radiusY) {
+		this.radiusY = radiusY;
+	}
+
+	public String getRotationAngle() {
+		return rotationAngle;
+	}
+
+	public void setRotationAngle(String rotationAngle) {
+		this.rotationAngle = rotationAngle;
+	}
+
+	public String getForce() {
+		return force;
+	}
+
+	public void setForce(String force) {
+		this.force = force;
+	}
+
 }

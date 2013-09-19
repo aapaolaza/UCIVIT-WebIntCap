@@ -83,4 +83,20 @@ public class MobileOrientationChange extends GenericEvent {
 	 */
 	private String orientationRaw;
 
+	public String getOrientation() {
+		return orientation;
+	}
+
+	public void setOrientation(String orientation) {
+		this.orientation = orientation;
+	}
+
+	public String getOrientationRaw() {
+		return orientationRaw;
+	}
+
+	public void setOrientationRaw(String orientationRaw) {
+		this.orientationRaw = orientationRaw;
+	}
+
 }

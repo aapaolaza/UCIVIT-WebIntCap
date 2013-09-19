@@ -112,4 +112,44 @@ public class MobileMotion extends GenericEvent {
 	 */
 	private String maxAccelInclGrav;
 
+	public String getAccelX() {
+		return accelX;
+	}
+
+	public void setAccelX(String accelX) {
+		this.accelX = accelX;
+	}
+
+	public String getAccelY() {
+		return accelY;
+	}
+
+	public void setAccelY(String accelY) {
+		this.accelY = accelY;
+	}
+
+	public String getAccelZ() {
+		return accelZ;
+	}
+
+	public void setAccelZ(String accelZ) {
+		this.accelZ = accelZ;
+	}
+
+	public String getMaxAccel() {
+		return maxAccel;
+	}
+
+	public void setMaxAccel(String maxAccel) {
+		this.maxAccel = maxAccel;
+	}
+
+	public String getMaxAccelInclGrav() {
+		return maxAccelInclGrav;
+	}
+
+	public void setMaxAccelInclGrav(String maxAccelInclGrav) {
+		this.maxAccelInclGrav = maxAccelInclGrav;
+	}
+
 }

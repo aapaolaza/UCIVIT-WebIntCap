@@ -121,5 +121,61 @@ public class MobileTouchStart extends GenericEvent{
 	 * List of all the touches active during this event
 	 */
 	private ArrayList<MobileTouchObject> touchList;
+
+	public String getNumberOfTouches() {
+		return numberOfTouches;
+	}
+
+	public void setNumberOfTouches(String numberOfTouches) {
+		this.numberOfTouches = numberOfTouches;
+	}
+
+	public NodeInfo getNodeInfo() {
+		return nodeInfo;
+	}
+
+	public void setNodeInfo(NodeInfo nodeInfo) {
+		this.nodeInfo = nodeInfo;
+	}
+
+	public String getIsCtrlKey() {
+		return isCtrlKey;
+	}
+
+	public void setIsCtrlKey(String isCtrlKey) {
+		this.isCtrlKey = isCtrlKey;
+	}
+
+	public String getIsShiftKey() {
+		return isShiftKey;
+	}
+
+	public void setIsShiftKey(String isShiftKey) {
+		this.isShiftKey = isShiftKey;
+	}
+
+	public String getIsAltKey() {
+		return isAltKey;
+	}
+
+	public void setIsAltKey(String isAltKey) {
+		this.isAltKey = isAltKey;
+	}
+
+	public String getIsMetaKey() {
+		return isMetaKey;
+	}
+
+	public void setIsMetaKey(String isMetaKey) {
+		this.isMetaKey = isMetaKey;
+	}
+
+	public ArrayList<MobileTouchObject> getTouchList() {
+		return touchList;
+	}
+
+	public void setTouchList(ArrayList<MobileTouchObject> touchList) {
+		this.touchList = touchList;
+	}
 	
 }

@@ -111,14 +111,6 @@ public class FactoryEvent {
 				jsonObject = WindowBlur.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "cookiedisclaimershown":
-				jsonObject = CookieDisclaimerShown.parseFromHash(eventHashMap).toGson();
-				break;
-				
-			case "cookiedisclaimeraccepted":
-				jsonObject = CookieDisclaimerAccepted.parseFromHash(eventHashMap).toGson();
-				break;
-				
 			case "mobileTouchStart":
 				jsonObject = MobileTouchStart.parseFromHash(eventHashMap).toGson();
 				break;
@@ -138,6 +130,20 @@ public class FactoryEvent {
 			case "mobileMotion":
 				jsonObject = MobileMotion.parseFromHash(eventHashMap).toGson();
 				break;
+				
+				
+			case "cookiedisclaimershown":
+				jsonObject = CookieDisclaimerShown.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "cookiedisclaimeraccepted":
+				jsonObject = CookieDisclaimerAccepted.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case "cookiedisclaimerrejected":
+				jsonObject = CookieDisclaimerAccepted.parseFromHash(eventHashMap).toGson();
+				break;
+				
 
 			default:
 				ErrorLogging
@@ -251,14 +257,6 @@ public class FactoryEvent {
 			case "windowblur":
 				classObject = new WindowBlur(com.mongodb.util.JSON.serialize(dbObject));
 				break;
-			
-			case "cookiedisclaimershown":
-				classObject = new CookieDisclaimerShown(com.mongodb.util.JSON.serialize(dbObject));
-				break;
-				
-			case "cookiedisclaimeraccepted":
-				classObject = new CookieDisclaimerAccepted(com.mongodb.util.JSON.serialize(dbObject));
-				break;
 
 			case "mobileTouchStart":
 				classObject = new MobileTouchStart(com.mongodb.util.JSON.serialize(dbObject));
@@ -280,6 +278,19 @@ public class FactoryEvent {
 				classObject = new MobileMotion(com.mongodb.util.JSON.serialize(dbObject));
 				break;
 
+				
+			case "cookiedisclaimershown":
+				classObject = new CookieDisclaimerShown(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+					
+			case "cookiedisclaimeraccepted":
+				classObject = new CookieDisclaimerAccepted(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+				
+			case "cookiedisclaimerrejected":
+				classObject = new CookieDisclaimerRejected(com.mongodb.util.JSON.serialize(dbObject));
+				break;
+					
 			default:
 				ErrorLogging
 				.logError(
