@@ -101,7 +101,7 @@ public class Mousewheel extends GenericEvent{
 		super(eventData);
 		
 		try{
-			this.delta = Integer.parseInt(eventData.get(EventConstants.DELTA));
+			this.delta = eventData.get(EventConstants.DELTA);
 		}
 		catch(Exception e){
 			ErrorLogging.logError("Mousewheel.java/parseMousewheelObject", 
@@ -115,18 +115,18 @@ public class Mousewheel extends GenericEvent{
 	/**
 	 * Value of the delta indicates the amount of wheel movement
 	 */
-	private Integer delta;
+	private String delta;
 
 	/**
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
 
-	public Integer getDelta() {
+	public String getDelta() {
 		return delta;
 	}
 
-	public void setDelta(Integer delta) {
+	public void setDelta(String delta) {
 		this.delta = delta;
 	}
 

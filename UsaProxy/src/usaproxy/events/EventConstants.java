@@ -85,6 +85,12 @@ public class EventConstants {
 	
 	//particular to Load and resize
 	public final static String SIZE = "size";
+	
+	public final static String RESOLUTION = "resolution";
+	
+	public final static String HTMLSIZE = "htmlSize";
+	
+	public final static String USABLESIZE = "usableSize";
 
 	//particular to mousedown and mouse up
 	public final static String BUTTON = "but";
@@ -147,5 +153,80 @@ public class EventConstants {
 	public static final String MOBILEMOTIONACCELZ = "accZ";
 	public static final String MOBILEMOTIONACCELMAX = "maxAcc";
 	public static final String MOBILEMOTIONACCELMAXINCLGRAV = "maxAccWithGrav";
+
+	// //////////////////////////////////EVENTNAMES/////////////////////////////////////////////////
+	public final static String BLUR = "blur";
+
+	public final static String CHANGE = "change";
+
+	public final static String CONTEXTMENU = "contextmenu";
+
+	public final static String COPY = "copy";
+
+	public final static String CUT = "cut";
+
+	public final static String DBLCLICK = "dblclick";
+
+	public final static String DOMCHANGE = "domchange";
+
+	public final static String FOCUS = "focus";
+
+	public final static String KEYDOWN = "keydown";
+
+	public final static String KEYPRESS = "keypress";
+
+	public final static String KEYUP = "keyup";
+
+	public final static String LOAD = "load";
+
+	public final static String MOUSEDOWN = "mousedown";
+
+	public final static String MOUSEMOVE = "mousemove";
+
+	public final static String MOUSEOUT = "mouseout";
+
+	public final static String MOUSEOVER = "mouseover";
+
+	public final static String MOUSEUP = "mouseup";
+
+	public final static String MOUSEWHEEL = "mousewheel";
+
+	public final static String PASTE = "paste";
+
+	public final static String RESIZE = "resize";
+
+	public final static String SCROLL = "scroll";
+
+	public final static String SELECT_EXTRA = "select_Extra";
+
+	public final static String SELECT = "select";
+
+	public final static String SELECTEXTRA = "selectextra";
+
+	public final static String UNLOAD = "unload";
+
+	public final static String WINDOWFOCUS = "windowfocus";
+
+	public final static String WINDOWBLUR = "windowblur";
+
+	public final static String MOBILETOUCHSTART = "mobileTouchStart";
+
+	public final static String MOBILETOUCHEND = "mobileTouchEnd";
+
+	public final static String MOBILEORIENTATIONCHANGE = "mobileOrientationChange";
+
+	public final static String MOBILEGYROSCOPE = "mobileGyroscope";
+
+	public final static String MOBILEMOTION = "mobileMotion";
+
+	public final static String COOKIEDISCLAIMERSHOWN = "cookiedisclaimershown";
+
+	public final static String COOKIEDISCLAIMERACCEPTED = "cookiedisclaimeraccepted";
+
+	public final static String COOKIEDISCLAIMERREJECTED = "cookiedisclaimerrejected";
+	
+	public final static String WINDOWQUERYFOCUS = "windowqueryfocus";
+
+	public final static String WINDOWQUERYBLUR = "windowqueryblur";
 
 }

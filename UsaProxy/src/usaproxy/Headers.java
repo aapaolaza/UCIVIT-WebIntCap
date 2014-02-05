@@ -1,8 +1,10 @@
 package usaproxy;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -113,12 +115,102 @@ public class Headers extends OrderedHashtable {
                 if (value=="") this.add(0, name, value);
                 else this.put(name, value);
                 len = 0;
+                
+				//System.out.println("name:" + name + ",\n value:" + value);
+
             }
         }
         
         return in;
 	}
 	
+	
+	/**
+     *  New version of readHeaders. In this version bufferedReader will be used
+     *  Reads in the HTTP request/response headers and stores them in this <code>OrderedHashtable</code>.
+     *  Returns the remaining input stream for further processing.
+     *  
+     *  @param in is the <code>InputStream</code> the headers are retrieved from.
+     *  @return the remaining <code>InputStream</code>
+     */
+	public InputStream readHeadersBufferedReader(InputStream in) throws IOException {
+		
+        String name, value;
+        
+        if (in == null)
+			in = new BufferedInputStream(in);
+        
+        BufferedReader buffReader =
+                new BufferedReader(
+                    new InputStreamReader(in));
+        
+        
+        /*
+         * The inputStream will have this appearance:
+         * GET /usaproxylolo/log?datatolog
+         * Host: 130.88.193.26:2727
+         * Connection: keep-alive
+         * User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36
+         * Origin: http://www.cs.man.ac.uk
+         * Accept: *|*
+         * Referer: http://www.cs.man.ac.uk/~apaolaza/TESTindex.html
+         * Accept-Encoding: gzip,deflate,sdch
+         * Accept-Language: en-GB,es-ES;q=0.8,es;q=0.6
+         * 
+         * We will read it line by line, split it by the colon, and put it into the orderedHashTable.
+         * 
+         */
+        String tmpReadLine;
+        while ((tmpReadLine = buffReader.readLine()) != null) {
+        	//For each line we read
+        	//System.err.println(tmpReadLine);
+        
+			// To be executed at the end
+
+			if (tmpReadLine.contains(":")) {
+				/** if ":" exists in header */
+
+				/**
+				 * generate a name/value pair; in the case of the request line
+				 * value is left empty
+				 */
+				if (HTTPData.isRequestLine(tmpReadLine)) {
+					name = tmpReadLine;
+					value = "";
+
+					/**
+					 * all other request or response headers will be referenced
+					 * by the header field name and are assigned the right part
+					 * next to ":" as value
+					 */
+				} else {
+					
+					name = tmpReadLine.substring(0, tmpReadLine.indexOf(":")).trim();
+					value = tmpReadLine.substring(tmpReadLine.indexOf(":")+1, tmpReadLine.length()).trim();
+				}
+
+				/** response status line */
+			} else {
+				name = tmpReadLine;
+				value = "";
+			}
+
+			/**
+			 * put request line / response status line at the first position in
+			 * this Headers Hashtable
+			 */
+			if (value == "")
+				this.add(0, name, value);
+			else
+				this.put(name, value);
+
+			//System.out.println("name:" + name + ",\n value:" + value);
+
+		}
+
+		return in;
+	}
+
 	/**
      *  Prints the entries of the <code>OrderedHashtable</code> headers.
      */

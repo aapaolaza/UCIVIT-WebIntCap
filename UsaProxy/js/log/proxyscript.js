@@ -18,7 +18,7 @@ var websiteID;      /* String: contains the ID of the Web site*/
 
 /* Date: Initialised by UsaProxy. Load completion timestamp is  
    calculated relative to this timestamp.
-   * Doesn't need to be created as the server add it with its corresponding value*/
+   * Doesn't need to be created as the server adds it with its corresponding value*/
 //var startDate_UsaProxy;
 startDate_UsaProxy = parseInt(startDate_UsaProxy);
 
@@ -74,6 +74,22 @@ var wheelDeltaGlobal = 0;
 
 var wheelTimeOutFunction = null; //This function will be used
 
+
+/////////////////////////SCROLL VARIABLES
+var scrollQueryFrequency=200;
+
+//////////////////////////WINDOW FOCUS STATE QUERY FREQUENCY
+var windowFocusedQueryFrequency = 500;
+var isWindowFocusedQuery = null;
+//Interval function to check the focus state of the window
+var IVL_windowFocusCheck;
+
+/////////Variable for focus and blur events
+var windowIsFocused = false;
+
+
+////////////////////LOG SAVE FREQUENCY
+var logSaveFrequency = 3000;
 
 //////////////////////BROWSER VARIABLE
 
@@ -401,7 +417,6 @@ function init_UsaProxy() {
 	/* We need an auxiliary variable, as certain versions of chrome trigger
 	the same event twice
 	*/
-	var windowIsFocused = false;
 	window.onfocus = function () {
 		if(!windowIsFocused){
 			processWindowFocusEvent();
@@ -417,11 +432,13 @@ function init_UsaProxy() {
 			//console.log("window blurred");
 		}
 	}; 
-		
+
+	/* We also register a function to check the window focuse periodically*/
+	IVL_windowFocusCheck = setInterval("processWindowFocusQuery()", 1000);
 		 
 	/* instantiate scroll check and save function being invoked periodically */
-	IVL_scrollCheck_UsaProxy 	= window.setInterval("processScroll_UsaProxy()",1000);
-	IVL_saveLog_UsaProxy 		= window.setInterval("saveLog_UsaProxy()",3000);
+	IVL_scrollCheck_UsaProxy 	= window.setInterval("processScroll_UsaProxy()",scrollQueryFrequency);
+	IVL_saveLog_UsaProxy 		= window.setInterval("saveLog_UsaProxy()",logSaveFrequency);
 	
 
 	includeMobileEvents();
@@ -513,6 +530,9 @@ function processMobileTouchEnd(e) {
 	eventString += generateEventString_UsaProxy(e.target);
 	
 	writeLog_UsaProxy(eventString);
+	
+	//Was this mouose event employed to select something?
+	processIfHtmlIsSelected("touch", target);
 }
 
 var alpha = 0,
@@ -799,8 +819,8 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 			else eventString = eventString + "&link=" + node.href + "&text=" + encodeURIComponent(node.text);
 		}
 	} else {
-		// image detection NS
 		if (node.src) {		
+		// image detection NS
 			if (node.parentNode.href)
 				eventString = eventString + "&img=" + getFileName(node.src) + "&link=" + node.parentNode.href
 			else eventString = eventString + "&img=" + getFileName(node.src);
@@ -809,8 +829,16 @@ function generateEventString_UsaProxy(node /*DOM element*/) {
 	
 	//Get textContent of the variable
 	var textContent ="null";
-	if (node.firstChild.nodeValue!=null)
-		textContent = node.firstChild.nodeValue.substring(0,100);    
+	try{
+  		if (node.firstChild.nodeValue!=null)
+			textContent = node.firstChild.nodeValue.substring(0,100);
+	}
+	catch(err)
+  	{
+  		// Do nothing, as we just want to avoid looking into null elements
+  	}
+
+	
 
 	eventString = eventString + "&nodeType=" + node.tagName + "&textContent=" + encodeURIComponent(textContent) + "&textValue=" + encodeURIComponent(node.value);
 	//eventString = eventString + "&nodeType=" + node.tagName + "&textValue=" + encodeURIComponent(node.value);
@@ -933,7 +961,11 @@ function processLoad_UsaProxy(e) {
 	var loadWidth, loadHeight;
 	loadWidth 	= (window.innerWidth) ? window.innerWidth : document.body.offsetWidth;  // innerWidth=NS
 	loadHeight 	= (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;  // innerHeight=NS
-	writeLog_UsaProxy("load&size=" + loadWidth + "x" + loadHeight);
+	writeLog_UsaProxy("load&size=" + loadWidth + "x" + loadHeight
+			+"&resolution=" + screen.width + "x" + screen.height
+			+"&htmlSize=" + $(document).width() + "x" + $(document).height()
+			+"&usableSize=" + $(window).width() + "x" + $(window).height());
+			
 	//saveLog_UsaProxy();
 
 	recordCurrentDOM();
@@ -948,13 +980,26 @@ function processResize_UsaProxy(e) {
 	newWidth 	= (window.innerWidth) ? window.innerWidth : document.body.offsetWidth;  // innerWidth=NS
 	newHeight 	= (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;  // innerHeight=NS
 	
+	//var screenWidth, screenHeight;
+	//screen.height;
+	//screen.width;
+	
+/*	console.log ("Screen resolution:" + screen.height+","+screen.width);
+	console.log ("HTML document size" + $(document).height()+","+$(document).width());
+	console.log ("Viewport size" + $(window).height()+","+$(window).width());
+	console.log ("Recorded size" + newHeight+","+newWidth);
+	console.log ("#########################");
+*/
 	//We check if we have recorded this size at this time already
 	if (lastResizeWidth!=newWidth || lastResizeHeigth!=newHeight || lastResizeDate!= new Date().getTime()){
 		lastResizeWidth = newWidth;
 		lastResizeHeigth = newHeight;
 		lastResizeDate = new Date().getTime();
 		
-		writeLog_UsaProxy("resize&size=" + newWidth + "x" + newHeight);
+		writeLog_UsaProxy("resize&size=" + newWidth + "x" + newHeight 
+			+"&resolution=" + screen.width + "x" + screen.height
+			+"&htmlSize=" + $(document).width() + "x" + $(document).height()
+			+"&usableSize=" + $(window).width() + "x" + $(window).height());
 	}
 	//saveLog_UsaProxy();
 }
@@ -975,7 +1020,7 @@ function processMousemove_UsaProxy(e) {
 	if (privacyCheck(ev))
 	{
 			return true;
-}
+	}
 	
 
 	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
@@ -986,12 +1031,14 @@ function processMousemove_UsaProxy(e) {
 		/** if mouse pointer actually moved */
 		&& !(x==lastMousePosX_UsaProxy && y==lastMousePosY_UsaProxy) ) {
 			FLG_LogMousemove_UsaProxy = true;
+			window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
 			lastMousePosX_UsaProxy = x;
 			lastMousePosY_UsaProxy = y;
 			
+			//console.log("mousemove recorded");
+			
 			writeLog_UsaProxy("mousemove&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 			//saveLog_UsaProxy();
-			window.setTimeout('setInaktiv_UsaProxy()',mouseTimeout);
 	}
 }
 
@@ -1014,11 +1061,19 @@ function processMouseover_UsaProxy(e) {
 	var ev = (isNotOldIE) ? e : window.event;
 	var target = (isNotOldIE) ? ev.target : ev.srcElement;
 	
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
+	
 	if (privacyCheck(ev))
 		{
 			//console.log("This instance won't be recorded"+target.id);
 			return true;
 		}
+		
+		
+	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+	
 		//console.log("This instance will be recorded"+target.id);
 	/* add appliable event listeners to hovered element */
 	/* first, check if element has a type property.
@@ -1072,18 +1127,12 @@ function processMouseover_UsaProxy(e) {
 					target.addEventListener('blur', processBlur_UsaProxy, false);
 				 }
 				
-				/* if (target.type=="text" 
-		 		  || target.type=="textarea" ) {
-				 	// select listener: only for NS
-					target.removeEventListener('select', processSelectionNS_UsaProxy, false);
-				 	target.addEventListener('select', processSelectionNS_UsaProxy, false);
-				 }*/
 			}
 		}
 	}
 	
 	// log mouseover coordinates and all available target attributes
-	writeLog_UsaProxy("mouseover" + generateEventString_UsaProxy(target));
+	writeLog_UsaProxy("mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 }
 
 /** Processes mouse release event.
@@ -1092,10 +1141,6 @@ function processMouseover_UsaProxy(e) {
    Since click might have occured also outside of form fields, images, or, hyperlinks,
    the mouse pointer position is recorded relative to the hovered-over area/element. */
 function processMousedown_UsaProxy(e) {
-
-	/* check if text was selected, if true, discontinue, 
-	   since this is handled by processSelection_UsaProxy */
-	if(processSelection_UsaProxy()) return;
 	
 	/* get event target, x, and y value of mouse position
 	 * NS: first case (window.Event available); IE: second case */
@@ -1109,6 +1154,10 @@ function processMousedown_UsaProxy(e) {
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
 	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
 	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
+	
+	/* check if text was selected, if true, discontinue, 
+	  since this is handled by processSelection_UsaProxy */
+	if(processSelection_UsaProxy(target)) return;
 	
 	if (privacyCheck(ev))
 		return true;
@@ -1597,7 +1646,7 @@ function processFocus_UsaProxy(e) {
 
 /** Processes the selection of text within the web page's content.
  * Function is invoked on mousedown */
-function processSelection_UsaProxy() {
+function processSelection_UsaProxy(target) {
 		var currentSelection;
 		// NS
 		if (window.getSelection) currentSelection = window.getSelection();
@@ -1608,7 +1657,7 @@ function processSelection_UsaProxy() {
 		
 		// if selection is not empty and new text was selected, log select event
 		if(currentSelection != "" && lastSelection_UsaProxy != currentSelection) {
-			writeLog_UsaProxy("select&selectedContent=" + encodeURIComponent(currentSelection));
+			writeLog_UsaProxy("select" + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(currentSelection));
 			// set last selected text
 			lastSelection_UsaProxy = currentSelection;
 			saveLog_UsaProxy();
@@ -1617,31 +1666,24 @@ function processSelection_UsaProxy() {
 		return false;
 }
 
-/* NS: Processes text selection event in textfields/areas.
- * Since NS doesn't capture any selected text in text fields/areas over getSelection,
- * function is invoked on select */
- 
- //DEPRECATED
-function processSelectionNS_UsaProxy(e) {
+/** Function that registers the focus state of the current window, if different than the last registered state
+ * Function is invoked periodically */
 
-	/* get event target
-	 * NS: first case (window.Event available); IE: second case (not necessary) */
-	/*var ev 		= (window.Event) ? e : window.event;
-	var target 	= (window.Event) ? ev.target : ev.srcElement;
-	*/
-	
-	var ev 		= (isNotOldIE) ? e : window.event;
-	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
-	
-	if (privacyCheck(ev))
-		return true;
-	
-	// if selection is not empty, log select event with the selected text
-	if (target.selectionStart!=target.selectionEnd) {
-		writeLog_UsaProxy("select" + generateEventString_UsaProxy(target) + "&text=" + encodeURIComponent(target.value.substring(target.selectionStart,target.selectionEnd)));
-		saveLog_UsaProxy();
+function processWindowFocusQuery() {	
+	if (document.hasFocus() != isWindowFocusedQuery){
+		//If different, we record the event
+		if (document.hasFocus())
+			writeLog_UsaProxy("windowqueryfocus");
+		else
+			writeLog_UsaProxy("windowqueryblur");
+		
+		isWindowFocusedQuery = document.hasFocus();
 	}
 }
+
+//////////////////////////WINDOW FOCUS STATE QUERY FREQUENCY
+var focusQueryFrequency = 500;
+var isWindowFocused = null;
 
 /** end events logging */
 
@@ -1800,14 +1842,20 @@ function processMouseOut_ExtraEvent(e) {
 	
 	var ev 		= (isNotOldIE) ? e : window.event;
 	var target 	= (isNotOldIE) ? ev.target : ev.srcElement;
+	var x 		= (isNotOldIE) ? ev.pageX : ev.clientX;
+	var y 		= (isNotOldIE) ? ev.pageY : ev.clientY; 
+	
 	
 	if (privacyCheck(ev))
 		return true;
 	
+	var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+	var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+	
 	// log mouseout coordinates and all available target attributes
 	// if element has an id attribute
 	
-	writeLog_UsaProxy("mouseout" + generateEventString_UsaProxy(target));
+	writeLog_UsaProxy("mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 
 }
 

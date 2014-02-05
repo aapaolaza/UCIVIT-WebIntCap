@@ -15,6 +15,7 @@ public class DOMChangeBean {
 	public DOMChangeBean() {
 		super();
 		this.timestamp = "";
+		this.timestampms = "";
 		this.sd = "";
 		this.sid = "";
 		this.url = "";
@@ -22,17 +23,17 @@ public class DOMChangeBean {
 		this.domChanges = "";
 
 	}
-
-	public DOMChangeBean(String timestamp, String sd, String sid, String url,
-			String browser, String domContent) {
-		super();
-		this.timestamp = timestamp;
-		this.sd = sd;
-		this.sid = sid;
-		this.url = url;
-		this.browser = browser;
-		this.domChanges = domContent;
-	}
+//
+//	public DOMChangeBean(String timestamp, String sd, String sid, String url,
+//			String browser, String domContent) {
+//		super();
+//		this.timestamp = timestamp;
+//		this.sd = sd;
+//		this.sid = sid;
+//		this.url = url;
+//		this.browser = browser;
+//		this.domChanges = domContent;
+//	}
 
 	/**
 	 * Deserialise given JSON and creates a DOMBean element with the result
@@ -46,6 +47,7 @@ public class DOMChangeBean {
 		DOMChangeBean tempClass = gson.fromJson(json, DOMChangeBean.class);
 
 		this.timestamp = tempClass.timestamp;
+		this.timestampms = tempClass.timestampms;
 		this.sd = tempClass.sd;
 		this.sid = tempClass.sid;
 		this.url = tempClass.url;
@@ -71,6 +73,11 @@ public class DOMChangeBean {
 	 * Timestamp of the DOM
 	 */
 	private String timestamp;
+
+	/**
+	 * Timestamp of the DOM in milliseconds
+	 */
+	private String timestampms ="";
 
 	/**
 	 * Web page ID
@@ -103,6 +110,8 @@ public class DOMChangeBean {
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
 	}
+	
+
 
 	public String getSd() {
 		return sd;
@@ -142,6 +151,14 @@ public class DOMChangeBean {
 
 	public void setDomChanges(String domChanges) {
 		this.domChanges = domChanges;
+	}
+
+	public String getTimestampms() {
+		return timestampms;
+	}
+
+	public void setTimestampms(String timestampms) {
+		this.timestampms = timestampms;
 	}
 
 }

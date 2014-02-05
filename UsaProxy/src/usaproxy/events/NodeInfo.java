@@ -1,35 +1,34 @@
 package usaproxy.events;
 
-
 import com.google.gson.Gson;
 
 /**
- * This class will contain all the information of the node the event may be referring to.
- * It will have plenty of optional fields, like img in case the element referes to an image
- * or link and text in the case the node is an link.
+ * This class will contain all the information of the node the event may be
+ * referring to. It will have plenty of optional fields, like img in case the
+ * element referes to an image or link and text in the case the node is an link.
  * All element whose information was not set, should be empty strings.
  * 
  * 
  * 
  */
-public class NodeInfo{
-	
+public class NodeInfo {
+
 	/**
 	 * Empty constructor
 	 */
-	public NodeInfo(){
+	public NodeInfo() {
 		super();
 		this.nodeId = "";
 		this.nodeName = "";
 		this.nodeDom = "";
-		this.nodeImg= "";
+		this.nodeImg = "";
 		this.nodeLink = "";
 		this.nodeText = "";
 		this.nodeType = null;
 		this.nodeTextContent = "";
 		this.nodeTextValue = "";
 	}
-	
+
 	/**
 	 * @param nodeId
 	 * @param nodeName
@@ -38,7 +37,7 @@ public class NodeInfo{
 	 * @param nodeLink
 	 * @param nodeText
 	 * @param nodeType
- 	 * @param nodeTextContent
+	 * @param nodeTextContent
 	 * @param nodeTextValue
 	 */
 	public NodeInfo(String nodeId, String nodeName, String nodeDom,
@@ -57,7 +56,7 @@ public class NodeInfo{
 	}
 
 	public NodeInfo(String json) {
-		
+
 		Gson gson = new Gson();
 		NodeInfo tempClass = gson.fromJson(json, NodeInfo.class);
 		this.nodeId = tempClass.nodeId;
@@ -70,35 +69,33 @@ public class NodeInfo{
 		this.nodeTextContent = tempClass.nodeTextContent;
 		this.nodeTextValue = tempClass.nodeTextValue;
 	}
-	
-	/** Serialise the class into a JSON, and returns the String containing it 
+
+	/**
+	 * Serialise the class into a JSON, and returns the String containing it
+	 * 
 	 * @return serialised class in JSON
 	 */
 
-	public String toGson(){
+	public String toGson() {
 		Gson gson = new Gson();
 		String json = gson.toJson(this);
 		return json;
 	}
-	
+
 	/**
 	 * Constructs the class getting the information from a HashMap.
 	 * 
-	 * The mapping of HashMap keys to variables is the following: 
-	 * text log --> variable name
+	 * The mapping of HashMap keys to variables is the following: text log -->
+	 * variable name
 	 * 
-	 * id --> nodeId
-	 * name --> nodeName
-	 * dom --> nodeDom
-	 * img --> nodeImg
-	 * link --> nodeLink
-	 * text --> nodeText
-	 * nodeType --> nodeType
-	 * textValue --> nodeTextValue
+	 * id --> nodeId name --> nodeName dom --> nodeDom img --> nodeImg link -->
+	 * nodeLink text --> nodeText nodeType --> nodeType textValue -->
+	 * nodeTextValue
 	 * 
 	 * @param nodeData
-	 *            {@link EventDataHashMap} with all the information about the node.
-	 *            It is a Hashmap that has all the values stored with the standard mapping obtained from the JavaScript.
+	 *            {@link EventDataHashMap} with all the information about the
+	 *            node. It is a Hashmap that has all the values stored with the
+	 *            standard mapping obtained from the JavaScript.
 	 * 
 	 * 
 	 */
@@ -119,9 +116,10 @@ public class NodeInfo{
 		classObject.nodeText = nodeData.get(EventConstants.NODETEXT);
 
 		classObject.nodeType = nodeData.get(EventConstants.NODETYPE);
-		
-		classObject.nodeTextContent = nodeData.get(EventConstants.NODETEXTCONTENT);
-		
+
+		classObject.nodeTextContent = nodeData
+				.get(EventConstants.NODETEXTCONTENT);
+
 		classObject.nodeTextValue = nodeData.get(EventConstants.NODETEXTVALUE);
 
 		return classObject;
@@ -140,7 +138,7 @@ public class NodeInfo{
 	 */
 	private String nodeDom;
 	/**
-	 * The filename the node may be referring to 
+	 * The filename the node may be referring to
 	 */
 	private String nodeImg;
 	/**
@@ -155,15 +153,14 @@ public class NodeInfo{
 	 * Node type of the hovered element
 	 */
 	private String nodeType;
-	
+
 	/**
 	 * Text content of the node
 	 */
 	private String nodeTextContent;
-	
-	
+
 	/**
-	 * Possible text value of the node 
+	 * Possible text value of the node
 	 */
 	private String nodeTextValue;
 
@@ -175,7 +172,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeId the nodeId to set
+	 * @param nodeId
+	 *            the nodeId to set
 	 */
 	public void setNodeId(String nodeId) {
 		this.nodeId = nodeId;
@@ -189,7 +187,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeName the nodeName to set
+	 * @param nodeName
+	 *            the nodeName to set
 	 */
 	public void setNodeName(String nodeName) {
 		this.nodeName = nodeName;
@@ -203,7 +202,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeDom the nodeDom to set
+	 * @param nodeDom
+	 *            the nodeDom to set
 	 */
 	public void setNodeDom(String nodeDom) {
 		this.nodeDom = nodeDom;
@@ -217,7 +217,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeImg the nodeImg to set
+	 * @param nodeImg
+	 *            the nodeImg to set
 	 */
 	public void setNodeImg(String nodeImg) {
 		this.nodeImg = nodeImg;
@@ -231,7 +232,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeLink the nodeLink to set
+	 * @param nodeLink
+	 *            the nodeLink to set
 	 */
 	public void setNodeLink(String nodeLink) {
 		this.nodeLink = nodeLink;
@@ -245,7 +247,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeText the nodeText to set
+	 * @param nodeText
+	 *            the nodeText to set
 	 */
 	public void setNodeText(String nodeText) {
 		this.nodeText = nodeText;
@@ -259,7 +262,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeType the nodeType to set
+	 * @param nodeType
+	 *            the nodeType to set
 	 */
 	public void setNodeType(String nodeType) {
 		this.nodeType = nodeType;
@@ -273,7 +277,8 @@ public class NodeInfo{
 	}
 
 	/**
-	 * @param nodeTextValue the nodeTextValue to set
+	 * @param nodeTextValue
+	 *            the nodeTextValue to set
 	 */
 	public void setNodeTextValue(String nodeTextValue) {
 		this.nodeTextValue = nodeTextValue;
@@ -285,5 +290,20 @@ public class NodeInfo{
 
 	public void setNodeTextContent(String nodeTextContent) {
 		this.nodeTextContent = nodeTextContent;
+	}
+
+	@Override
+	public String toString() {
+		return "NodeInfo [nodeId=" + nodeId + ", nodeName=" + nodeName
+				+ ", nodeDom=" + nodeDom + ", nodeImg=" + nodeImg
+				+ ", nodeLink=" + nodeLink + ", nodeText=" + nodeText
+				+ ", nodeType=" + nodeType + ", nodeTextContent="
+				+ nodeTextContent + ", nodeTextValue=" + nodeTextValue + "]";
+	}
+
+	public boolean equals(NodeInfo nodeinfo) {
+		if (this.toString().equals(nodeinfo.toString()))
+			return true;
+		return false;
 	}
 }

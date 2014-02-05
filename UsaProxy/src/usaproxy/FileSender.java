@@ -326,8 +326,8 @@ public class FileSender {
 			}
 			/** images, css */
 			else {
-
-				headers.append("HTTP/1.1 200 OK").append(HTTPData.CRLF);
+				//We don't want to send all files any more
+				/*headers.append("HTTP/1.1 200 OK").append(HTTPData.CRLF);
 				headers.append(
 						"Content-Type: " + HTTPData.guessType(file.getPath()))
 						.append(HTTPData.CRLF);
@@ -338,6 +338,9 @@ public class FileSender {
 				headers.append(HTTPData.CRLF);
 
 				out.writeBytes(headers.toString());
+				*/
+				out.writeBytes("The requested file cannot be sent");
+				in = new BufferedInputStream(null);
 			}
 
 			/** send the file resp. the raw proxyscript.js */

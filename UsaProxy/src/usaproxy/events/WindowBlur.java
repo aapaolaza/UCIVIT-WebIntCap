@@ -3,8 +3,7 @@ package usaproxy.events;
 
 import com.google.gson.Gson;
 /**
- * Event triggered when the page is unloaded. It doesn't usually get recorded as
- * the Javascript doesn't have time to submit the event before being stopped. 
+ * Event triggered when the page is blurred. 
  * 
  */
 public class WindowBlur extends GenericEvent{

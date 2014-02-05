@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class ClientRequest extends Thread {
 	 * Manages the client <code>Socket</code>, streams, and the request headers.
 	 */
 	private SocketData client;
+	
 	/**
 	 * Manages the server <code>Socket</code>, streams, and the response
 	 * headers.
@@ -74,10 +76,13 @@ public class ClientRequest extends Thread {
 	/**
 	 * Constructor: creates a <code>ClientRequest</code> thread with a specified
 	 * client <code>Socket and the deployed UsaProxy instance
+	 * @throws SocketException 
 	 */
-	public ClientRequest(Socket socket, UsaProxy usaProxy) {
+	public ClientRequest(Socket socket, UsaProxy usaProxy) throws SocketException {
 
 		this.client = new SocketData(socket);
+		socket.setSoTimeout(10000);
+		
 		this.usaProxy = usaProxy;
 		/** start this */
 		start();
@@ -90,15 +95,17 @@ public class ClientRequest extends Thread {
 	 */
 	public void run() {
 
-		try {
+		//System.out.println("STARTING thread number: " + threadId + "; at time: " + timeStampms());
 
+		try {
+		
 			/** retrieve client communication streams */
 			client.bindInputStream();
 			client.bindOutputStream();
 
 			/** parse request */
 			processRequest(client.getIn());
-
+		
 		} catch (Exception e) {
 			System.err
 					.println("\nAn ERROR occured while negotiating with the server:\n"
@@ -130,6 +137,8 @@ public class ClientRequest extends Thread {
 				ex.printStackTrace();
 			}
 		}
+		       
+		//System.out.println("ENDING thread number: " + threadId + "; at time: " + timeStampms());
 	}
 
 	/**
@@ -150,15 +159,19 @@ public class ClientRequest extends Thread {
 
 		String method = "";
 
+		String clientIP = "";
 
 		try {
 			/** read in HTTP request headers */
 			in = client.getHeaders().readHeaders(in);
+			//in = client.getHeaders().readHeadersBufferedReader(in);
 
 			/** Request URL processing */
 
 			/** get request-line */
 			url = (String) client.getHeaders().elementAt(0);
+			
+			clientIP = client.getSocket().getInetAddress().getHostAddress();
 
 			if (url == null)
 				return; // In case headers are empty
@@ -191,7 +204,12 @@ public class ClientRequest extends Thread {
 			}
 
 			/** remove request line from headers stucture */
-			client.getHeaders().remove(url);
+			try{
+				client.getHeaders().remove(url);
+			}catch (Exception e){
+				//If the element "url" could not be found in the headers, it will trigger an exception
+				ErrorLogging.logCriticalError("ClientRequest.java: processRequest()", "element " + url + " was not found in the headers", e);
+			}
 
 			try {
 				/** retrieve request method */
@@ -708,8 +726,10 @@ public class ClientRequest extends Thread {
 				if (usaProxy.isLogging()
 						&& !usaProxy.getLogMode().equals("pagereq")
 						&& requestURL.getQuery().indexOf("lastId=") == -1)
+//					usaProxy.getEventManager().log(client.getOut(),
+//							requestURL.getQuery(), client.getSocket());
 					usaProxy.getEventManager().log(client.getOut(),
-							requestURL.getQuery(), client.getSocket());
+							requestURL.getQuery(), clientIP, client.getSocket());
 			}
 
 			/*********************************************************************
@@ -1771,7 +1791,7 @@ public class ClientRequest extends Thread {
 				if (usaProxy.isLogging()) {
 					String logData = timeStamp() + " usaproxyload url="
 							+ requestURL;
-					usaProxy.getEventManager().log(null, logData,
+					usaProxy.getEventManager().log(null, logData,"",
 							client.getSocket());
 				}
 			}
@@ -1788,7 +1808,7 @@ public class ClientRequest extends Thread {
 					/** httpTraffic log entry */
 					String logData = timeStamp + " httptraffic url="
 							+ requestURL + " sd=" + httpTrafficIndex;
-					usaProxy.getEventManager().log(null, logData,
+					usaProxy.getEventManager().log(null, logData,"",
 							client.getSocket());
 				}
 
@@ -1896,7 +1916,22 @@ public class ClientRequest extends Thread {
 				+ completeDateVals(now.get(Calendar.MINUTE)) + ":"
 				+ completeDateVals(now.get(Calendar.SECOND));
 	}
-
+	
+	/**
+	 * Returns a timestamp string of the form "2004-12-31,23:59:59:999"
+	 * 
+	 * @return the timestamp
+	 * */
+	public String timeStampms() {
+		Calendar now = Calendar.getInstance();
+		return now.get(Calendar.YEAR) + "-"
+				+ completeDateVals(now.get(Calendar.MONTH) + 1) + "-"
+				+ completeDateVals(now.get(Calendar.DAY_OF_MONTH)) + ","
+				+ completeDateVals(now.get(Calendar.HOUR_OF_DAY)) + ":"
+				+ completeDateVals(now.get(Calendar.MINUTE)) + ":"
+				+ completeDateVals(now.get(Calendar.SECOND)) + ":"
+				+ completeDateVals(now.get(Calendar.MILLISECOND));
+	}
 	/**
 	 * Converts single-digit numbers into two-digit numbers ("0" prefix).
 	 * 
@@ -1991,5 +2026,36 @@ public class ClientRequest extends Thread {
 		/** Seed the random number if a value was passed. */
 		Math.random()))));
 	}
+	
+	
+	/**
+	 * 
+	 * This function will "clean up" after all opened hash tables, otherwise we will encounter java heap errors when many users are recorded
+	 */
+	public void eraseClient() {
+		//Code previously found in "Finally" section of run()
+		/** Close streams and sockets */
+		try {
+			client.closeInputStream();
+			client.closeOutputStream();
+			if (server != null)
+				server.closeInputStream();
+			/**
+			 * server might not be initialized e.g. in case of log request
+			 */
+			if (server != null)
+				server.closeOutputStream();
+			client.closeSocket();
+			if (server != null)
+				server.closeSocket();
+		} catch (Exception ex) {
+			System.err
+					.println("\nAn ERROR occured while closing streams and sockets");
+			ex.printStackTrace();
+		}
+		
+		//connections are closed, but now I want to get rid of the hashtables
+	}
+	
 
 }

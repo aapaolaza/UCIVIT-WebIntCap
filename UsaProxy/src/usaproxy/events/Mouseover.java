@@ -15,6 +15,7 @@ public class Mouseover extends GenericEvent{
 	 */
 	public Mouseover(){
 		super();
+		this.mouseCoordinates = null;
 		this.nodeInfo = null;
 	}
 
@@ -54,6 +55,7 @@ public class Mouseover extends GenericEvent{
 	
 	public Mouseover (Mouseover tempClass){
 		super(tempClass);
+		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
 		
 	}
@@ -100,15 +102,30 @@ public class Mouseover extends GenericEvent{
 	private Mouseover(EventDataHashMap eventData) {
 		super(eventData);
 		
+		this.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
+		
 		this.nodeInfo = NodeInfo.parseFromHash(eventData);
 
 	}
 
 	/**
+	 * MouseCoordinates element with all the information available of the mouse coordinates
+	 */
+	private MouseCoordinates mouseCoordinates;
+	
+	/**
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
 
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+	
 	public NodeInfo getNodeInfo() {
 		return nodeInfo;
 	}

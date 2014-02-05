@@ -25,6 +25,7 @@ import usaproxy.domchanges.DOMdiff;
 import usaproxy.events.EventConstants;
 import usaproxy.events.EventDataHashMap;
 import usaproxy.events.FactoryEvent;
+import usaproxy.events.GenericEvent;
 
 /**
  * Class EventManager manages the exchange of interactions occured in one of the
@@ -206,23 +207,26 @@ public class EventManager {
 	 *            is the client's <code>Outputstream</code>.
 	 * @param data
 	 *            is the event string to be logged.
+	 *            
+	 * @param clientIP
+	 * 			  we add the clientIP in case the client has already left, this will prevent future errors. 
 	 * @param client
 	 *            is the client's <code>Socket</code>.
 	 * @param logFilename
 	 *            specifies the log file.
 	 */
-	public synchronized void log(OutputStream out, String data, Socket client) {
+	public void log(OutputStream out, String data, String clientIP, Socket client) {
 
 		int numberOfDomChanges;
 
 		/** if client log request (else: serverdata log-request from proxy) */
-		if (out != null)
-			out = new DataOutputStream(out);
+		//if (out != null)
+			//out = new DataOutputStream(out);
 
 		try {
 
 			/** retrieve the client's IP address */
-			String clientIP = client.getInetAddress().getHostAddress();
+			//String clientIP = client.getInetAddress().getHostAddress();
 
 			String[] dataArray;
 
@@ -313,36 +317,37 @@ public class EventManager {
 				}
 			}
 
-			if (writeToLogFile(data) && out != null) {
-
-				/** send 404 message in order to complete the request */
-				// Changed to 200 message
-				SocketData.send200(out);
-			}
-
-		} catch (FileNotFoundException e) {
-			/** If log file doesn't exist, send 404 message. */
-			System.err.println("\nAn ERROR occured: log file not found:\n" + e);
-
-			ErrorLogging.logError("Event Manager.java: log()",
-					"log file not found while trying to write the following data:\n"
-							+ data, e);
-
-			/** Send 404 error message to client */
-			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
-			outPrint.println("HTTP/1.0 404 ");
-			/** version and status code */
-			outPrint.println();
-			/** blank line */
-			outPrint.flush();
+			//if (writeToLogFile(data) && out != null) {
+//			if (writeToLogFile(data)) {
+//
+//				/** send 404 message in order to complete the request */
+//				// Changed to 200 message
+//				//SocketData.send200(out);
+//			}
+//
+//		} catch (FileNotFoundException e) {
+//			/** If log file doesn't exist, send 404 message. */
+//			System.err.println("\nAn ERROR occured: log file not found:\n" + e);
+//
+//			ErrorLogging.logError("Event Manager.java: log()",
+//					"log file not found while trying to write the following data:\n"
+//							+ data, e);
+//
+//			/** Send 404 error message to client */
+////			PrintWriter outPrint = new PrintWriter(new OutputStreamWriter(out));
+////			outPrint.println("HTTP/1.0 404 ");
+////			/** version and status code */
+////			outPrint.println();
+////			/** blank line */
+////			outPrint.flush();
 		}
 
-		catch (IOException ie) {
+		catch (Exception ie) {
 			System.err.println("\nAn ERROR occured while logging:\n" + ie);
 		}
 
 		/** notify waiting clients that log file is accessible */
-		notifyAll();
+		//notifyAll();
 
 	}
 
@@ -858,24 +863,38 @@ public class EventManager {
 
 		EventDataHashMap eventHashMap = new EventDataHashMap(newdomData);
 		
+		
+		String sid = eventHashMap.get(EventConstants.SID);
+		
+		String sessionstartms = eventHashMap.get(EventConstants.SESSIONSTARTMS);
+		
 		//We parse the data we need from the hashmap
-		String time = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "", browser = "", platform = "";
+		//String time = "", timems = "", sd = "", sid = "", encodedDomContent = "", event = "", url = "", browser = "", platform = "";
+		
+		//String sessionstartms = "",  sessionstartparsed = "", usertimezoneoffset = "";
 
-		String decodedDomContent = "", decodedUrl = "";
+		//String decodedDomContent = "", decodedUrl = "";
 
-		time = eventHashMap.get(EventConstants.TIMESTAMP);
-		
-		sd = eventHashMap.get(EventConstants.SD);
-		
-		sid = eventHashMap.get(EventConstants.SID);
-		
-		decodedDomContent = eventHashMap.get(EventConstants.DOMCONTENT);
-		
-		decodedUrl = eventHashMap.get(EventConstants.URL);
-		
-		browser = eventHashMap.get(EventConstants.BROWSER);
-		
-		platform = eventHashMap.get(EventConstants.PLATFORM);
+//		timems = eventHashMap.get(EventConstants.TIMESTAMP);
+//		
+//		time = GenericEvent.formatDateFromMs(eventHashMap.get(EventConstants.TIMESTAMP));
+//		
+//		sessionstartms = eventHashMap.get(EventConstants.SESSIONSTARTMS);
+//		
+//		sessionstartparsed = GenericEvent.formatDateFromMs(eventHashMap.get(EventConstants.SESSIONSTARTMS));
+//		
+//		usertimezoneoffset = eventHashMap.get(EventConstants.USERTIMEZONEOFFSET);
+//		sd = eventHashMap.get(EventConstants.SD);
+//		
+//		
+//		
+//		decodedDomContent = eventHashMap.get(EventConstants.DOMCONTENT);
+//		
+//		decodedUrl = eventHashMap.get(EventConstants.URL);
+//		
+//		browser = eventHashMap.get(EventConstants.BROWSER);
+//		
+//		platform = eventHashMap.get(EventConstants.PLATFORM);
 
 		boolean saveEntireDOM = false;
 
@@ -936,10 +955,14 @@ public class EventManager {
 		// We need to read the previous state of the DOM
 		// This needs to be a Mongo function.
 		// Read the last milestone TEMP DOM from the database for that user
-		DOMBean latestDOMTemp = MongoDAO.MongoDAO().getTempMilestoneForSid(sid);
+		DOMBean latestDOMTemp = MongoDAO.MongoDAO().getTempMilestoneForSid(sid, sessionstartms);
 
-		DOMBean domToSave = new DOMBean(time, sd, sid, clientIP, decodedUrl,
-				browser, platform, decodedDomContent);
+		
+		
+		DOMBean currentDOM = new DOMBean(eventHashMap);
+		
+		//DOMBean domToSave = new DOMBean(time, timems, sd, sid, clientIP, decodedUrl,
+			//	browser, platform, decodedDomContent);
 
 		// if there was no temporary DOM, then store entire DOM
 		if (latestDOMTemp == null)
@@ -949,7 +972,7 @@ public class EventManager {
 
 		// we also need to store the temporary one, but that will be done later
 		if (saveEntireDOM) {
-			MongoDAO.MongoDAO().commitJsonToDOM(domToSave.toGson());
+			MongoDAO.MongoDAO().commitJsonToDOM(currentDOM.toGson());
 
 			numberOfDomChanges = 0;
 
@@ -962,12 +985,11 @@ public class EventManager {
 			// Get the correspondent TEMP DOM for that user and decode the
 			// DOM (it's decoded directly from the Bean, in the
 			// "getDomContent()" function
-			String decodedDOM = latestDOMTemp.getDomContent();
+			String decodedOldDOM = latestDOMTemp.getDomContent();
 
 			String domChangesString = DOMdiff.getChangesLogJSON(
-					removeNewLines(decodedDOM),
-					removeNewLines(decodedDomContent), clientIP, time, sd, sid,
-					decodedUrl, browser, platform);
+					removeNewLines(decodedOldDOM),
+					removeNewLines(currentDOM.getDomContent()), currentDOM);
 
 
 			if (DOMdiff.lastNumberOfDomChanges > 0) {
@@ -978,7 +1000,7 @@ public class EventManager {
 			}
 		}
 
-		MongoDAO.MongoDAO().upsertDOMTempForUser(domToSave);
+		MongoDAO.MongoDAO().upsertDOMTempForUser(currentDOM);
 
 		return numberOfDomChanges;
 

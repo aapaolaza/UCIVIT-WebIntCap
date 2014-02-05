@@ -191,4 +191,10 @@ public void setOffsetY(Integer offsetY) {
 	this.offsetY = offsetY;
 }
 
+@Override
+public String toString() {
+	return "MouseCoordinates [coordX=" + coordX + ", coordY=" + coordY
+			+ ", offsetX=" + offsetX + ", offsetY=" + offsetY + "]";
+}
+
 }

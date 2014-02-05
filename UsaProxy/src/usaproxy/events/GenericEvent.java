@@ -119,7 +119,7 @@ public class GenericEvent {
 	 * @param timestamp
 	 * @return formatted string with timestamp, or the input if parsing exception occurs
 	 */
-	public String formatDateFromMs(String timestamp){
+	public static String formatDateFromMs(String timestamp){
 		
 		try{
 			SimpleDateFormat parserSDF=new SimpleDateFormat("yyyy-MM-dd,HH:mm:ss:SSS");
@@ -201,7 +201,7 @@ public class GenericEvent {
 	 * @return the ip
 	 */
 	public String getIp() {
-		return "";
+		return this.ip;
 	}
 
 
@@ -217,7 +217,7 @@ public class GenericEvent {
 	 * @return the sd
 	 */
 	public String getSd() {
-		return "";
+		return this.sd;
 	}
 
 
@@ -225,7 +225,7 @@ public class GenericEvent {
 	 * @return the sid
 	 */
 	public String getSid() {
-		return "";
+		return this.sid;
 	}
 
 
@@ -248,7 +248,7 @@ public class GenericEvent {
 	 * @return the platform
 	 */
 	public String getPlatform() {
-		return "";
+		return this.platform;
 	}
 
 
@@ -256,7 +256,7 @@ public class GenericEvent {
 	 * @return the browser
 	 */
 	public String getBrowser() {
-		return "";
+		return this.browser;
 	}
 
 
@@ -351,7 +351,7 @@ public class GenericEvent {
 	/**
 	 * @return the delta
 	 */
-	public Integer getDelta() {
+	public String getDelta() {
 		return null;
 	}
 
@@ -521,6 +521,36 @@ public class GenericEvent {
 
 	public ArrayList<MobileTouchObject> getTouchList() {
 		return null;
+	}
+
+	public String getUsertimezoneoffset() {
+		return usertimezoneoffset;
+	}
+
+	public void setUsertimezoneoffset(String usertimezoneoffset) {
+		this.usertimezoneoffset = usertimezoneoffset;
+	}
+
+	@Override
+	public String toString() {
+		return "GenericEvent [ip=" + ip + ", timestampms=" + timestampms
+				+ ", timestamp=" + timestamp + ", sessionstartms="
+				+ sessionstartms + ", sessionstartparsed=" + sessionstartparsed
+				+ ", usertimezoneoffset=" + usertimezoneoffset + ", sd=" + sd
+				+ ", sid=" + sid + ", event=" + event + ", platform="
+				+ platform + ", browser=" + browser + ", url=" + url + "]";
+	}
+
+	public boolean equals(GenericEvent event) {
+		if (this.sid.equals(event.getSid()) && this.sd.equals(event.getSd())
+				&& this.event.equals(event.getEvent())
+				&& this.timestamp.equals(event.getTimestamp())
+				&& this.timestampms.equals(event.getTimestampms())
+				&& this.platform.equals(event.getPlatform())) {
+			return true;
+		}
+		return false;
+		
 	}	
 
 }

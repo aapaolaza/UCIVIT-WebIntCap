@@ -45,17 +45,22 @@ public class MongoDAO {
 		// As they are static objects, if the database object exists already,
 		// there is no need to create it again
 		if (eventsColl == null) {
+			
+			System.out.println("initialising DB connection");
+			
 			mongoClient = new MongoClient(getDbIP());
 
 			db = mongoClient.getDB(getDbName());
 			auth = db.authenticate(getDbUser(), getDbPassword().toCharArray());
 
 			if (auth) {
+				System.out.println("initialising DB collections");
 				eventsColl = db.getCollection(getDbEventsCollection());
 				domColl = db.getCollection(getDbDOMCollection());
 				domChangeColl = db.getCollection(getDbDOMChangeCollection());
 				domTempColl = db.getCollection(getDbDOMTempCollection());
 			} else {
+				System.out.println("Error authenticating to DB");
 				ErrorLogging
 						.logError(
 								"MongoDAO.java/MongoDAO()",
@@ -220,6 +225,12 @@ public class MongoDAO {
 					break;
 				}
 			}
+			
+			System.out.println("MongoDAO.java:getDBInfoFromFile():  Database info is:" + dbIP + "," + dbName
+					+ "," + dbEventsCollection + "," + dbDOMCollection + ","
+					+ dbDOMChangeCollection + "," + dbDOMTempCollection + ","
+					+ dbUser + "," + dbPassword);
+
 			ErrorLogging.logError("MongoDAO.java:getDBInfoFromFile()","Database info is:" + dbIP + "," + dbName
 					+ "," + dbEventsCollection + "," + dbDOMCollection + ","
 					+ dbDOMChangeCollection + "," + dbDOMTempCollection + ","
@@ -464,17 +475,20 @@ public class MongoDAO {
 	 * 
 	 * @param String
 	 *            sid of the user
+	 * @param String
+	 *            sessionstartms
 	 * 
 	 * @return {@link DOMBean} with the corresponding DOM temp milestone for the
 	 *         given user
 	 */
-	public DOMBean getTempMilestoneForSid(String sid) {
+	public DOMBean getTempMilestoneForSid(String sid, String sessionstartms) {
 
 		DBObject queryResult = null;
 		DOMBean tempDOM = null;
 		try {
 
 			BasicDBObject query = new BasicDBObject("sid", sid);
+			query.append("sessionstartms", sessionstartms);
 
 			DBCursor cursor = domTempColl.find(query);
 
@@ -512,7 +526,8 @@ public class MongoDAO {
 		try {
 
 			BasicDBObject query = new BasicDBObject("sid", domObject.getSid());
-			
+			query.append("sessionstartms", domObject.getSessionstartms());
+
 			/* Mongo update function
 			 * db.collection.update(query, update, <upsert>, <multi>)
 			 * query: criteria to find the element
@@ -524,10 +539,20 @@ public class MongoDAO {
 			
 			//WE set the dbObject we are going to insert (for clarity)
 			BasicDBObject domData = new BasicDBObject();
+	
+			
 			domData.put("timestamp", domObject.getTimestamp());
+			domData.put("timestampms", domObject.getTimestampms());
+			
+			domData.put("sessionstartms", domObject.getSessionstartms());
+	
+			domData.put("sessionstartparsed", domObject.getSessionstartparsed());
+			domData.put("usertimezoneoffset", domObject.getUsertimezoneoffset());
 			domData.put("sd", domObject.getSd());
 			domData.put("sid", domObject.getSid());
-			domData.put("clientIP", domObject.getClientIP());
+			domData.put("ip", domObject.getClientIP());
+
+
 			domData.put("url", domObject.getUrl());
 			domData.put("browser", domObject.getBrowser());
 			domData.put("platform", domObject.getPlatform());

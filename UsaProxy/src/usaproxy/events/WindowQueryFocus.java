@@ -2,49 +2,30 @@ package usaproxy.events;
 
 
 import com.google.gson.Gson;
+
 /**
- * Event triggered when the page is focused. 
+ * Event triggered when page is focused, and the interval function registered
+ * to detect it gets triggered.
  * 
  */
-public class WindowFocus extends GenericEvent{
+public class WindowQueryFocus extends GenericEvent{
 
 	/**
 	 * Empty constructor
 	 */
-	public WindowFocus(){
+	public WindowQueryFocus(){
 		super();
 	}
 
-//	/**
-//	 * @param ip
-//	 * @param timestamp
-//	 * @param sd
-//	 * @param sid
-//	 * @param event
-//	 * @param browser
-//	 * @param url
-//	 */
-//	public Unload(String ip, String timestamp, String sd, String sid,
-//			String event, String browser, String url) {
-//		super();
-//		this.ip = ip;
-//		this.timestamp = timestamp;
-//		this.sd = sd;
-//		this.sid = sid;
-//		this.event = event;
-//		this.browser = browser;
-//		this.url = url;
-//	}
-
-	/** Deserialise given JSON and creates a WindowFocus element with the result
+	/** Deserialise given JSON and creates a WindowBlur element with the result
 	 * @param serialised class in JSON
 	 */
 	
-	public WindowFocus (String json){
-		this(new Gson().fromJson(json, WindowFocus.class));
+	public WindowQueryFocus (String json){
+		this(new Gson().fromJson(json, WindowQueryFocus.class));
 	}
 	
-	public WindowFocus (WindowFocus tempClass){
+	public WindowQueryFocus (WindowQueryFocus tempClass){
 		super(tempClass);
 		
 	}
@@ -80,12 +61,12 @@ public class WindowFocus extends GenericEvent{
 	 * 
 	 */
 	
-	public static WindowFocus parseFromHash(EventDataHashMap eventData) {
+	public static WindowQueryFocus parseFromHash(EventDataHashMap eventData) {
 
-		return new WindowFocus(eventData);
+		return new WindowQueryFocus(eventData);
 	}
 	
-	private WindowFocus(EventDataHashMap eventData) {
+	private WindowQueryFocus(EventDataHashMap eventData) {
 		super(eventData);
 
 	}

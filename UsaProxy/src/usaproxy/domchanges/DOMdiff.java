@@ -32,22 +32,14 @@ public class DOMdiff {
 	 *            , the original DOM
 	 * @param newDOM
 	 *            , the new DOM from which the changes will be calculated
-	 * @param clientIP
-	 *            , the IP of the client being observed
-	 * @param time
-	 *            , the timestamp
-	 * @param sd
-	 *            , web page identifier
-	 * @param sid
-	 *            , session identifier
-	 * @param url
-	 *            , url of the Web page
+	 * @param domToSave, {@link DOMBean} object with all the context information.
+	 * 
 	 * @return A JSON representing a serialised DOMChangesLogList, ready to be
 	 *         written to a text file
 	 */
-	public static String getChangesLogJSON(String origDOM, String newDOM,
-			String clientIP, String time, String sd, String sid, String url, String browser, String platform) {
-
+	public static String getChangesLogJSON(String origDOM, String newDOM, DOMBean domToSave) {
+			
+		
 		// /Recording differences to a DOMChangesLogList
 		// element////////////////////
 		diff_match_patch dmp = new diff_match_patch();
@@ -116,7 +108,7 @@ public class DOMdiff {
 		ErrorLogging.logError("DOMdiff.java:getChangesLogJSON()", "DOMdiff: number of changes were: "
 				+ lastNumberOfDomChanges, null);
 
-		domChangesLogList.setContextInfo(time, sd, sid, clientIP, url, browser, platform);
+		domChangesLogList.setContextInfo(domToSave);
 
 		// converting the Java object to JSON
 		return domChangesLogList.toGson();

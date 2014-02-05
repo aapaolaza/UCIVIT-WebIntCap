@@ -17,6 +17,14 @@ import com.google.gson.Gson;
 public class DOMChangesLogList {
 
 	public String timestamp;
+	private String timestampms;
+
+	private String sessionstartms ="";
+
+	private String sessionstartparsed ="";
+
+	private String usertimezoneoffset ="";
+	
 	public String sd;
 	public String sid;
 
@@ -39,30 +47,24 @@ public class DOMChangesLogList {
 	/**
 	 * Adds the necessary context information to the DOM change list element
 	 * 
-	 * @param time
-	 *            , the timestamp
-	 * @param sd
-	 *            , web page identifier
-	 * @param sid
-	 *            , session identifier
-	 * @param clientIP
-	 *            , the IP address of the client
-	 * @param url
-	 *            , url of the Web page
-	 * @param browser
-	 *            , client's browser
-	 * @param platform
-	 *            , client's operating system
+	 * @param domBean
+	 *            , {@link DOMBean} with all the necessary information
 	 */
-	public void setContextInfo(String time, String sd, String sid,
-			String clientIP, String url, String browser, String platform) {
-		this.timestamp = time;
-		this.sd = sd;
-		this.sid = sid;
-		this.clientIP = clientIP;
-		this.url = url;
-		this.browser= browser;
-		this.platform = platform;
+	
+	public void setContextInfo(DOMBean domBean) {
+		this.timestamp = domBean.getTimestamp();
+		this.timestampms = domBean.getTimestampms();
+		
+		this.sessionstartms = domBean.getSessionstartms();
+		this.sessionstartparsed = domBean.getSessionstartparsed();
+		this.usertimezoneoffset = domBean.getUsertimezoneoffset();
+
+		this.sd = domBean.getSd();
+		this.sid = domBean.getSid();
+		this.clientIP = domBean.getClientIP();
+		this.url = domBean.getUrl();
+		this.browser= domBean.getBrowser();
+		this.platform = domBean.getPlatform();
 	}
 
 	/**

@@ -15,6 +15,9 @@ public class Mouseout extends GenericEvent{
 	 */
 	public Mouseout(){
 		super();
+		
+		this.mouseCoordinates = null;
+
 		this.nodeInfo = null;
 	}
 
@@ -56,7 +59,9 @@ public class Mouseout extends GenericEvent{
 	
 	public Mouseout (Mouseout tempClass){
 		super(tempClass);
-		
+
+		this.mouseCoordinates = tempClass.mouseCoordinates;
+
 		this.nodeInfo = tempClass.nodeInfo;
 
 		
@@ -104,14 +109,30 @@ public class Mouseout extends GenericEvent{
 	private Mouseout(EventDataHashMap eventData) {
 		super(eventData);
 		
+		this.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
+
 		this.nodeInfo = NodeInfo.parseFromHash(eventData);
 	}
+	
+	/**
+	 * MouseCoordinates element with all the information available of the mouse coordinates
+	 */
+	private MouseCoordinates mouseCoordinates;
 
 	/**
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
 
+	
+	public MouseCoordinates getMouseCoordinates() {
+		return mouseCoordinates;
+	}
+
+	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
+		this.mouseCoordinates = mouseCoordinates;
+	}
+	
 	public NodeInfo getNodeInfo() {
 		return nodeInfo;
 	}

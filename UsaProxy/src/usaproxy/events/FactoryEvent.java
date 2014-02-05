@@ -27,124 +27,132 @@ public class FactoryEvent {
 		String jsonObject = "";
 		
 		switch (eventHashMap.get(EventConstants.EVENTNAME)) {
-			case "blur":
+		
+		case EventConstants.BLUR:
 				jsonObject = Blur.parseFromHash(eventHashMap).toGson();
 				break;
-			case "change":
+			case EventConstants.CHANGE:
 				jsonObject = Change.parseFromHash(eventHashMap).toGson();
 				break;
-			case "contextmenu":
+			case EventConstants.CONTEXTMENU:
 				jsonObject = Contextmenu.parseFromHash(eventHashMap).toGson();
 				break;
-			case "copy":
+			case EventConstants.COPY:
 				jsonObject = Copy.parseFromHash(eventHashMap).toGson();
 				break;
-			case "cut":
+			case EventConstants.CUT:
 				jsonObject = Cut.parseFromHash(eventHashMap).toGson();
 				break;
-			case "dblclick":
+			case EventConstants.DBLCLICK:
 				jsonObject = Dblclick.parseFromHash(eventHashMap).toGson();
 				break;
-			case "domchange":
+			case EventConstants.DOMCHANGE:
 				jsonObject = Domchange.parseFromHash(eventHashMap).toGson();
 				break;
-			case "focus":
+			case EventConstants.FOCUS:
 				jsonObject = Focus.parseFromHash(eventHashMap).toGson();
 				break;
-			case "keydown":
+			case EventConstants.KEYDOWN:
 				jsonObject = Keydown.parseFromHash(eventHashMap).toGson();
 				break;
-			case "keypress":
+			case EventConstants.KEYPRESS:
 				jsonObject = Keypress.parseFromHash(eventHashMap).toGson();
 				break;
-			case "keyup":
+			case EventConstants.KEYUP:
 				jsonObject = Keyup.parseFromHash(eventHashMap).toGson();
 				break;
-			case "load":
+			case EventConstants.LOAD:
 				jsonObject = Load.parseFromHash(eventHashMap).toGson();
 				break;
-			case "mousedown":
+			case EventConstants.MOUSEDOWN:
 				jsonObject = Mousedown.parseFromHash(eventHashMap).toGson();
 				break;
-			case "mousemove":
+			case EventConstants.MOUSEMOVE:
 				jsonObject = Mousemove.parseFromHash(eventHashMap).toGson();
 				break;
-			case "mouseout":
+			case EventConstants.MOUSEOUT:
 				jsonObject = Mouseout.parseFromHash(eventHashMap).toGson();
 				break;
-			case "mouseover":
+			case EventConstants.MOUSEOVER:
 				jsonObject = Mouseover.parseFromHash(eventHashMap).toGson();
 				break;
-			case "mouseup":
+			case EventConstants.MOUSEUP:
 				jsonObject = Mouseup.parseFromHash(eventHashMap).toGson();
 				break;
-			case "mousewheel":
+			case EventConstants.MOUSEWHEEL:
 				jsonObject = Mousewheel.parseFromHash(eventHashMap).toGson();
 				break;
-			case "paste":
+			case EventConstants.PASTE:
 				jsonObject = Paste.parseFromHash(eventHashMap).toGson();
 				break;
-			case "resize":
+			case EventConstants.RESIZE:
 				jsonObject = Resize.parseFromHash(eventHashMap).toGson();
 				break;
-			case "scroll":
+			case EventConstants.SCROLL:
 				jsonObject = Scroll.parseFromHash(eventHashMap).toGson();
 				break;
-			case "select_Extra":
+			case EventConstants.SELECT_EXTRA:
 				jsonObject = SelectContent.parseFromHash(eventHashMap).toGson();
 				break;
-			case "select":
+			case EventConstants.SELECT:
 				jsonObject = SelectContent.parseFromHash(eventHashMap).toGson();
 				break;
-			case "selectextra":
+			case EventConstants.SELECTEXTRA:
 				jsonObject = SelectContent.parseFromHash(eventHashMap).toGson();
 				break;
-			case "unload":
+			case EventConstants.UNLOAD:
 				jsonObject = Unload.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "windowfocus":
+			case EventConstants.WINDOWFOCUS:
 				jsonObject = WindowFocus.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "windowblur":
+			case EventConstants.WINDOWBLUR:
 				jsonObject = WindowBlur.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "mobileTouchStart":
+			case EventConstants.MOBILETOUCHSTART:
 				jsonObject = MobileTouchStart.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "mobileTouchEnd":
+			case EventConstants.MOBILETOUCHEND:
 				jsonObject = MobileTouchEnd.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "mobileOrientationChange":
+			case EventConstants.MOBILEORIENTATIONCHANGE:
 				jsonObject = MobileOrientationChange.parseFromHash(eventHashMap).toGson();
 				break;
 
-			case "mobileGyroscope":
+			case EventConstants.MOBILEGYROSCOPE:
 				jsonObject = MobileGyroscope.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "mobileMotion":
+			case EventConstants.MOBILEMOTION:
 				jsonObject = MobileMotion.parseFromHash(eventHashMap).toGson();
 				break;
 				
 				
-			case "cookiedisclaimershown":
+			case EventConstants.COOKIEDISCLAIMERSHOWN:
 				jsonObject = CookieDisclaimerShown.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "cookiedisclaimeraccepted":
+			case EventConstants.COOKIEDISCLAIMERACCEPTED:
 				jsonObject = CookieDisclaimerAccepted.parseFromHash(eventHashMap).toGson();
 				break;
 				
-			case "cookiedisclaimerrejected":
+			case EventConstants.COOKIEDISCLAIMERREJECTED:
 				jsonObject = CookieDisclaimerAccepted.parseFromHash(eventHashMap).toGson();
 				break;
 				
-
+			case EventConstants.WINDOWQUERYFOCUS:
+				jsonObject = WindowQueryFocus.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case EventConstants.WINDOWQUERYBLUR:
+				jsonObject = WindowQueryBlur.parseFromHash(eventHashMap).toGson();
+				break;
+				
 			default:
 				ErrorLogging
 				.logError(
