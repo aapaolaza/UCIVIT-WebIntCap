@@ -1,0 +1,22 @@
+body {background-color: #EFF3E7; font-family:Arial,Helvetica,sans-serif; font-size:12px; color:#000000; text-decoration:none; text-align: center}
+
+#DIV_surround {width:600px; margin: 0px auto; text-align:left; background-color: #ffffff; height: auto;}
+#DIV_headline {width:590px; height: 90px; padding-top:0px; padding-left:10px; text-align:left; float:left;}
+#DIV_main {width:600px; padding-top:0px; padding-left:10px; float:left; text-align:left; height: 250px; overflow:hidden}
+#DIV_status {width:175px; padding-top:0px; text-align:left; float:left; background-color: #DDF0B6; padding:5px;}
+#DIV_proposals {width:175px; height:220px; padding-top:0px; text-align:left; float:left; background-color: #DDF0B6; padding:5px; margin-left:10px;}
+#DIV_partners {width:175px; height:220px; padding-top:0px; text-align:left; float:left; background-color: #DDF0B6; padding:5px; margin-left:10px;}
+#DIV_onlines {width:175px; height:220px; padding-top:0px; text-align:left; float:left; background-color: #DDF0B6; padding:5px; margin-left:10px;}
+#onlines {width:100px; height:200px; overflow:auto; padding-top:5px}
+#DIV_notification {width:595px; padding-left:5px;}
+#DIV_bottom {height: 15px; width: 600px; margin: 0px auto; background-color: #ffffff; text-align:right;}
+
+a:hover{text-decoration:underline;}
+h1{font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;color: #006600;text-decoration:none; padding-bottom:6px;padding-top:12px;}
+h2{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#006600;text-decoration:none;padding:0px;padding-bottom:0px;padding-top:7px;padding-left:5px;}
+hr{margin:0px;padding:0px;border-style:solid;height:0px;border-color:#006600;border-width: 1px 0 0 0;} 
+p{text-decoration:none;padding-bottom:6px}
+ul{color:#006600;text-decoration:none;padding:0px;margin:0px;padding-left:25px;padding-bottom:12px;margin-top:0px;padding-top:0px;list-style-type:square;}
+li{color:#000000;text-decoration:none;padding:0px;margin:0px;margin-top:0px;padding-top:0px;margin-bottom:12px;}
+
+.copyright {font-family:Arial,Helvetica,sans-serif;font-size:9px;color: 006600;text-decoration:none; padding-right: 5px;}
