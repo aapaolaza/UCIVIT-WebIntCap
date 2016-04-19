@@ -201,11 +201,16 @@ public class SocketData {
 			StringBuffer headers = new StringBuffer();
 				
 			headers.append("HTTP/1.1 200 OK").append(HTTPData.CRLF);
-			headers.append(HTTPData.CRLF);
 			
+			// Function to support crossdomain access
+			headers.append("Access-Control-Allow-Origin: *").append(HTTPData.CRLF);
+
+			headers.append(HTTPData.CRLF);
+
 			/** send headers */
 			dout.writeBytes(headers.toString());
 			dout.flush();
     }
+	
 
 }

@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -343,7 +345,8 @@ public class EventManager {
 		}
 
 		catch (Exception ie) {
-			System.err.println("\nAn ERROR occured while logging:\n" + ie);
+			System.err.print("\nAn ERROR occured while logging:\n");
+			ie.printStackTrace();
 		}
 
 		/** notify waiting clients that log file is accessible */
@@ -1025,7 +1028,11 @@ public class EventManager {
 		// EventDataHashMap will automatically parse the event data,
 		// and by adding the IP address we will have all the information there
 		EventDataHashMap eventHashMap = new EventDataHashMap(eventData);
-		eventHashMap.put(EventConstants.IPADDRESS, ipAddress);
+		
+		if (eventHashMap.containsKey("needsEncoding") && eventHashMap.get("needsEncoding").equals("true"))
+			eventHashMap.put(EventConstants.IPADDRESS, md5Hash(ipAddress));
+		else
+			eventHashMap.put(EventConstants.IPADDRESS, ipAddress);
 
 		try{
 			
@@ -1086,6 +1093,54 @@ public class EventManager {
 		input = input.replaceAll("\n", "");
 		input = input.replaceAll("\r", "");
 		return (input);
+	}
+	
+
+	/**
+	 * This function will return the MD5 hash of the input. Author: mkyong, from
+	 * http://www.mkyong.com/java/java-md5-hashing-example/
+	 * 
+	 * @throws NoSuchAlgorithmException
+	 */
+	private static MessageDigest md;
+	static {
+		try {
+		md = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			md = null;
+			ErrorLogging.logCriticalError("ClientRequest.java:md5Hash",
+					"The MD5 encoding failed", e);
+		}
+	}
+
+	public String md5Hash(String input) {
+
+		if (md == null) {
+			return input;
+		}
+		md.update(input.getBytes());
+
+		byte byteData[] = md.digest();
+
+		// convert the byte to hex format method 1
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < byteData.length; i++) {
+			sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16)
+					.substring(1));
+		}
+
+		//System.out.println("Digest(in hex format):: " + sb.toString());
+
+		// convert the byte to hex format method 2
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < byteData.length; i++) {
+			String hex = Integer.toHexString(0xff & byteData[i]);
+			if (hex.length() == 1)
+				hexString.append('0');
+			hexString.append(hex);
+		}
+		return hexString.toString();
+
 	}
 
 }

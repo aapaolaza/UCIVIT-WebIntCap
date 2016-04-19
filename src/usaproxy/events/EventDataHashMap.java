@@ -72,6 +72,15 @@ public class EventDataHashMap {
 	public String put(String key, String value) {
 		return dataMap.put(key, decodeValue(value));
 	}
+	
+	/**
+	 * Return true if the HashMap contains the given key
+	 * @param key
+	 * @return boolean
+	 */
+	public boolean containsKey(String key){
+		return dataMap.containsKey(key);
+	}
 
 	/**
 	 * Decodes the input, using  URLDecoder.decode()

@@ -10,6 +10,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -41,7 +43,7 @@ public class ClientRequest extends Thread {
 	 * Manages the client <code>Socket</code>, streams, and the request headers.
 	 */
 	private SocketData client;
-	
+
 	/**
 	 * Manages the server <code>Socket</code>, streams, and the response
 	 * headers.
@@ -82,7 +84,7 @@ public class ClientRequest extends Thread {
 
 		this.client = new SocketData(socket);
 		socket.setSoTimeout(10000);
-		
+
 		this.usaProxy = usaProxy;
 		/** start this */
 		start();
@@ -98,22 +100,22 @@ public class ClientRequest extends Thread {
 		//System.out.println("STARTING thread number: " + threadId + "; at time: " + timeStampms());
 
 		try {
-		
+
 			/** retrieve client communication streams */
 			client.bindInputStream();
 			client.bindOutputStream();
 
 			/** parse request */
 			processRequest(client.getIn());
-		
+
 		} catch (Exception e) {
 			System.err
-					.println("\nAn ERROR occured while negotiating with the server:\n"
-							+ e);
+			.println("\nAn ERROR occured while negotiating with the server:\n"
+					+ e);
 			e.printStackTrace();
-			
+
 			ErrorLogging.logError("ClientRequest.java: run()",
-        			"ERROR occured while negotiating with the server",e);
+					"ERROR occured while negotiating with the server",e);
 
 		} finally {
 
@@ -133,11 +135,11 @@ public class ClientRequest extends Thread {
 					server.closeSocket();
 			} catch (Exception ex) {
 				System.err
-						.println("\nAn ERROR occured while closing streams and sockets");
+				.println("\nAn ERROR occured while closing streams and sockets");
 				ex.printStackTrace();
 			}
 		}
-		       
+
 		//System.out.println("ENDING thread number: " + threadId + "; at time: " + timeStampms());
 	}
 
@@ -170,7 +172,7 @@ public class ClientRequest extends Thread {
 
 			/** get request-line */
 			url = (String) client.getHeaders().elementAt(0);
-			
+
 			clientIP = client.getSocket().getInetAddress().getHostAddress();
 
 			if (url == null)
@@ -227,7 +229,7 @@ public class ClientRequest extends Thread {
 			if (url.toUpperCase().lastIndexOf("HTTP") >= 0)
 				/** if HTTP version exists */
 				url = url.substring(0, url.toUpperCase().lastIndexOf("HTTP"))
-						.trim();
+				.trim();
 			else
 				url = url.trim();
 
@@ -303,8 +305,8 @@ public class ClientRequest extends Thread {
 					if (partner_field == null || !partner_field.equals(psid)) {
 						/** send "403" Forbidden response */
 						SocketData
-								.send403(new DataOutputStream(client.getOut()),
-										"Wrong partner session ID URL parameter specified !");
+						.send403(new DataOutputStream(client.getOut()),
+								"Wrong partner session ID URL parameter specified !");
 						return;
 					}
 				}
@@ -335,14 +337,14 @@ public class ClientRequest extends Thread {
 								usaProxy.getIP(), usaProxy.getPort()));
 					} catch (Exception err) {
 						System.err
-								.println("\nAn ERROR occured while opening UsaProxy server socket:\n"
-										+ err);
-						
+						.println("\nAn ERROR occured while opening UsaProxy server socket:\n"
+								+ err);
+
 						ErrorLogging
-								.logError(
-										"ClientRequest.java/processRequest()",
-										"ERROR occured while opening UsaProxy server socket",
-										err);
+						.logError(
+								"ClientRequest.java/processRequest()",
+								"ERROR occured while opening UsaProxy server socket",
+								err);
 					}
 
 					/**
@@ -360,8 +362,8 @@ public class ClientRequest extends Thread {
 							+ " without authorization!");
 					/** send "403" Forbidden response */
 					SocketData
-							.send403(new DataOutputStream(client.getOut()),
-									"You are not entitled to request this serverdata ID (sd) !");
+					.send403(new DataOutputStream(client.getOut()),
+							"You are not entitled to request this serverdata ID (sd) !");
 				}
 
 			}
@@ -395,7 +397,7 @@ public class ClientRequest extends Thread {
 				/** retrieve appropriate HTTP response headers and HTML data */
 				String filename = (requestURL.getPath()
 						.startsWith("/remotemonitoring")) ? "remotemonitoring.htm"
-						: "sharedbrowsing.htm";
+								: "sharedbrowsing.htm";
 				InputStream fis = usaProxy.getFileSender()
 						.getHTMLData(filename);
 
@@ -429,8 +431,8 @@ public class ClientRequest extends Thread {
 
 				} catch (Exception err) {
 					System.err
-							.println("\nAn ERROR occured while opening default server socket:\n"
-									+ err);
+					.println("\nAn ERROR occured while opening default server socket:\n"
+							+ err);
 					/** send "404" Not Found response */
 					SocketData.send404(new DataOutputStream(client.getOut()));
 				}
@@ -456,13 +458,13 @@ public class ClientRequest extends Thread {
 				/** define parameters for proxyscript.js file delivery */
 				String sessionID = ""; // cookie session ID
 				boolean isWindowNameSet = false; // flag: if session window was
-													// already defined by client
+				// already defined by client
 				int lastLogEntry = -1; // last event log entry that was fetched
 				String remoteMonitorer = ""; // defines if user is the
-												// monitoring party in a shared
-												// session
+				// monitoring party in a shared
+				// session
 				boolean isAdmin = false; // defines if user is registered for
-											// Live Support assistance
+				// Live Support assistance
 				String status = ""; // holds the user's status (online/offline)
 				String partnerSID = ""; // holds the user's collaborator
 
@@ -618,8 +620,8 @@ public class ClientRequest extends Thread {
 					if (partner_field == null || !partner_field.equals(psid)) {
 						/** send "403" Forbidden response */
 						SocketData
-								.send403(new DataOutputStream(client.getOut()),
-										"Wrong partner session ID URL parameter specified !");
+						.send403(new DataOutputStream(client.getOut()),
+								"Wrong partner session ID URL parameter specified !");
 						return;
 					}
 
@@ -643,7 +645,7 @@ public class ClientRequest extends Thread {
 
 				// /DEBUG TEST
 				//String[] dataArray = requestURL.getQuery().split("&xX");
-				
+
 				// DEBUG
 				// System.out.println("\n\n\n\n\n\nClientRequest processRequest log  Received new data"
 				// +"Parsing a total of " + dataArray.length + "elements");
@@ -703,9 +705,9 @@ public class ClientRequest extends Thread {
 								|| !partner_field.equals(psid)) {
 							/** send "403" Forbidden response */
 							SocketData
-									.send403(
-											new DataOutputStream(client
-													.getOut()),
+							.send403(
+									new DataOutputStream(client
+											.getOut()),
 											"Wrong partner session ID URL parameter specified !");
 							return;
 						}
@@ -726,8 +728,8 @@ public class ClientRequest extends Thread {
 				if (usaProxy.isLogging()
 						&& !usaProxy.getLogMode().equals("pagereq")
 						&& requestURL.getQuery().indexOf("lastId=") == -1)
-//					usaProxy.getEventManager().log(client.getOut(),
-//							requestURL.getQuery(), client.getSocket());
+					//					usaProxy.getEventManager().log(client.getOut(),
+					//							requestURL.getQuery(), client.getSocket());
 					usaProxy.getEventManager().log(client.getOut(),
 							requestURL.getQuery(), clientIP, client.getSocket());
 			}
@@ -774,8 +776,8 @@ public class ClientRequest extends Thread {
 					if (partner_field == null || !partner_field.equals(psid)) {
 						/** send "403" Forbidden response */
 						SocketData
-								.send403(new DataOutputStream(client.getOut()),
-										"Wrong partner session ID URL parameter specified !");
+						.send403(new DataOutputStream(client.getOut()),
+								"Wrong partner session ID URL parameter specified !");
 						return;
 					}
 
@@ -822,8 +824,8 @@ public class ClientRequest extends Thread {
 					if (partner_field == null || !partner_field.equals(psid)) {
 						/** send "403" Forbidden response */
 						SocketData
-								.send403(new DataOutputStream(client.getOut()),
-										"Wrong partner session ID URL parameter specified !");
+						.send403(new DataOutputStream(client.getOut()),
+								"Wrong partner session ID URL parameter specified !");
 						return;
 					}
 				}
@@ -954,7 +956,7 @@ public class ClientRequest extends Thread {
 				 * (psid=null) for all registered admins/support assistants
 				 */
 				usaProxy.getUsers()
-						.generateProposal(client.getOut(), sid, psid);
+				.generateProposal(client.getOut(), sid, psid);
 			}
 
 			/*********************************************************************
@@ -1062,146 +1064,155 @@ public class ClientRequest extends Thread {
 			 * replies, the response processing is handed over to
 			 * processResponse()
 			 * */
-//			else {
-//				
-//				/////////We removed the possibility of acting as a Proxy, minimizing the overload the server will have
-//
-//				/**
-//				 * other undefined "usaproxylolo" requests: Reject request
-//				 */
-//				if (requestURL.getPath().startsWith("/usaproxylolo")) {
-//					SocketData.send403(new DataOutputStream(client.getOut()),
-//							"Forbidden usaproxylolo request !");
-//					return;
-//				}
-//
-//				/** Display message: Client and requested URL */
-//				if (UsaProxy.DEBUG)
-//					System.out.println("New REQUEST:");
-//				if (UsaProxy.DEBUG)
-//					System.out.println("From client "
-//							+ client.getSocket().getInetAddress().getHostName()
-//							+ " ("
-//							+ client.getSocket().getInetAddress()
-//									.getHostAddress() + ") with request GET "
-//							+ url + "\n");
-//
-//				/** HTTP headers processing */
-//
-//				/**
-//				 * add X-Forwarded-For header to ensure the server gets the
-//				 * client IP
-//				 */
-//				client.getHeaders().put(HTTPData.HEADER_X_FORWARDED_FOR,
-//						client.getSocket().getInetAddress().getHostAddress());
-//
-//				/**
-//				 * add accept-encoding header value "identity" to avoid gzip
-//				 * content-encoding
-//				 */
-//				client.getHeaders().put(HTTPData.HEADER_ACCEPT_ENCODING,
-//						"identity");
-//
-//				/** add connection header value "close" */
-//				client.getHeaders().put(HTTPData.HEADER_CONNECTION, "close");
-//
-//				/** remove proxy-connection and keep-alive header */
-//				if (client.getHeaders().containsKey(
-//						HTTPData.HEADER_PROXY_CONNECTION))
-//					client.getHeaders()
-//							.remove(HTTPData.HEADER_PROXY_CONNECTION);
-//				if (client.getHeaders().containsKey(
-//						HTTPData.HEADER_CONNECTION_KEEPALIVE))
-//					client.getHeaders().remove(
-//							HTTPData.HEADER_CONNECTION_KEEPALIVE);
-//
-//				/** add UsaProxy header for Apache mod_rewrite */
-//				client.getHeaders().put(HTTPData.HEADER_X_USAPROXY, "client");
-//
-//				// client.getHeaders().printHeaders();
-//				// requestURL.toString();
-//
-//				/** end HTTP headers processing */
-//
-//				/** connect with the web server depending on the proxy mode */
-//				try {
-//					this.server = new SocketData(usaProxy.getMode()
-//							.getServerConnect());
-//				}
-//				/** if server could not be detected or didn't respond */
-//				catch (Exception err) {
-//
-//					System.err
-//							.println("\nAn ERROR occured while connecting to the server:\n"
-//									+ err);
-//					
-//					ErrorLogging.logCriticalError("ClientRquest.java:processRequest, Proxy section","ERROR occured while connecting to the server", err );
-//					err.printStackTrace();
-//
-//					/**
-//					 * send error message to client with the error, the
-//					 * requested url, and the host
-//					 */
-//					SocketData.send403(new DataOutputStream(client.getOut()),
-//							err.getMessage());
-//
-//					/** Close streams and sockets */
-//					client.closeInputStream();
-//					client.closeOutputStream();
-//					client.closeSocket();
-//					if (server != null)
-//						server.closeSocket();
-//
-//					/** End of run */
-//					return;
-//				}
-//
-//				if (method.equals("POST"))
-//					client.setIn(in);
-//				else
-//					client.setIn(null);
-//
-//				/** Create server streams */
-//				/** Create client streams */
-//				server.bindInputStream();
-//				server.bindOutputStream();
-//
-//				/**
-//				 * retrieve new httptraffic index for the storage of request and
-//				 * response
-//				 */
-//				if (usaProxy.getHttpTraffic().isCachingEnabled())
-//					httpTrafficIndex = usaProxy.getHttpTraffic()
-//							.getHttpTrafficIndex(true);
-//
-//				/**
-//				 * Create new Thread that manages the posting of the client
-//				 * request to the web server
-//				 */
-//				new ServerRequest(client, server, this);
-//
-//				/** Receive server response and process it */
-//				processResponse(server.getIn());
-//				
-//				//Trying to fix java.net.SocketException: Too many open files
-//				//We will close the socket once the response is sent.
-//				
-//				client.closeInputStream();
-//				client.closeOutputStream();
-//				client.closeSocket();
-//				if (server != null)
-//					server.closeSocket();
-//			}
-			
+			//			else {
+			//				
+			//				/////////We removed the possibility of acting as a Proxy, minimizing the overload the server will have
+			//
+			//				/**
+			//				 * other undefined "usaproxylolo" requests: Reject request
+			//				 */
+			//				if (requestURL.getPath().startsWith("/usaproxylolo")) {
+			//					SocketData.send403(new DataOutputStream(client.getOut()),
+			//							"Forbidden usaproxylolo request !");
+			//					return;
+			//				}
+			//
+			//				/** Display message: Client and requested URL */
+			//				if (UsaProxy.DEBUG)
+			//					System.out.println("New REQUEST:");
+			//				if (UsaProxy.DEBUG)
+			//					System.out.println("From client "
+			//							+ client.getSocket().getInetAddress().getHostName()
+			//							+ " ("
+			//							+ client.getSocket().getInetAddress()
+			//									.getHostAddress() + ") with request GET "
+			//							+ url + "\n");
+			//
+			//				/** HTTP headers processing */
+			//
+			//				/**
+			//				 * add X-Forwarded-For header to ensure the server gets the
+			//				 * client IP
+			//				 */
+			//				client.getHeaders().put(HTTPData.HEADER_X_FORWARDED_FOR,
+			//						client.getSocket().getInetAddress().getHostAddress());
+			//
+			//				/**
+			//				 * add accept-encoding header value "identity" to avoid gzip
+			//				 * content-encoding
+			//				 */
+			//				client.getHeaders().put(HTTPData.HEADER_ACCEPT_ENCODING,
+			//						"identity");
+			//
+			//				/** add connection header value "close" */
+			//				client.getHeaders().put(HTTPData.HEADER_CONNECTION, "close");
+			//
+			//				/** remove proxy-connection and keep-alive header */
+			//				if (client.getHeaders().containsKey(
+			//						HTTPData.HEADER_PROXY_CONNECTION))
+			//					client.getHeaders()
+			//							.remove(HTTPData.HEADER_PROXY_CONNECTION);
+			//				if (client.getHeaders().containsKey(
+			//						HTTPData.HEADER_CONNECTION_KEEPALIVE))
+			//					client.getHeaders().remove(
+			//							HTTPData.HEADER_CONNECTION_KEEPALIVE);
+			//
+			//				/** add UsaProxy header for Apache mod_rewrite */
+			//				client.getHeaders().put(HTTPData.HEADER_X_USAPROXY, "client");
+			//
+			//				// client.getHeaders().printHeaders();
+			//				// requestURL.toString();
+			//
+			//				/** end HTTP headers processing */
+			//
+			//				/** connect with the web server depending on the proxy mode */
+			//				try {
+			//					this.server = new SocketData(usaProxy.getMode()
+			//							.getServerConnect());
+			//				}
+			//				/** if server could not be detected or didn't respond */
+			//				catch (Exception err) {
+			//
+			//					System.err
+			//							.println("\nAn ERROR occured while connecting to the server:\n"
+			//									+ err);
+			//					
+			//					ErrorLogging.logCriticalError("ClientRquest.java:processRequest, Proxy section","ERROR occured while connecting to the server", err );
+			//					err.printStackTrace();
+			//
+			//					/**
+			//					 * send error message to client with the error, the
+			//					 * requested url, and the host
+			//					 */
+			//					SocketData.send403(new DataOutputStream(client.getOut()),
+			//							err.getMessage());
+			//
+			//					/** Close streams and sockets */
+			//					client.closeInputStream();
+			//					client.closeOutputStream();
+			//					client.closeSocket();
+			//					if (server != null)
+			//						server.closeSocket();
+			//
+			//					/** End of run */
+			//					return;
+			//				}
+			//
+			//				if (method.equals("POST"))
+			//					client.setIn(in);
+			//				else
+			//					client.setIn(null);
+			//
+			//				/** Create server streams */
+			//				/** Create client streams */
+			//				server.bindInputStream();
+			//				server.bindOutputStream();
+			//
+			//				/**
+			//				 * retrieve new httptraffic index for the storage of request and
+			//				 * response
+			//				 */
+			//				if (usaProxy.getHttpTraffic().isCachingEnabled())
+			//					httpTrafficIndex = usaProxy.getHttpTraffic()
+			//							.getHttpTrafficIndex(true);
+			//
+			//				/**
+			//				 * Create new Thread that manages the posting of the client
+			//				 * request to the web server
+			//				 */
+			//				new ServerRequest(client, server, this);
+			//
+			//				/** Receive server response and process it */
+			//				processResponse(server.getIn());
+			//				
+			//				//Trying to fix java.net.SocketException: Too many open files
+			//				//We will close the socket once the response is sent.
+			//				
+			//				client.closeInputStream();
+			//				client.closeOutputStream();
+			//				client.closeSocket();
+			//				if (server != null)
+			//					server.closeSocket();
+			//			}
 
+			///Fixing console message
+			try{
+				SocketData.send200(
+						new DataOutputStream(client.getOut()));
+				System.out.println(" 200 returned ");
+			}
+			catch(Exception e){
+				System.out.println("could not return 200");
+			}
+			
 		} catch (IOException e) {
 			// e.printStackTrace();
 			if (client.getSocket() != null) {
 				ErrorLogging.logCriticalError("ClientRequest.java/process Request","\nAn IO ERROR occured while processing request:\n"
-								+ client.getHeaders().elementAt(0)
-								+ " from client "
-								+ client.getSocket().getInetAddress()
-										.getHostName(),e);
+						+ client.getHeaders().elementAt(0)
+						+ " from client "
+						+ client.getSocket().getInetAddress()
+						.getHostName(),e);
 				/*if (client.getSocket().isClosed()) {
 					System.err
 							.println("Reason: Client closed his socket (maybe left for www.weg.de)\n");
@@ -1250,7 +1261,7 @@ public class ClientRequest extends Thread {
 					+ HTTPData.SESSION_ID_NAME.length() + 1;
 			int endPos = (sessionID.indexOf(";", startPos) > -1) ? sessionID
 					.indexOf(";", startPos) : sessionID.length();
-			sessionID = sessionID.substring(startPos, endPos).trim();
+					sessionID = sessionID.substring(startPos, endPos).trim();
 
 		} else {
 			/** If session ID wasn't set yet, generate a 12-char random String */
@@ -1324,20 +1335,20 @@ public class ClientRequest extends Thread {
 		} catch (IOException e) {
 			if (server.getSocket() != null) {
 				System.err
-						.println("\nAn ERROR occured while reading response headers: "
-								+ "from server "
-								+ server.getSocket().getInetAddress()
-										.getHostName() + ":\n" + e);
-				
+				.println("\nAn ERROR occured while reading response headers: "
+						+ "from server "
+						+ server.getSocket().getInetAddress()
+						.getHostName() + ":\n" + e);
+
 				ErrorLogging.logError("ClientRequest.java/processResponse()",
-	        			"ERROR occured while reading response headers",e);
+						"ERROR occured while reading response headers",e);
 			} else {
 				System.err
-						.println("\nAn ERROR occured while reading response headers: "
-								+ "\n" + e);
-				
+				.println("\nAn ERROR occured while reading response headers: "
+						+ "\n" + e);
+
 				ErrorLogging.logError("ClientRequest.java: processResponse()",
-	        			"ERROR occured while reading response headers",e);
+						"ERROR occured while reading response headers",e);
 			}
 		}
 
@@ -1358,10 +1369,10 @@ public class ClientRequest extends Thread {
 				 */
 				|| (requestURL.getPath().startsWith("/remotemonitoring") && (requestURL
 						.getQuery() != null ? requestURL.getQuery().indexOf(
-						"usaproxyload&") == -1 : true))
-				|| (requestURL.getPath().startsWith("/sharedbrowsing") && (requestURL
-						.getQuery() != null ? requestURL.getQuery().indexOf(
-						"usaproxyload&") == -1 : true))) {
+								"usaproxyload&") == -1 : true))
+								|| (requestURL.getPath().startsWith("/sharedbrowsing") && (requestURL
+										.getQuery() != null ? requestURL.getQuery().indexOf(
+												"usaproxyload&") == -1 : true))) {
 
 			/** add VIA-header in the form Via: <hostname> (UsaProxy/2.0) */
 			try {
@@ -1375,8 +1386,8 @@ public class ClientRequest extends Thread {
 				server.getHeaders().put(HTTPData.HEADER_VIA, newVia);
 			} catch (UnknownHostException e1) {
 				System.err
-						.println("\nAn ERROR occured while reading generating VIA header: "
-								+ e1);
+				.println("\nAn ERROR occured while reading generating VIA header: "
+						+ e1);
 			}
 
 			/**
@@ -1395,10 +1406,10 @@ public class ClientRequest extends Thread {
 
 			/** retrieve status line */
 			String status = (String) server.getHeaders().elementAt(0); // get
-																		// status-line
+			// status-line
 			if (!(HTTPData.isStatusLine(status))) { // if first header !=
-													// status-line search
-													// status-line
+				// status-line search
+				// status-line
 
 				for (int j = 0; j < server.getHeaders().size(); j++) {
 					if (HTTPData.isStatusLine(server.getHeaders().keyAt(j)))
@@ -1494,7 +1505,7 @@ public class ClientRequest extends Thread {
 					buf.write(b);
 					/** append byte to buf */
 
-/** b== '<' || (headStarted && b == '>') */
+					/** b== '<' || (headStarted && b == '>') */
 				} else {
 					buf.write(b);
 					/** append byte to buf */
@@ -1566,15 +1577,15 @@ public class ClientRequest extends Thread {
 					/** complete head-tag detected */
 
 					System.out
-							.println("\nUsaProxy script tag was added to request "
-									+ client.getHeaders().elementAt(0)
-									+ "\n"
-									+ "Monitoring was started at client "
-									+ client.getSocket().getInetAddress()
-											.getHostName()
-									+ " ("
-									+ client.getSocket().getInetAddress()
-											.getHostAddress() + ")");
+					.println("\nUsaProxy script tag was added to request "
+							+ client.getHeaders().elementAt(0)
+							+ "\n"
+							+ "Monitoring was started at client "
+							+ client.getSocket().getInetAddress()
+							.getHostName()
+							+ " ("
+							+ client.getSocket().getInetAddress()
+							.getHostAddress() + ")");
 
 					headStarted = false;
 					readTooMuch = true;
@@ -1636,7 +1647,7 @@ public class ClientRequest extends Thread {
 					 * be transmitted later
 					 */
 					data.append(dataBefore).append(scriptString)
-							.append(sbScriptString).append(rmScriptString);
+					.append(sbScriptString).append(rmScriptString);
 
 					/**
 					 * adapt header content-length according to scriptstring
@@ -1671,22 +1682,22 @@ public class ClientRequest extends Thread {
 		} catch (IOException e) {
 			if (server.getSocket() != null) {
 				System.err
-						.println("\nAn ERROR occured while enhancing response: "
-								+ "from server "
-								+ server.getSocket().getInetAddress()
-										.getHostName() + ":\n" + e);
-				
+				.println("\nAn ERROR occured while enhancing response: "
+						+ "from server "
+						+ server.getSocket().getInetAddress()
+						.getHostName() + ":\n" + e);
+
 				ErrorLogging.logCriticalError("ClientRequest.java: insertJavaScript()",
-	        			"ERROR occured while enhancing response" + "from server "
+						"ERROR occured while enhancing response" + "from server "
 								+ server.getSocket().getInetAddress()
 								.getHostName(), e);
 			} else {
 				System.err
-						.println("\nAn ERROR occured while enhancing response: "
-								+ "\n" + e);
-				
+				.println("\nAn ERROR occured while enhancing response: "
+						+ "\n" + e);
+
 				ErrorLogging.logError("ClientRequest.java: insertJavaScript()",
-	        			"ERROR occured while enhancing response",e);
+						"ERROR occured while enhancing response",e);
 			}
 		}
 
@@ -1731,7 +1742,7 @@ public class ClientRequest extends Thread {
 		System.out.println("ClientRequest.java: SCRIPT TO INJECT IS: "+scriptString);
 		return scriptString;
 	}
-	
+
 	/**
 	 * As insertPars, it injects the necessary script, 
 	 * but instead of the original UsaProxy script, it injects
@@ -1741,21 +1752,21 @@ public class ClientRequest extends Thread {
 	 * @return String containing the script to inject
 	 */
 	private String insertParsNew() {
-		
-		
+
+
 		//I took the literal copypaste text and used an online tool (http://www.htmlescape.net/javaescape_tool.html)
 		//to obtain the correspondent escaped string
-		
+
 		//String with webpageIndex = 10010 and server IP = wel-experimental
 		String scriptToInject = "<!-- usaProxy script start-->\n\t<script type=\"text/javascript\">\n\t\t\n\t\t//Sensitive fields\' IDs should be in this array. It will be empty by default.\n\t\t//The comparison will be case sensitive!!\n\t\twindow.protectedIds=[];\n\t\t\n\t\t//The webpageindex will be specific to each site\n\t\twindow.webpageIndex = \'10010\';\n\t\twindow.usaProxyServerIP = \'wel-experimental.cs.man.ac.uk:2727\'; \n\t\twindow.sessionId = getCookie(\"proxyUserID\");\n\t\t\n\t\twindow.usaProxySrc = \"http://\"+window.usaProxyServerIP+\"/usaproxylolo/file/proxyscript.js?sd=\"+window.webpageIndex+\"&sid=\"+window.sessionId\n\n\t\t//we add the script dinamically\n\t\tvar usaProxyScriptNode = document.createElement(\'script\');\n\t\tusaProxyScriptNode.id = \'proxyScript_UsaProxy\';\n\t\tusaProxyScriptNode.type = \'text/javascript\';\n\t\tusaProxyScriptNode.src = window.usaProxySrc;\n\n\t\tdocument.getElementsByTagName(\'head\')[0].appendChild(usaProxyScriptNode);\n\t\t\n\t\tfunction getCookie(c_name)\n\t\t{\n\t\t\tvar i,x,y,ARRcookies=document.cookie.split(\";\");\n\t\t\tfor (i=0;i<ARRcookies.length;i++)\n\t\t\t{\n\t\t\t\tx=ARRcookies[i].substr(0,ARRcookies[i].indexOf(\"=\"));\n\t\t\t\ty=ARRcookies[i].substr(ARRcookies[i].indexOf(\"=\")+1);\n\t\t\t\tx=x.replace(/^\\s+|\\s+$/g,\"\");\n\t\t\t\tif (x==c_name)\n\t\t\t\t{\n\t\t\t\t\treturn unescape(y);\n\t\t\t\t}\n\t\t\t}\n\t\t\t\n\t\t\t//we didn\'t find the cookie, so we return null\n\t\t\treturn \"null\";\n\t\t}\n\t\t\n\t</script>\n<!-- usaProxy script end -->\n";
-		
+
 		//String with webpageIndex = 10010 and server IP = 130.88.193.26
 		String testingScriptToInject = "<!-- usaProxy script start-->\n\t<script type=\"text/javascript\">\n\t\t\n\t\t//Sensitive fields\' IDs should be in this array. It will be empty by default.\n\t\t//The comparison will be case sensitive!!\n\t\twindow.protectedIds=[];\n\t\t\n\t\t//The webpageindex will be specific to each site\n\t\twindow.webpageIndex = \'10010\';\n\t\twindow.usaProxyServerIP = \'130.88.193.26:2727\'; \n\t\twindow.sessionId = getCookie(\"proxyUserID\");\n\t\t\n\t\twindow.usaProxySrc = \"http://\"+window.usaProxyServerIP+\"/usaproxylolo/file/proxyscript.js?sd=\"+window.webpageIndex+\"&sid=\"+window.sessionId\n\n\t\t//we add the script dinamically\n\t\tvar usaProxyScriptNode = document.createElement(\'script\');\n\t\tusaProxyScriptNode.id = \'proxyScript_UsaProxy\';\n\t\tusaProxyScriptNode.type = \'text/javascript\';\n\t\tusaProxyScriptNode.src = window.usaProxySrc;\n\n\t\tdocument.getElementsByTagName(\'head\')[0].appendChild(usaProxyScriptNode);\n\t\t\n\t\tfunction getCookie(c_name)\n\t\t{\n\t\t\tvar i,x,y,ARRcookies=document.cookie.split(\";\");\n\t\t\tfor (i=0;i<ARRcookies.length;i++)\n\t\t\t{\n\t\t\t\tx=ARRcookies[i].substr(0,ARRcookies[i].indexOf(\"=\"));\n\t\t\t\ty=ARRcookies[i].substr(ARRcookies[i].indexOf(\"=\")+1);\n\t\t\t\tx=x.replace(/^\\s+|\\s+$/g,\"\");\n\t\t\t\tif (x==c_name)\n\t\t\t\t{\n\t\t\t\t\treturn unescape(y);\n\t\t\t\t}\n\t\t\t}\n\t\t\t\n\t\t\t//we didn\'t find the cookie, so we return null\n\t\t\treturn \"null\";\n\t\t}\n\t\t\n\t</script>\n<!-- usaProxy script end -->\n"; 
-		
+
 		System.out.println("ClientRequest.java: SCRIPT TO INJECT IS: "+testingScriptToInject);
 		return testingScriptToInject;
 	}
-	
+
 	/**
 	 * Sends the response headers to the client. In the case a recorded web page
 	 * is requested ("usaproxyload"), or when HTML is processed, a corresponding
@@ -1821,14 +1832,14 @@ public class ClientRequest extends Thread {
 		} catch (IOException e) {
 			if (client.getSocket() != null) {
 				System.err
-						.println("\nAn ERROR occured while sending response headers: "
-								+ "to client "
-								+ client.getSocket().getInetAddress()
-										.getHostName() + ":\n" + e);
+				.println("\nAn ERROR occured while sending response headers: "
+						+ "to client "
+						+ client.getSocket().getInetAddress()
+						.getHostName() + ":\n" + e);
 			} else {
 				System.err
-						.println("\nAn ERROR occured while sending response headers: "
-								+ "\n" + e);
+				.println("\nAn ERROR occured while sending response headers: "
+						+ "\n" + e);
 			}
 		}
 	}
@@ -1881,23 +1892,23 @@ public class ClientRequest extends Thread {
 							&&
 							usaProxy.getHttpTraffic().isCachingEnabled()) {
 
-					/** store data to indexed txt-file */
-					usaProxy.getHttpTraffic().store(httpTrafficIndex, response,
-							0, responseLength);
+						/** store data to indexed txt-file */
+						usaProxy.getHttpTraffic().store(httpTrafficIndex, response,
+								0, responseLength);
 					}
 				}
 			}
 		} catch (IOException e) {
 			if (client.getSocket() != null) {
 				System.err
-						.println("\nAn ERROR occured while sending response: "
-								+ "to client "
-								+ client.getSocket().getInetAddress()
-										.getHostName() + ":\n" + e);
+				.println("\nAn ERROR occured while sending response: "
+						+ "to client "
+						+ client.getSocket().getInetAddress()
+						.getHostName() + ":\n" + e);
 			} else {
 				System.err
-						.println("\nAn ERROR occured while sending response: "
-								+ "\n" + e);
+				.println("\nAn ERROR occured while sending response: "
+						+ "\n" + e);
 			}
 		}
 	}
@@ -1910,13 +1921,13 @@ public class ClientRequest extends Thread {
 	public String timeStamp() {
 		Calendar now = Calendar.getInstance();
 		return now.get(Calendar.YEAR) + "-"
-				+ completeDateVals(now.get(Calendar.MONTH) + 1) + "-"
-				+ completeDateVals(now.get(Calendar.DAY_OF_MONTH)) + ","
-				+ completeDateVals(now.get(Calendar.HOUR_OF_DAY)) + ":"
-				+ completeDateVals(now.get(Calendar.MINUTE)) + ":"
-				+ completeDateVals(now.get(Calendar.SECOND));
+		+ completeDateVals(now.get(Calendar.MONTH) + 1) + "-"
+		+ completeDateVals(now.get(Calendar.DAY_OF_MONTH)) + ","
+		+ completeDateVals(now.get(Calendar.HOUR_OF_DAY)) + ":"
+		+ completeDateVals(now.get(Calendar.MINUTE)) + ":"
+		+ completeDateVals(now.get(Calendar.SECOND));
 	}
-	
+
 	/**
 	 * Returns a timestamp string of the form "2004-12-31,23:59:59:999"
 	 * 
@@ -1925,12 +1936,12 @@ public class ClientRequest extends Thread {
 	public String timeStampms() {
 		Calendar now = Calendar.getInstance();
 		return now.get(Calendar.YEAR) + "-"
-				+ completeDateVals(now.get(Calendar.MONTH) + 1) + "-"
-				+ completeDateVals(now.get(Calendar.DAY_OF_MONTH)) + ","
-				+ completeDateVals(now.get(Calendar.HOUR_OF_DAY)) + ":"
-				+ completeDateVals(now.get(Calendar.MINUTE)) + ":"
-				+ completeDateVals(now.get(Calendar.SECOND)) + ":"
-				+ completeDateVals(now.get(Calendar.MILLISECOND));
+		+ completeDateVals(now.get(Calendar.MONTH) + 1) + "-"
+		+ completeDateVals(now.get(Calendar.DAY_OF_MONTH)) + ","
+		+ completeDateVals(now.get(Calendar.HOUR_OF_DAY)) + ":"
+		+ completeDateVals(now.get(Calendar.MINUTE)) + ":"
+		+ completeDateVals(now.get(Calendar.SECOND)) + ":"
+		+ completeDateVals(now.get(Calendar.MILLISECOND));
 	}
 	/**
 	 * Converts single-digit numbers into two-digit numbers ("0" prefix).
@@ -2023,11 +2034,11 @@ public class ClientRequest extends Thread {
 
 		/** Return the random number. */
 		return ((int) (Math.floor(intFrom + ((intTo - intFrom + 1) *
-		/** Seed the random number if a value was passed. */
-		Math.random()))));
+				/** Seed the random number if a value was passed. */
+				Math.random()))));
 	}
-	
-	
+
+
 	/**
 	 * 
 	 * This function will "clean up" after all opened hash tables, otherwise we will encounter java heap errors when many users are recorded
@@ -2050,12 +2061,10 @@ public class ClientRequest extends Thread {
 				server.closeSocket();
 		} catch (Exception ex) {
 			System.err
-					.println("\nAn ERROR occured while closing streams and sockets");
+			.println("\nAn ERROR occured while closing streams and sockets");
 			ex.printStackTrace();
 		}
-		
+
 		//connections are closed, but now I want to get rid of the hashtables
 	}
-	
-
 }

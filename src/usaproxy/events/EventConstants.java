@@ -229,4 +229,12 @@ public class EventConstants {
 
 	public final static String WINDOWQUERYBLUR = "windowqueryblur";
 
+	public static final String ANDYBBCTITLE = "title";
+
+	public static final String ANDYBBC = "andyBBC";
+
+	public static final String SURVEYSHOWN = "surveyShown";
+	
+	public static final String SURVEYSTATE = "surveyState";
+
 }

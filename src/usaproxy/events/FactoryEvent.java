@@ -153,6 +153,14 @@ public class FactoryEvent {
 				jsonObject = WindowQueryBlur.parseFromHash(eventHashMap).toGson();
 				break;
 				
+			case EventConstants.ANDYBBC:
+				jsonObject = AndyBBC.parseFromHash(eventHashMap).toGson();
+				break;
+				
+			case EventConstants.SURVEYSHOWN:
+				jsonObject = SurveyShown.parseFromHash(eventHashMap).toGson();
+				break;
+				
 			default:
 				ErrorLogging
 				.logError(
