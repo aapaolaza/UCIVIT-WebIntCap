@@ -23,4 +23,4 @@ These are relevant publications related to this tool:
 *
 
 ###Contact###
-For questions, or help using this tool, contact Aitor Apaolaza (aitos.apaolaza - AT - manchester.ac.uk)
+For questions, or help using this tool, contact Aitor Apaolaza (aitor.apaolaza - AT - manchester.ac.uk)
