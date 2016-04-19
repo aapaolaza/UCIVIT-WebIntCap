@@ -16,11 +16,6 @@ It has shown to be able to escalate to thousands of concurrent users, over perio
 
 This tool is based in UsaProxy, developed by the group of Richard Atterer http://fnuked.de/usaproxy/
 
-###Publications###
-These are relevant publications related to this tool:
-*
-*
-*
 
 ###Contact###
 For questions, or help using this tool, contact Aitor Apaolaza (aitor.apaolaza@manchester.ac.uk)
