@@ -12,12 +12,9 @@ It has shown to be able to escalate to thousands of concurrent users, over perio
 4. The script *startCaptureServer.sh* starts the capture server, using the *captureServer.jar* library. This library can be recompiled using the source code provided. Once started through a terminal, processed events will be continuously listed.
 
 
-### Who do I talk to? ###
-
+###Contact###
 This tool is based in UsaProxy, developed by the group of Richard Atterer http://fnuked.de/usaproxy/
 
-
-###Contact###
 For questions, or help using this tool, contact Aitor Apaolaza (aitor.apaolaza@manchester.ac.uk)
 
 ###Publications###
