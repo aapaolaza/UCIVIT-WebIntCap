@@ -72,6 +72,12 @@ java -jar captureServer.jar -ishttps true -port 2727
 
 This library can be recompiled using the source code provided in the [src/usaproxy/](src/usaproxy/) folder. Once started through a terminal, processed events will be continuously listed.
 
+
+## Test page
+
+The following page allows you to check that the server is working correctly. Just download it from [here](https://github.com/aapaolaza/UCIVIT-WebIntCap/blob/master/webpage_example.html) and run it locally, or access it remotely from [here](http://rawgit.com/aapaolaza/UCIVIT-WebIntCap/master/webpage_example.html), change the IP address (localhost by default), and press "Set parameters and start tracking" to test the capture script.
+
+
 ## Contact
 
 This tool is based in UsaProxy, developed by the group of Richard Atterer <http://fnuked.de/usaproxy/>
