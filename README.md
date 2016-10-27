@@ -23,6 +23,14 @@ USER=
 PASSWORD=
 ```
 
+Once the server is running, a quick way of testing if the events are being captured and stored correctly is running the following code in the terminal. NOTE: this code assumes MongoDB has been properly installed, the *mongo* function is available, and no authentication has been configured for the database.
+
+```
+mongo
+use ucivitdb
+db.events.find().count()
+```
+
 ### 2 Deploy script into your Web site
 
 First, open the *deploymentScript.txt* file in any text editor. The following lines need to be modified:

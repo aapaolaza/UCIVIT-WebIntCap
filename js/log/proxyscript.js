@@ -206,6 +206,9 @@ var mouseTimeout = 150;
 
 var sessionID = null;
 
+if (typeof sessionID_Proxy !== 'undefined') {
+    sessionID = sessionID_Proxy;
+}
 
 
 var sessionIDCookieName = "proxyUserID";
