@@ -7,7 +7,7 @@
 
 	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 
-	<!-- usaProxy script start -->
+
 	<script type="text/javascript">
 
         //The webpageindex will be specific to each site
@@ -59,10 +59,23 @@
             //we didn't find the cookie, so we return null
             return "null";
         }
-        
+        checkAndStartWhenUCIVITready();
     }
+
+    function checkAndStartWhenUCIVITready(){
+
+     if (typeof init_UsaProxy === "function"){
+       console.log("UCIVIT was loaded, starting it now")
+        init_UsaProxy();
+
+     }
+      else{
+        console.log("UCIVIT was not loaded, checking again in 100ms")
+        window.setTimeout(function(){ checkAndStartWhenUCIVITready() }, 100);
+      }
+    }
+
     </script>
-	<!-- usaProxy script end -->
 
 	<body>
 		<h1> UCIVIT testing Web page
@@ -100,8 +113,8 @@
 			logged to the database.
 		</p>
 
-    <p>
-      Just hovering over the page will trigger events that will be captured by your server.
-    </p>
+		<p>
+			Just hovering over the page will trigger events that will be captured by your server.
+		</p>
 
 	</body>
