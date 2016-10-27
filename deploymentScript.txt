@@ -1,11 +1,16 @@
-    <!-- usaProxy script start
+    <!-- usaProxy script start -->
     <script type="text/javascript">
         //The webpageindex will be specific to each site
         window.webpageIndex = 'WEBSITEID';
         window.usaProxyServerIP = 'CAPTURESERVERADDRESS:2727';
+        var PROTOCOL ={
+            HTTPS  : 'https://',
+            HTTP     : 'http://'};
+        window.protocol = PROTOCOL.HTTP;
+
         window.sessionId = getCookie("proxyUserID");
 
-        window.usaProxySrc = "http://" + window.usaProxyServerIP + "/usaproxylolo/file/proxyscript.js?sd=" + window.webpageIndex + "&sid=" + window.sessionId
+        window.usaProxySrc = window.protocol + window.usaProxyServerIP + "/usaproxylolo/file/proxyscript.js?sd=" + window.webpageIndex + "&sid=" + window.sessionId
 
         //we add the script dinamically
         var usaProxyScriptNode = document.createElement('script');
