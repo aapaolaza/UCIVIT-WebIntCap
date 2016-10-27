@@ -2,6 +2,13 @@ package usaproxy;
 
 import java.io.*;
 import java.net.*;
+import java.security.Security;
+
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import com.sun.net.ssl.internal.ssl.Provider;
 
 /**
  * UsaProxy - HTTP proxy for tracking, logging, and replay of user interactions
@@ -24,7 +31,8 @@ import java.net.*;
  * server), on the sharing mode (i.e. remote monitoring or shared browsing), and
  * on the logging mode. UsaProxy can be set up to either enable web-based
  * collaboration, or for simple logging of interactions, or both. In addition, a
- * UsaProxy instance ID can be assigned which identifies the launched instance.<br>
+ * UsaProxy instance ID can be assigned which identifies the launched instance.
+ * <br>
  * <br>
  * Finally, the proxy is started and waits constantly for incoming HTTP
  * requests.
@@ -57,7 +65,9 @@ public class UsaProxy {
 	 * containing the recorded HTTP request/response combination.
 	 */
 	private HTTPTraffic httpTraffic;
-	/** manages users and the collaboration sessions which they participate in. */
+	/**
+	 * manages users and the collaboration sessions which they participate in.
+	 */
 	private Users users;
 
 	/** True if UsaProxy is deployed in asymmetric remote monitoring mode. */
@@ -77,6 +87,12 @@ public class UsaProxy {
 
 	/** If true all <code>System.out.println</code> messages are printed. */
 	final static boolean DEBUG = false;
+
+	/**
+	 * When the tool in a Web site that uses the HTTPS protocol, this parameter
+	 * needs to be set to true
+	 */
+	private boolean isHTTPS = false;
 
 	/**
 	 * Constructor: creates a UsaProxy instance on a specific port, in the
@@ -100,8 +116,8 @@ public class UsaProxy {
 	 * @param id
 	 *            is the name of this UsaProxy instance
 	 */
-	public UsaProxy(int port, Mode mode, boolean rm, boolean sb,
-			boolean isLogging, String logMode, String id) {
+	public UsaProxy(int port, Mode mode, boolean rm, boolean sb, boolean isLogging, String logMode, String id,
+			boolean isHTTPS) {
 
 		this.port = port;
 		this.mode = mode;
@@ -110,16 +126,14 @@ public class UsaProxy {
 		this.isLogging = isLogging;
 		this.logMode = logMode;
 		this.id = id;
+		this.isHTTPS = isHTTPS;
 
 		try {
 			this.ip = java.net.InetAddress.getLocalHost();
 		} catch (UnknownHostException e) {
-			System.err
-					.println("\nAn ERROR occured while retrieving UsaProxy IP address:\n"
-							+ e);
+			System.err.println("\nAn ERROR occured while retrieving UsaProxy IP address:\n" + e);
 
-			ErrorLogging.logError("UsaProxy.java: UsaProxy()",
-					"ERROR occured while retrieving UsaProxy IP address", e);
+			ErrorLogging.logError("UsaProxy.java: UsaProxy()", "ERROR occured while retrieving UsaProxy IP address", e);
 
 			System.exit(1);
 		}
@@ -148,64 +162,103 @@ public class UsaProxy {
 
 		try {
 
-			/** Create server socket */
-			// ServerSocket server = new ServerSocket(port);
-			// we increase the maximum size of the queue, the default size is
-			// 50. I will try with 200 for the time being
-			ServerSocket server = new ServerSocket(port, 200);
+			// If the HTTPS mode is activated, the server Socket will use HTTPS
+			// protocol.
+			if (isHTTPS) {
+				System.out.println("Starting Capture server in HTTPS mode");
+				int intSSLport = this.port; // Port where the SSL Server needs
+											// to listen for new requests from
+											// the client
 
-			/** Display start message */
-			System.out.println("UsaProxy started at port " + port
-					+ " with ID: " + (id == "" ? "undefined" : id));
-			if (isRM)
-				System.out.println("Joint experience via: Remote Monitoring");
-			if (isSB)
-				System.out.println("Joint experience via: Shared Browsing");
-			if (!isRM && !isSB)
-				System.out
-						.println("Simple logging mode without joint experience");
-			System.out
-					.println("Logging: "
-							+ (isLogging ? (logMode.equals("pagereq") ? "on (only page requests)"
-									: "on")
-									: "off"));
-			System.out
-					.println("UsaProxy ready for accepting incoming connections !\n");
+				{
+					// Registering the JSSE provider
+					Security.addProvider(new Provider());
 
-			ErrorLogging.logCriticalError("UsaProxy.java:proxyStart()",
-					"UsaProxy tool started", null);
+					// Specifying the Keystore details
+					System.setProperty("javax.net.ssl.keyStore", "movingkey.jks");
+					System.setProperty("javax.net.ssl.keyStorePassword", "!moving#2016");
 
-			/** endless loop */
-			while (true) {
+					// Enable debugging to view the handshake and communication
+					// which happens between the SSLClient and the SSLServer
+					// System.setProperty("javax.net.debug","all");
+				}
 
-				/** wait for next incoming request and accept it */
-				Socket clientConnect = server.accept();
+				// Initialize the Server Socket
+				SSLServerSocketFactory sslServerSocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory
+						.getDefault();
+				SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketfactory
+						.createServerSocket(intSSLport);
 
-				/** Display message: new client with his address */
-				if (DEBUG)
-					System.out.println("\nNew client connected:\n"
-							+ clientConnect.getInetAddress().getHostAddress());
-				
-				try {
-					/** new ClientRequest which will handle this request */
-					new ClientRequest(clientConnect, this);
+				while (true) {
+					/** wait for next incoming request and accept it */
+					SSLSocket clientConnect = (SSLSocket) sslServerSocket.accept();
 
-				} catch (IOException e) {
-					ErrorLogging.logError("UsaProxy.java: proxyStart()",
-							"ClientRequest timed out\n"
-							+ "port: "+ clientConnect.getPort()+","
-							+ "InetAddress: "+ clientConnect.getInetAddress(),
-							e);
+					/** Display message: new client with his address */
+					if (DEBUG)
+						System.out
+								.println("\nNew client connected:\n" + clientConnect.getInetAddress().getHostAddress());
+
+					try {
+						/** new ClientRequest which will handle this request */
+						new ClientRequest(clientConnect, this);
+
+					} catch (IOException e) {
+						ErrorLogging.logError("UsaProxy.java: proxyStart()", "ClientRequest timed out\n" + "port: "
+								+ clientConnect.getPort() + "," + "InetAddress: " + clientConnect.getInetAddress(), e);
+					}
 				}
 			}
+			// If not, server initialisation continues with regular HTTP
+			// protocol.
+			else {
 
+				/** Create server socket */
+				// ServerSocket server = new ServerSocket(port);
+				// we increase the maximum size of the queue, the default size
+				// is
+				// 50. I will try with 200 for the time being
+				ServerSocket server = new ServerSocket(port, 200);
+
+				/** Display start message */
+				System.out.println("UsaProxy started at port " + port + " with ID: " + (id == "" ? "undefined" : id));
+				if (isRM)
+					System.out.println("Joint experience via: Remote Monitoring");
+				if (isSB)
+					System.out.println("Joint experience via: Shared Browsing");
+				if (!isRM && !isSB)
+					System.out.println("Simple logging mode without joint experience");
+				System.out.println("Logging: "
+						+ (isLogging ? (logMode.equals("pagereq") ? "on (only page requests)" : "on") : "off"));
+				System.out.println("UsaProxy ready for accepting incoming connections !\n");
+
+				ErrorLogging.logCriticalError("UsaProxy.java:proxyStart()", "UsaProxy tool started", null);
+
+				/** endless loop */
+				while (true) {
+
+					/** wait for next incoming request and accept it */
+					Socket clientConnect = server.accept();
+
+					/** Display message: new client with his address */
+					if (DEBUG)
+						System.out
+								.println("\nNew client connected:\n" + clientConnect.getInetAddress().getHostAddress());
+
+					try {
+						/** new ClientRequest which will handle this request */
+						new ClientRequest(clientConnect, this);
+
+					} catch (IOException e) {
+						ErrorLogging.logError("UsaProxy.java: proxyStart()", "ClientRequest timed out\n" + "port: "
+								+ clientConnect.getPort() + "," + "InetAddress: " + clientConnect.getInetAddress(), e);
+					}
+				}
+			}
 			/** Handle IO exception */
 		} catch (IOException e) {
-			System.err.println("\nAn ERROR occured while starting UsaProxy:\n"
-					+ e);
+			System.err.println("\nAn ERROR occured while starting UsaProxy:\n" + e);
 
-			ErrorLogging.logError("UsaProxy.java: proxyStart()",
-					"ERROR occured while starting UsaProxy", e);
+			ErrorLogging.logError("UsaProxy.java: proxyStart()", "ERROR occured while starting UsaProxy", e);
 
 			System.exit(1);
 		}
@@ -245,8 +298,8 @@ public class UsaProxy {
 		 * Transparent see "Proxy" Transparent Remote see "Remote" Server
 		 * (UsaProxy as part of a web server resp. in front of a web server)
 		 * switches -remoteIP, -remotePort and -server mandatory (e.g. java
-		 * UsaProxy [-port <port>] -remoteIP <IP address> -remotePort <port>
-		 * -server
+		 * UsaProxy [-port <port>] -remoteIP <IP address> -remotePort
+		 * <port> -server
 		 */
 
 		int index;
@@ -259,18 +312,12 @@ public class UsaProxy {
 			try {
 				port = Integer.parseInt(args[index + 1]);
 			} catch (NumberFormatException e) {
-				System.err
-						.println("\nAn ERROR occured while binding UsaProxy to port "
-								+ args[index + 1]
-								+ ":\n"
-								+ "Correct usage of switch -port: -port <port>\n"
-								+ "Port will be set to 8000!");
+				System.err.println("\nAn ERROR occured while binding UsaProxy to port " + args[index + 1] + ":\n"
+						+ "Correct usage of switch -port: -port <port>\n" + "Port will be set to 8000!");
 			} catch (IndexOutOfBoundsException e) {
-				System.err
-						.println("\nAn ERROR occured while binding UsaProxy to a port:\n"
-								+ "No port number specified!\n"
-								+ "Correct usage of switch -port: -port <port>\n"
-								+ "Port will be set to 8000!");
+				System.err.println(
+						"\nAn ERROR occured while binding UsaProxy to a port:\n" + "No port number specified!\n"
+								+ "Correct usage of switch -port: -port <port>\n" + "Port will be set to 8000!");
 			}
 		}
 
@@ -282,12 +329,9 @@ public class UsaProxy {
 			try {
 				remoteIP = args[index + 1];
 			} catch (IndexOutOfBoundsException e) {
-				System.err
-						.println("\nAn ERROR occured while defining remoteIP:\n"
-								+ "No remoteIP specified!\n"
-								+ "Correct usage of switch -port: -remoteIP <IP address>\n"
-								+ "UsaProxy will be started as regular proxy on port "
-								+ port + "!");
+				System.err.println("\nAn ERROR occured while defining remoteIP:\n" + "No remoteIP specified!\n"
+						+ "Correct usage of switch -port: -remoteIP <IP address>\n"
+						+ "UsaProxy will be started as regular proxy on port " + port + "!");
 			}
 		}
 
@@ -298,29 +342,20 @@ public class UsaProxy {
 					remotePort = Integer.parseInt(args[index + 1]);
 
 				} catch (NumberFormatException e) {
-					System.err
-							.println("\nAn ERROR occured while defining remotePort "
-									+ args[index + 1]
-									+ ":\n"
-									+ "Correct usage of switch -remotePort: -remotePort <port>\n"
-									+ "UsaProxy will be started as regular proxy on port "
-									+ port + "!");
+					System.err.println("\nAn ERROR occured while defining remotePort " + args[index + 1] + ":\n"
+							+ "Correct usage of switch -remotePort: -remotePort <port>\n"
+							+ "UsaProxy will be started as regular proxy on port " + port + "!");
 				} catch (IndexOutOfBoundsException e) {
 					System.err
-							.println("\nAn ERROR occured while defining a remotePort:\n"
-									+ "No port number specified!\n"
+							.println("\nAn ERROR occured while defining a remotePort:\n" + "No port number specified!\n"
 									+ "Correct usage of switch -remotePort: -remotePort <port>\n"
-									+ "UsaProxy will be started as regular proxy on port "
-									+ port + "!");
+									+ "UsaProxy will be started as regular proxy on port " + port + "!");
 				}
 				/** remotePort specified without specified remoteIP */
 			} else {
-				System.err
-						.println("\nAn ERROR occured while defining remotePort:\n"
-								+ "No remoteIP specified!\n"
-								+ "To correctly use switch -remotePort also specify switch -remoteIP!\n"
-								+ "UsaProxy will be started as regular proxy on port "
-								+ port + "!");
+				System.err.println("\nAn ERROR occured while defining remotePort:\n" + "No remoteIP specified!\n"
+						+ "To correctly use switch -remotePort also specify switch -remoteIP!\n"
+						+ "UsaProxy will be started as regular proxy on port " + port + "!");
 			}
 		}
 
@@ -328,12 +363,9 @@ public class UsaProxy {
 		if (!remoteIP.equals("") && remotePort == -1) {
 			/** reset remoteIP */
 			remoteIP = "";
-			System.err
-					.println("\nAn ERROR occured while defining remoteIP:\n"
-							+ "No remotePort specified!\n"
-							+ "To correctly use switch -remoteIP also specify switch -remotePort!\n"
-							+ "UsaProxy will be started as regular proxy on port "
-							+ port + "!");
+			System.err.println("\nAn ERROR occured while defining remoteIP:\n" + "No remotePort specified!\n"
+					+ "To correctly use switch -remoteIP also specify switch -remotePort!\n"
+					+ "UsaProxy will be started as regular proxy on port " + port + "!");
 		}
 
 		/** generate remote InetAddress if remoteIP and remotePort specified */
@@ -342,11 +374,9 @@ public class UsaProxy {
 			try {
 				remoteAddress = InetAddress.getByName(remoteIP);
 			} catch (UnknownHostException e) {
-				System.err
-						.println("\nAn ERROR occured while generating remote InetAddress:\n"
-								+ "Please specify a valid IP address !\n"
-								+ "UsaProxy will be started as regular proxy on port "
-								+ port + "!");
+				System.err.println("\nAn ERROR occured while generating remote InetAddress:\n"
+						+ "Please specify a valid IP address !\n" + "UsaProxy will be started as regular proxy on port "
+						+ port + "!");
 
 			}
 		}
@@ -365,12 +395,10 @@ public class UsaProxy {
 				/** reset remoteIP and remotePort */
 				remoteIP = "";
 				remotePort = -1;
-				System.err
-						.println("\nAn ERROR occured while specifying server mode:\n"
-								+ "No remoteIP resp. remotePort specified!\n"
-								+ "To correctly use switch -server also specify switches -remoteIP and -remotePort!\n"
-								+ "UsaProxy will be started as regular proxy on port "
-								+ port + "!");
+				System.err.println("\nAn ERROR occured while specifying server mode:\n"
+						+ "No remoteIP resp. remotePort specified!\n"
+						+ "To correctly use switch -server also specify switches -remoteIP and -remotePort!\n"
+						+ "UsaProxy will be started as regular proxy on port " + port + "!");
 			}
 		}
 
@@ -390,11 +418,9 @@ public class UsaProxy {
 			}
 			/** also rm specified; combination not possible */
 			else {
-				System.err
-						.println("\nAn ERROR occured while specifying shared browsing mode:\n"
-								+ "Also Remote Monitoring mode specified!\n"
-								+ "-rm and -sb must be used exclusively!\n"
-								+ "UsaProxy will be started in Remote Monitoring mode!");
+				System.err.println("\nAn ERROR occured while specifying shared browsing mode:\n"
+						+ "Also Remote Monitoring mode specified!\n" + "-rm and -sb must be used exclusively!\n"
+						+ "UsaProxy will be started in Remote Monitoring mode!");
 			}
 		}
 
@@ -437,11 +463,8 @@ public class UsaProxy {
 			try {
 				id = args[index + 1];
 			} catch (IndexOutOfBoundsException e) {
-				System.err
-						.println("\nAn ERROR occured while defining UsaProxy ID:\n"
-								+ "No ID specified!\n"
-								+ "Correct usage of switch -id: -id <id>\n"
-								+ "UsaProxy will be started with ID: undefined !");
+				System.err.println("\nAn ERROR occured while defining UsaProxy ID:\n" + "No ID specified!\n"
+						+ "Correct usage of switch -id: -id <id>\n" + "UsaProxy will be started with ID: undefined !");
 			}
 		}
 
@@ -464,8 +487,15 @@ public class UsaProxy {
 			System.out.println("Deployment: regular/transparent proxy mode");
 		}
 
+		/** Check if the server should be https or not */
+		boolean httpsMode = false;
+		/** try to detect server declaration */
+		if ((index = indexOf(args, "-ishttps")) != -1) {
+			httpsMode = Boolean.valueOf(args[index + 1].toString());
+		}
+
 		/** generate an UsaProxy instance */
-		new UsaProxy(port, mode, rm, sb, log, logMode, id);
+		new UsaProxy(port, mode, rm, sb, log, logMode, id, httpsMode);
 
 	}
 

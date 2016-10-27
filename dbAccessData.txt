@@ -5,11 +5,11 @@ DBNAME (name of the database), EVENTSCOLL (collection where the events are store
 DOMCOLL (collection where the DOM milestones are stored), DOMCHANGECOLL(collection where the DOM changes are stored),
 DOMTEMPCOLL(collection where the temporary DOM milestones are stored), 
 USER (database user), PASSWORD (database password).
-IP=value
-DBNAME=value
-EVENTSCOLL=value
-DOMCOLL=value
+IP=localhost
+DBNAME=ucivitdb
+EVENTSCOLL=events
+DOMCOLL=domcollection
 DOMCHANGECOLL=value
-DOMTEMPCOLL=value
-USER=value
-PASSWORD=value
+DOMTEMPCOLL=domtempcollection
+USER=
+PASSWORD=

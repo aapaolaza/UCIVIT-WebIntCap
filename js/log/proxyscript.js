@@ -520,9 +520,9 @@ function init_UsaProxy() {
 
 	
 
-	//show survey?
+	//show optin?
 
-	//surveyTestAndShow();
+	//optinTestAndShow();
 
 	
 
@@ -1958,7 +1958,7 @@ function saveLog_UsaProxy() {
 
 		//console.log("Before sending info" + getCookie(lastEventTSCookieName));
 
-		xmlreqGET_UsaProxy("http://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
+		xmlreqGET_UsaProxy("https://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
 
 		
 
@@ -6216,7 +6216,7 @@ function returnKeyValue(keyCode)
 
 /**
 
- * Code for the survey
+ * Code for the optin
 
  * 
 
@@ -6226,81 +6226,81 @@ function returnKeyValue(keyCode)
 
  
 
- ///SURVEY COOKIE FUNCTIONS
+ ///OPTIN COOKIE FUNCTIONS
 
  
 
  
 
- ////////////////Survey variables
+ ////////////////Optin variables
 
 /**
 
  * States of the cookie:
 
- * - If not found, set it to '1' (first visit since survey code has been added)
+ * - If not found, set it to '1' (first visit, or never answered)
 
- * - If found, and greater than 0, the value corresponds to the number of visits since the survey code was added
+ * - If found, and greater than 0, The participant agreed to the capture
 
- * - If 0, the user has already replied to the survey
+ * - If 0, the user still has to reply to the optin
 
  * - If -1, the user has requested to never see the question again
 
  */ 
 
-var surveyStateCookie = "proxySurveyStateNew";
+var optinStateCookie = "proxyOptinStateNew";
 
 
 
 /**
 
- * The timestamp for the last time the survey was shown to the user
+ * The timestamp for the last time the optin was shown to the user
 
  */ 
 
-var surveyLastTimeShownCookie = "proxySurveyLastTimeShownNew";
+var optinLastTimeShownCookie = "proxyOptinLastTimeShownNew";
 
 
 
 //minimum amount of visits to wait before showing the questionnaire
 
-var surveyMinimumVisits = 2;
+var optinMinimumVisits = 2;
 
 //necessary time between visits in order to be counted as visit
 
-var surveyTimeBetweenVisits = 2400000;//40 minutes//1minute:60000;//
+var optinTimeBetweenVisits = 2400000;//40 minutes//1minute:60000;//
 
 //Cookie storing the timestamp of the last time we counted the user as a visit
 
-var surveyLastVisitCookie = "proxySurveyLastVisitNew";
+var optinLastVisitCookie = "proxyOptinLastVisitNew";
 
 
 
-//Time between surveys. Before showing the survey, if the time between now and surveyLastTimeShown is smaller than this, we won't show the survey
+//Time between optins. Before showing the optin, if the time between now and optinLastTimeShown is smaller than this, we won't show the optin
 
-var surveyTimeBetweenSurveys = 86400000;//1 day//4 minutes:240000;//
+var optinTimeBetweenOptins = 86400000;//1 day//4 minutes:240000;//
 
 
-//Are we going to show this user a first time survey
-var isFirstSurvey = false;
-var firstTimeSurveyCookie = "proxySurveyfirstTimeSurvey";
+//Are we going to show this user a first time optin
+var isFirstOptin = false;
+var firstTimeOptinCookie = "proxyOptinfirstTimeOptin";
 
  /**
 
-  * Functions to modify the state of the survey
+  * Functions to modify the state of the optin
 
   */ 
 
-function surveyTestAndShow(){
+function optinTestAndShow(){
 
-	if ((websiteID =="10001"|| websiteID =="10006" || websiteID =="20001") && surveyTestCookie()){
+	if ((websiteID =="10001"|| websiteID =="10006" || websiteID =="20001") && optinTestCookie()){
 
-		surveyShow();
+		optinShow();
 		
-		if(getCookie(firstTimeSurveyCookie)=="true" && getCookie(surveyStateCookie) == 1)
-			window.setTimeout(function(){writeLog_UsaProxy("surveyShown&surveyState=" + "-5"); }, 2000);
+		if(getCookie(firstTimeOptinCookie)=="true" && getCookie(optinStateCookie) == 1)
+			window.setTimeout(function(){writeLog_UsaProxy("optinShown&optinState=" + "-5"); }, 2000);
         else
-			window.setTimeout(function(){writeLog_UsaProxy("surveyShown&surveyState=" + "-3"); }, 2000);
+			window.setTimeout(function(){writeLog_UsaProxy("optinShown&optinState=" + "-3"); }, 2000);
 
 	}
 
@@ -6308,92 +6308,92 @@ function surveyTestAndShow(){
 
  
 
-function surveyTestCookie(){
+function optinTestCookie(){
 
 	 /**
 
 	 * States of the cookie:
 
-	 * - If not found, set it to '1' (first visit since survey code has been added)
+	 * - If not found, set it to '1' (first visit since optin code has been added)
 
-	 * - If found, and greater than 0, the value corresponds to the number of visits since the survey code was added
+	 * - If found, and greater than 0, the value corresponds to the number of visits since the optin code was added
 
-	 * - If 0, the user has already replied to the survey
+	 * - If 0, the user has already replied to the optin
 
 	 * - If -1, the user has requested to never see the question again
 
 	 */
 
-	var surveyState = getCookie(surveyStateCookie);
+	var optinState = getCookie(optinStateCookie);
 
-	//The timestamp for the last time the survey was shown to the user ('0' if it was never shown)
+	//The timestamp for the last time the optin was shown to the user ('0' if it was never shown)
 
-	var surveyLastTimeShown = getCookie(surveyLastTimeShownCookie);
+	var optinLastTimeShown = getCookie(optinLastTimeShownCookie);
 
 	
 
 	//Cookie storing the timestamp of the last time we counted the user as a visit
 
-	var surveyLastVisit = getCookie(surveyLastVisitCookie);
+	var optinLastVisit = getCookie(optinLastVisitCookie);
 
 	
 
 	
 
-	//console.log("Testing if survey should be shown");
+	//console.log("Testing if optin should be shown");
 
-	//console.log("surveyState:" + surveyState);
+	//console.log("optinState:" + optinState);
 
-	//console.log("surveyLastVisit:" + surveyLastVisit);
+	//console.log("optinLastVisit:" + optinLastVisit);
 
-	//console.log("surveyLastTimeShown:" + surveyLastTimeShown);
+	//console.log("optinLastTimeShown:" + optinLastTimeShown);
 
 	
 
 	/*
 
-	 * Look for surveyStateCookie
+	 * Look for optinStateCookie
 
 	 * _if not found
 	 * __Roll a random number
-	 * _____if smaller than 0.5, set to 1, and RETURN false (First visit with survey code)
-	 * _____if bigger than 0.5, set to 1, set firstTimeSurveyCookie = true, and RETURN true (First visit survey should show now)
+	 * _____if smaller than 0.5, set to 1, and RETURN false (First visit with optin code)
+	 * _____if bigger than 0.5, set to 1, set firstTimeOptinCookie = true, and RETURN true (First visit optin should show now)
 
 	 * _else if value equal to '0' (user has already replied) or '-1' (user wished not to be bothered ever again), RETURN false
 
-	 * _else if value smaller than surveyMinimumVisits
-	 * _____ if firstTimeSurveyCookie is true, and the visit count is 1, return true
-	 * _____ else increase surveyStateCookie value by one, and RETURN false 
+	 * _else if value smaller than optinMinimumVisits
+	 * _____ if firstTimeOptinCookie is true, and the visit count is 1, return true
+	 * _____ else increase optinStateCookie value by one, and RETURN false 
 
 	 * _else (the visits value is high enough)
 
-	 * ___if (timeNow - surveyLastTimeShown) > surveyTimeBetweenSurveys, RETURN true
+	 * ___if (timeNow - optinLastTimeShown) > optinTimeBetweenOptins, RETURN true
 
-	 * ___else increase surveyStateCookie value by one, and RETURN false
+	 * ___else increase optinStateCookie value by one, and RETURN false
 
 	 */
 
 	 
 
-	//if not found, set to 1, and RETURN false (First visit with survey code)
+	//if not found, set to 1, and RETURN false (First visit with optin code)
 
-	if (surveyState == "null"){
+	if (optinState == "null"){
 
 		//console.log("Initialising cookies");
 
-	 	setCookie(surveyStateCookie, 1, cookieLife);
+	 	setCookie(optinStateCookie, 1, cookieLife);
 
-		setCookie(surveyLastTimeShownCookie, 0, cookieLife);
+		setCookie(optinLastTimeShownCookie, 0, cookieLife);
 
-		setCookie(surveyLastVisitCookie, datestampInMillisec(), cookieLife);
+		setCookie(optinLastVisitCookie, datestampInMillisec(), cookieLife);
 
 
-		//It's the users' first visit, we'll roll to see if the first time survey should be shown
+		//It's the users' first visit, we'll roll to see if the first time optin should be shown
 		var randValue = Math.random();
-		console.log("First visit survey chance:" + randValue);
+		console.log("First visit optin chance:" + randValue);
 		if (randValue >= 0.5){
-			//if true, we'll take this user as first time survey user
-			setCookie(firstTimeSurveyCookie, true, cookieLife);
+			//if true, we'll take this user as first time optin user
+			setCookie(firstTimeOptinCookie, true, cookieLife);
 			return true;
 		}
 		else
@@ -6403,7 +6403,7 @@ function surveyTestCookie(){
 
 	//if value equal to '0' (user has already replied) or '-1' (user wished not to be bothered ever again), RETURN false
 
-	else if(surveyState == 0 || surveyState == -1){
+	else if(optinState == 0 || optinState == -1){
 
 		return false;
 
@@ -6411,32 +6411,32 @@ function surveyTestCookie(){
 
 	else{
 
-		//only increase surveyStateCookie value by one if time since last visit was over the threshold
+		//only increase optinStateCookie value by one if time since last visit was over the threshold
 
-		if((datestampInMillisec() - surveyLastVisit) > surveyTimeBetweenVisits){
+		if((datestampInMillisec() - optinLastVisit) > optinTimeBetweenVisits){
 
-			surveyState++;
+			optinState++;
 
-			setCookie(surveyStateCookie, surveyState, cookieLife);
+			setCookie(optinStateCookie, optinState, cookieLife);
 
-			//console.log("Increasing surveyLastVisit:" + surveyState);
+			//console.log("Increasing optinLastVisit:" + optinState);
 
 		}
 
-		setCookie(surveyLastVisitCookie, datestampInMillisec(), cookieLife);
+		setCookie(optinLastVisitCookie, datestampInMillisec(), cookieLife);
 
-		//console.log("Storing latest surveyLastVisit:" + datestampInMillisec());
+		//console.log("Storing latest optinLastVisit:" + datestampInMillisec());
 
 
 
-		//if value smaller than surveyMinimumVisits 
+		//if value smaller than optinMinimumVisits 
 
-		if(surveyState < surveyMinimumVisits){
+		if(optinState < optinMinimumVisits){
 
-			//console.log("Visit count was not enough:" + surveyState);
+			//console.log("Visit count was not enough:" + optinState);
 			
-			//Check if the user was selected for first visit survey AND we are still in the first visit
-			if (getCookie(firstTimeSurveyCookie)=="true" && surveyState == 1)
+			//Check if the user was selected for first visit optin AND we are still in the first visit
+			if (getCookie(firstTimeOptinCookie)=="true" && optinState == 1)
 				return true;
 			else
 				return false;
@@ -6447,11 +6447,11 @@ function surveyTestCookie(){
 
 		else{
 
-			//console.log("Visit count was enough:" + surveyState);
+			//console.log("Visit count was enough:" + optinState);
 
-			//if the time between the last time the survey was shown and now is great enough
+			//if the time between the last time the optin was shown and now is great enough
 
-			if ((datestampInMillisec() - surveyLastTimeShown) > surveyTimeBetweenSurveys){
+			if ((datestampInMillisec() - optinLastTimeShown) > optinTimeBetweenOptins){
 				
 				return true;
 
@@ -6459,7 +6459,7 @@ function surveyTestCookie(){
 
 			else{
 
-				//console.log("Time since last survey was not enough:" + surveyLastTimeShown);
+				//console.log("Time since last optin was not enough:" + optinLastTimeShown);
 
 				return false;
 
@@ -6473,7 +6473,7 @@ function surveyTestCookie(){
 
 
 
-function surveyInsertCSSSource(){
+function optinInsertCSSSource(){
 
 	var latoFont = document.createElement("link");
 
@@ -6499,52 +6499,52 @@ function surveyInsertCSSSource(){
 
 
 
-//if (isUserEligibleForSurvey()){
+//if (isUserEligibleForOptin()){
 
-function surveyShow(){
+function optinShow(){
 
 
 	//First we need to add the CSS sources we'll use
 
-	surveyInsertCSSSource();
+	optinInsertCSSSource();
 
 
 
-	//main surveyDiv object, containing the entire set of message and buttons
+	//main optinDiv object, containing the entire set of message and buttons
 
-	var surveyDiv = document.createElement("div");
+	var optinDiv = document.createElement("div");
 
 
 
-	surveyDiv.id = "surveyDialog";
+	optinDiv.id = "optinDialog";
 
-	surveyDiv.style.position = "fixed";//"absolute";
+	optinDiv.style.position = "fixed";//"absolute";
 
-	surveyDiv.style.bottom = "20px";//"50%";//
+	optinDiv.style.bottom = "20px";//"50%";//
 
-	surveyDiv.style.right = "20px";//"37.5%";//
+	optinDiv.style.right = "20px";//"37.5%";//
 
-	surveyDiv.style.zIndex = "9999";
+	optinDiv.style.zIndex = "9999";
 
-	surveyDiv.style.width = "25%";
+	optinDiv.style.width = "25%";
 
-	surveyDiv.style.height = "auto";
+	optinDiv.style.height = "auto";
 
-	surveyDiv.style.backgroundColor = "#F5F5F5";//"#EAEAEA"//"#dddddd";//"#ffffff";//
+	optinDiv.style.backgroundColor = "#F5F5F5";//"#EAEAEA"//"#dddddd";//"#ffffff";//
 
-	surveyDiv.style.borderStyle = "ridge";
+	optinDiv.style.borderStyle = "ridge";
 
-	surveyDiv.style.fontSize = "20px";
+	optinDiv.style.fontSize = "20px";
 
-	surveyDiv.style.fontFamily = "'Lato', sans-serif";
+	optinDiv.style.fontFamily = "'Lato', sans-serif";
 
-	surveyDiv.style.textAlign = "justify";
+	optinDiv.style.textAlign = "justify";
 
 	
 
-	//surveyDiv.style.boxShadow = "10px 10px 5px rgba(0, 0, 0, 0.7)"//#888888";
+	//optinDiv.style.boxShadow = "10px 10px 5px rgba(0, 0, 0, 0.7)"//#888888";
 
-	surveyDiv.style.boxShadow = "10px 10px 5px rgba(102, 0, 153, 0.7)"//#888888";
+	optinDiv.style.boxShadow = "10px 10px 5px rgba(102, 0, 153, 0.7)"//#888888";
 
 	
 
@@ -6554,9 +6554,9 @@ function surveyShow(){
 
 	//#660099 is the university's logo purple colour
 
-	surveyDiv.style.border = "6px solid #660099";
+	optinDiv.style.border = "6px solid #660099";
 
-	surveyDiv.style.borderRadius = "10px";
+	optinDiv.style.borderRadius = "10px";
 
 
 
@@ -6566,67 +6566,67 @@ function surveyShow(){
 
 	//university logo
 
-	var surveyLogoDiv = document.createElement("div");
+	var optinLogoDiv = document.createElement("div");
 
-	surveyLogoDiv.style.display = "table-cell";
+	optinLogoDiv.style.display = "table-cell";
 
-	surveyLogoDiv.style.verticalAlign = "middle";
+	optinLogoDiv.style.verticalAlign = "middle";
 
-	surveyLogoDiv.style.paddingRight = "5px";
+	optinLogoDiv.style.paddingRight = "5px";
 
-	surveyLogoDiv.style.paddingLeft = "5px";
+	optinLogoDiv.style.paddingLeft = "5px";
 
-	surveyLogoDiv.style.paddingTop = "5px";
+	optinLogoDiv.style.paddingTop = "5px";
 
-	surveyLogoDiv.style.paddingBottom = "5px";
-
-
+	optinLogoDiv.style.paddingBottom = "5px";
 
 
 
-	var surveyLogo = document.createElement("img");
 
-	surveyLogo.src = "http://www.cs.man.ac.uk/~apaolaza/questionnaire/Logo_ManchesterEst1824.png";
 
-	surveyLogo.style.height="42px";
+	var optinLogo = document.createElement("img");
 
-	surveyLogo.style.maxWidth="none";
+	optinLogo.src = "http://www.cs.man.ac.uk/~apaolaza/questionnaire/Logo_ManchesterEst1824.png";
 
-	surveyLogoDiv.appendChild(surveyLogo);
+	optinLogo.style.height="42px";
 
-	surveyDiv.appendChild(surveyLogoDiv);
+	optinLogo.style.maxWidth="none";
+
+	optinLogoDiv.appendChild(optinLogo);
+
+	optinDiv.appendChild(optinLogoDiv);
 
 
 
 	//Title next ot the logo
 
-	var surveyTitleDiv = document.createElement("div");
+	var optinTitleDiv = document.createElement("div");
 
-	surveyTitleDiv.style.display = "table-cell";
+	optinTitleDiv.style.display = "table-cell";
 
-	surveyTitleDiv.style.verticalAlign = "middle";
+	optinTitleDiv.style.verticalAlign = "middle";
 
-	surveyTitleDiv.style.paddingRight = "5px";
+	optinTitleDiv.style.paddingRight = "5px";
 
-	surveyTitleDiv.style.paddingLeft = "5px";
+	optinTitleDiv.style.paddingLeft = "5px";
 
-	surveyTitleDiv.style.paddingTop = "5px";
+	optinTitleDiv.style.paddingTop = "5px";
 
-	surveyTitleDiv.style.paddingBottom = "5px";
+	optinTitleDiv.style.paddingBottom = "5px";
 
-	surveyTitleDiv.style.width = "100%"
+	optinTitleDiv.style.width = "100%"
 
-	surveyTitleDiv.style.textAlign = "center";
+	optinTitleDiv.style.textAlign = "center";
 
 
 
-	surveyTitleDiv.textContent = "Help us";
+	optinTitleDiv.textContent = "Help us";
 
-	surveyTitleDiv.style.fontWeight = "bold";
+	optinTitleDiv.style.fontWeight = "bold";
 
-	surveyTitleDiv.style.fontSize = "150%";
+	optinTitleDiv.style.fontSize = "150%";
 
-	surveyDiv.appendChild(surveyTitleDiv);
+	optinDiv.appendChild(optinTitleDiv);
 
 	
 
@@ -6636,51 +6636,51 @@ function surveyShow(){
 
 	newLineDiv.style.lineHeigth = "1px";
 
-	//surveyDiv.appendChild(newLineDiv);
+	//optinDiv.appendChild(newLineDiv);
 
 	
 
 	//main message div
 
-	var surveyMainMessageDiv = document.createElement("div");
+	var optinMainMessageDiv = document.createElement("div");
 
-	//surveyMainMessageDiv.style.display = "table-cell";
+	//optinMainMessageDiv.style.display = "table-cell";
 
-	surveyMainMessageDiv.style.verticalAlign = "middle";
+	optinMainMessageDiv.style.verticalAlign = "middle";
 
-	surveyMainMessageDiv.style.paddingRight = "5px";
+	optinMainMessageDiv.style.paddingRight = "5px";
 
-	surveyMainMessageDiv.style.paddingLeft = "5px";
+	optinMainMessageDiv.style.paddingLeft = "5px";
 
-	surveyMainMessageDiv.style.paddingTop = "5px";
+	optinMainMessageDiv.style.paddingTop = "5px";
 
-	surveyMainMessageDiv.style.paddingBottom = "5px";
-
-
-
-	var surveyMainMessage = document.createElement("div");
-
-	surveyMainMessage.id = "surveyMainMessage";
-
-	//document.createTextNode("Please take part in the survey, you would make a PhD student really happy");
-
-	surveyMainMessage.textContent = "Would you like to help the University of Manchester with their research? It only takes 10 seconds.";
-
-	surveyMainMessageDiv.style.verticalAlign = "middle";
-
-	surveyMainMessageDiv.style.textAlign = "center";
-
-	//surveyMainMessageDiv.style.paddingRight = "15px";
-
-	//surveyMainMessageDiv.style.paddingLeft = "15px";
+	optinMainMessageDiv.style.paddingBottom = "5px";
 
 
 
+	var optinMainMessage = document.createElement("div");
+
+	optinMainMessage.id = "optinMainMessage";
+
+	//document.createTextNode("Please take part in the optin, you would make a PhD student really happy");
+
+	optinMainMessage.textContent = "Would you like to help the University of Manchester with their research? It only takes 10 seconds.";
+
+	optinMainMessageDiv.style.verticalAlign = "middle";
+
+	optinMainMessageDiv.style.textAlign = "center";
+
+	//optinMainMessageDiv.style.paddingRight = "15px";
+
+	//optinMainMessageDiv.style.paddingLeft = "15px";
 
 
-	surveyMainMessageDiv.appendChild(surveyMainMessage);
 
-	surveyDiv.appendChild(surveyMainMessageDiv);
+
+
+	optinMainMessageDiv.appendChild(optinMainMessage);
+
+	optinDiv.appendChild(optinMainMessageDiv);
 
 
 
@@ -6708,7 +6708,7 @@ function surveyShow(){
 
 	buttonLineDive.style.paddingBottom = "5px";
 
-	surveyDiv.appendChild(buttonLineDive);
+	optinDiv.appendChild(buttonLineDive);
 
 
 
@@ -6726,11 +6726,11 @@ function surveyShow(){
 
 	var agreeButton = document.createElement("button");
 
-	agreeButton.id = "surveyDialogAgreeButton";
+	agreeButton.id = "optinDialogAgreeButton";
 
 	agreeButton.textContent = "Take part in the study";
 
-	agreeButton.onclick = surveyAgreeTo;
+	agreeButton.onclick = optinAgreeTo;
 
 	agreeButtonDiv.appendChild(agreeButton);
 
@@ -6750,11 +6750,11 @@ function surveyShow(){
 
 	var rejectButton = document.createElement("button");
 
-	rejectButton.id = "surveyDialogRejectButton";
+	rejectButton.id = "optinDialogRejectButton";
 
 	rejectButton.textContent = "Not now";
 
-	rejectButton.onclick = surveyNextTime;
+	rejectButton.onclick = optinNextTime;
 
 	rejectButtonDiv.appendChild(rejectButton);
 
@@ -6776,11 +6776,11 @@ function surveyShow(){
 
 	var rejectForeverButton = document.createElement("button");
 
-	rejectForeverButton.id = "surveyDialogRejectForeverButton";
+	rejectForeverButton.id = "optinDialogRejectForeverButton";
 
 	rejectForeverButton.textContent = "Never ask again";
 
-	rejectForeverButton.onclick = surveyRejectForever;
+	rejectForeverButton.onclick = optinRejectForever;
 
 	rejectForeverButtonDiv.appendChild(rejectForeverButton);
 
@@ -6794,13 +6794,13 @@ function surveyShow(){
 
 	if (document.body.firstChild){
 
-      	document.body.insertBefore(surveyDiv, document.body.firstChild);
+      	document.body.insertBefore(optinDiv, document.body.firstChild);
 
 		//console.log("inserting before");
 
 	} else {
 
-      	document.body.appendChild(surveyDiv);
+      	document.body.appendChild(optinDiv);
 
       	//console.log("appending before");
 
@@ -6810,34 +6810,34 @@ function surveyShow(){
 
 
 
-function surveyAgreeTo(){
+function optinAgreeTo(){
 
 	//alert("Agreed");
 
-	surveyMainMessage = document.getElementById("surveyMainMessage");
+	optinMainMessage = document.getElementById("optinMainMessage");
 
-	rejectButton = document.getElementById("surveyDialogRejectButton");
+	rejectButton = document.getElementById("optinDialogRejectButton");
 
-	agreeButton = document.getElementById("surveyDialogAgreeButton");
+	agreeButton = document.getElementById("optinDialogAgreeButton");
 
-	rejectForeverButton = document.getElementById("surveyDialogRejectForeverButton");
+	rejectForeverButton = document.getElementById("optinDialogRejectForeverButton");
 
 	
 
 	//window.open("https://docs.google.com/forms/d/1AVeEBa9tpjvU1zpQlS6qpHQNisYWVq_UvwJtCb452yQ?sid=" + window.sessionId);
 	
-	//First time survey
-	if(getCookie(firstTimeSurveyCookie)=="true" && getCookie(surveyStateCookie) == 1){
+	//First time optin
+	if(getCookie(firstTimeOptinCookie)=="true" && getCookie(optinStateCookie) == 1){
 		questionnaireUrl = "http://www.cs.man.ac.uk/~apaolaza/questionnaire/familiarityQuestionair1stTimers.html";
 
 		window.open(questionnaireUrl + "?sid=" + sessionID + "&sd=" + window.webpageIndex);
-		setCookie(firstTimeSurveyCookie, true, cookieLife);
-		writeLog_UsaProxy("surveyShown&surveyState=" + "-4");
+		setCookie(firstTimeOptinCookie, true, cookieLife);
+		writeLog_UsaProxy("optinShown&optinState=" + "-4");
 		
 	}
 	
 	else{
-		//revisiting survey
+		//revisiting optin
 		questionnaireUrl = "http://www.cs.man.ac.uk/~apaolaza/questionnaire/familiarityQuestionnaire.html";
 
 		window.open(questionnaireUrl + "?sid=" + sessionId + "&sd=" + window.webpageIndex);
@@ -6845,7 +6845,7 @@ function surveyAgreeTo(){
 	}
 
 
-	surveyMainMessage.textContent = "Thanks for agreeing! We appreciate you taking the time";
+	optinMainMessage.textContent = "Thanks for agreeing! We appreciate you taking the time";
 
 
 
@@ -6853,19 +6853,19 @@ function surveyAgreeTo(){
 
 	//I will also send the cookie information about the number of visits
 
-	writeLog_UsaProxy("surveyShown&surveyState=" + getCookie(surveyStateCookie));
+	writeLog_UsaProxy("optinShown&optinState=" + getCookie(optinStateCookie));
 
 	
 
 	//Update the state of the cookie
 
-	//Survey shown time
+	//Optin shown time
 
-	setCookie(surveyLastTimeShownCookie, datestampInMillisec(), cookieLife);
+	setCookie(optinLastTimeShownCookie, datestampInMillisec(), cookieLife);
 
-	//State of the survey to '0' (answered)
+	//State of the optin to '0' (answered)
 
-	setCookie(surveyStateCookie, 0, cookieLife);
+	setCookie(optinStateCookie, 0, cookieLife);
 
 	
 
@@ -6875,7 +6875,7 @@ function surveyAgreeTo(){
 
 		rejectButton.parentNode.removeChild(rejectButton);
 
-		surveyDialog.parentNode.removeChild(surveyDialog);
+		optinDialog.parentNode.removeChild(optinDialog);
 
 		};
 
@@ -6893,19 +6893,19 @@ function surveyAgreeTo(){
 
 
 
-function surveyNextTime(){
+function optinNextTime(){
 
-	surveyMainMessage = document.getElementById("surveyMainMessage");
+	optinMainMessage = document.getElementById("optinMainMessage");
 
-	rejectButton = document.getElementById("surveyDialogRejectButton");
+	rejectButton = document.getElementById("optinDialogRejectButton");
 
-	agreeButton = document.getElementById("surveyDialogAgreeButton");
+	agreeButton = document.getElementById("optinDialogAgreeButton");
 
-	rejectForeverButton = document.getElementById("surveyDialogRejectForeverButton");
+	rejectForeverButton = document.getElementById("optinDialogRejectForeverButton");
 
 
 
-	surveyMainMessage.textContent = "OK, we will ask you again another time.";
+	optinMainMessage.textContent = "OK, we will ask you again another time.";
 
 	
 
@@ -6913,15 +6913,15 @@ function surveyNextTime(){
 
 	//I will also send the cookie information about the number of visits
 
-	writeLog_UsaProxy("surveyShown&surveyState=" + "-2");
+	writeLog_UsaProxy("optinShown&optinState=" + "-2");
 
 	
 
 	//Update the state of the cookie
 
-	//Survey shown time
+	//Optin shown time
 
-	setCookie(surveyLastTimeShownCookie, datestampInMillisec(), cookieLife);
+	setCookie(optinLastTimeShownCookie, datestampInMillisec(), cookieLife);
 
 	
 
@@ -6937,9 +6937,9 @@ function surveyNextTime(){
 
 	setTimeout(function(){
 
-			surveyDialog = document.getElementById("surveyDialog");
+			optinDialog = document.getElementById("optinDialog");
 
-			surveyDialog.parentNode.removeChild(surveyDialog);
+			optinDialog.parentNode.removeChild(optinDialog);
 
 		}, 5000);
 
@@ -6949,19 +6949,19 @@ function surveyNextTime(){
 
 
 
-function surveyRejectForever(){
+function optinRejectForever(){
 
-	surveyMainMessage = document.getElementById("surveyMainMessage");
+	optinMainMessage = document.getElementById("optinMainMessage");
 
-	rejectButton = document.getElementById("surveyDialogRejectButton");
+	rejectButton = document.getElementById("optinDialogRejectButton");
 
-	agreeButton = document.getElementById("surveyDialogAgreeButton");
+	agreeButton = document.getElementById("optinDialogAgreeButton");
 
-	rejectForeverButton = document.getElementById("surveyDialogRejectForeverButton");
+	rejectForeverButton = document.getElementById("optinDialogRejectForeverButton");
 
 
 
-	surveyMainMessage.textContent = "Sorry to hear that, we won't ask again.";
+	optinMainMessage.textContent = "Sorry to hear that, we won't ask again.";
 
 	
 
@@ -6971,19 +6971,19 @@ function surveyRejectForever(){
 
 	//I will also send the cookie information about the number of visits
 
-	writeLog_UsaProxy("surveyShown&surveyState=" + "-1");
+	writeLog_UsaProxy("optinShown&optinState=" + "-1");
 
 	
 
 	//Update the state of the cookie
 
-	//Survey shown time
+	//Optin shown time
 
-	setCookie(surveyLastTimeShownCookie, datestampInMillisec(), cookieLife);
+	setCookie(optinLastTimeShownCookie, datestampInMillisec(), cookieLife);
 
-	//The user doesn't want to be bothered ever again, set surveyState to -1
+	//The user doesn't want to be bothered ever again, set optinState to -1
 
-	setCookie(surveyStateCookie, -1, cookieLife);
+	setCookie(optinStateCookie, -1, cookieLife);
 
 	
 
@@ -6997,15 +6997,15 @@ function surveyRejectForever(){
 
 	setTimeout(function(){
 
-			surveyDialog = document.getElementById("surveyDialog");
+			optinDialog = document.getElementById("optinDialog");
 
-			surveyDialog.parentNode.removeChild(surveyDialog);
+			optinDialog.parentNode.removeChild(optinDialog);
 
 		}, 5000);
 
 }
 
-function surveyFirstTimeAgreeTo(){
+function optinFirstTimeAgreeTo(){
 	
 
 }
