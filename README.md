@@ -25,10 +25,18 @@ PASSWORD=
 
 Once the server is running, a quick way of testing if the events are being captured and stored correctly is running the following code in the terminal. NOTE: this code assumes MongoDB has been properly installed, the *mongo* function is available, and no authentication has been configured for the database.
 
+The following code:
+
+1. Connects to a local MongoDB installation
+1. Switches to the default UCIVIT database
+1. Counts the number of events recorded so far
+1. Shows the formatted information for the last captured event
+
 ```
 mongo
 use ucivitdb
 db.events.find().count()
+db.events.find().sort({"timestamp":-1}).limit(1).pretty()
 ```
 
 ### 2 Deploy script into your Web site
