@@ -1958,7 +1958,7 @@ function saveLog_UsaProxy() {
 
 		//console.log("Before sending info" + getCookie(lastEventTSCookieName));
 
-		xmlreqGET_UsaProxy("https://"+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
+		xmlreqGET_UsaProxy(window.protocol+window.usaProxyServerIP+"/usaproxylolo/log?" + getCookie(lastEventTSCookieName) + "&xX" + logVal_UsaProxy, "");
 
 		
 

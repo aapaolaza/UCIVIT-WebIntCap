@@ -61,13 +61,13 @@ Example of possible deployment:
 The *startCaptureServer.sh* script starts the server with some default settings:
 
 ```
-java -jar captureServer.jar -port 2727 -log
+java -jar captureServer.jar -port 2727
 ```
 
 *OPTIONAL* The content can be replaced with the following to activate the HTTPS protocol:
 
 ```
-java -jar captureServer.jar -ishttps true -port 2727 -log
+java -jar captureServer.jar -ishttps true -port 2727
 ```
 
 This library can be recompiled using the source code provided in the [src/usaproxy/](src/usaproxy/) folder. Once started through a terminal, processed events will be continuously listed.
