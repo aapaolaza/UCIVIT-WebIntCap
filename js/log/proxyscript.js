@@ -973,22 +973,13 @@ function includeMobileEvents(){
 
 	window.addEventListener('touchend', processMobileTouchEnd, false);
 
+  //These events will not be captured for the MOVING platform
+  /*
 	window.addEventListener('deviceorientation', processMobileGyroscope, false);
-
-	
-
 	window.addEventListener('orientationchange', processMobileOrientationChange, false);
-
-	
-
 	window.addEventListener('devicemotion', processMobileMotionEvent, false);
-
 	window.setInterval("processMobileMotionEventAndSave()",200);
-
-
-
-
-
+  */
 }
 
 
