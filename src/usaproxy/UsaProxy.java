@@ -3,6 +3,7 @@ package usaproxy;
 import java.io.*;
 import java.net.*;
 import java.security.Security;
+import java.util.Properties;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -174,9 +175,19 @@ public class UsaProxy {
 					// Registering the JSSE provider
 					Security.addProvider(new Provider());
 
+					Properties prop = new Properties();
+					InputStream input = null;
+					try{
+						input = new FileInputStream("connectionData.txt");
+					}catch (FileNotFoundException e) {
+						System.out.println("Could not initialise SSL. Does the connectionData.txt file exist?");
+						e.printStackTrace();
+					}
+					prop.load(input);
+
 					// Specifying the Keystore details
-					System.setProperty("javax.net.ssl.keyStore", "movingkey.jks");
-					System.setProperty("javax.net.ssl.keyStorePassword", "!moving#2016");
+					System.setProperty("javax.net.ssl.keyStore", prop.getProperty("keyStore"));
+					System.setProperty("javax.net.ssl.keyStorePassword", prop.getProperty("keyStorePassword"));
 
 					// Enable debugging to view the handshake and communication
 					// which happens between the SSLClient and the SSLServer
@@ -184,11 +195,16 @@ public class UsaProxy {
 				}
 
 				// Initialize the Server Socket
-				SSLServerSocketFactory sslServerSocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory
-						.getDefault();
-				SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketfactory
-						.createServerSocket(intSSLport);
-
+				SSLServerSocket sslServerSocket = null;
+				try{
+					SSLServerSocketFactory sslServerSocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory
+							.getDefault();
+					sslServerSocket = (SSLServerSocket) sslServerSocketfactory
+							.createServerSocket(intSSLport);
+				}catch (Exception e) {
+					System.out.println("Error initialising SSL. Is the keystore configuration correct? Check pass");
+					e.printStackTrace();
+				}
 				while (true) {
 					/** wait for next incoming request and accept it */
 					SSLSocket clientConnect = (SSLSocket) sslServerSocket.accept();
