@@ -170,12 +170,12 @@ public class UsaProxy {
 				int intSSLport = this.port; // Port where the SSL Server needs
 											// to listen for new requests from
 											// the client
-
+				Properties prop=null;
 				{
 					// Registering the JSSE provider
 					Security.addProvider(new Provider());
 
-					Properties prop = new Properties();
+					prop = new Properties();
 					InputStream input = null;
 					try{
 						input = new FileInputStream("connectionData.txt");
@@ -193,6 +193,10 @@ public class UsaProxy {
 					// which happens between the SSLClient and the SSLServer
 					// System.setProperty("javax.net.debug","all");
 				}
+
+		        //Testing if the keystore exists
+		        File varTmpDir = new File(prop.getProperty("keyStore"));
+		        System.out.println("Does the keystore file ("+prop.getProperty("keyStore") +") exist?" + varTmpDir.exists());
 
 				// Initialize the Server Socket
 				SSLServerSocket sslServerSocket = null;
