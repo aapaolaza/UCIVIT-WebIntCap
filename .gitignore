@@ -2,3 +2,4 @@ bin/
 *.jks
 errorLog.txt
 connectionData.txt
+.settings

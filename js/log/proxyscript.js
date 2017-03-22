@@ -1,8 +1,11 @@
 /**CHANGES!!! This is not the original proxyscript, it was modified to allow developers to copypaste a script initialitation instead of a proxy approach. All the changes are tagged "CHANGE"**/
 
+console.log("window.host: " + window.host);
+console.log("window.trackedUser: " + window.trackedUser);
+console.log("window.trackedLastRecTS: " + window.trackedLastRecTS);
+console.log("window.trackedEpisodeCount: " + window.trackedEpisodeCount);
 
-
-
+const episodeTimeout = 40*60*1000;
 
 /** Core UsaProxy JavaScript part.
 
@@ -1544,25 +1547,18 @@ function completeDateValsMilliseconds(dateVal) {
 
 function writeLog_UsaProxy(text) {
 
-	
-
 	//console.log("Recording: "+text);
 
 	//We add the browser version
 
 	text = appendClientContextInformation(text);
-
-	
-
 	
 
 	// if function is already being executed, defer writeLog_UsaProxy for 50ms
 
-	////DEBUG TEST
+  //Add current episode information
+  text = appendEpisodeInfo(text);
 
-	
-
-	
 
 	if(FLG_writingLogVal_UsaProxy) {
 
@@ -1965,6 +1961,8 @@ function saveLog_UsaProxy() {
 
 
 		logVal_UsaProxy = ""; // reset log data
+
+    updateEpisodeInformation();//updates the stored episode count information
 
 	}
 
@@ -7122,3 +7120,40 @@ function optinFirstTimeAgreeTo(){
 
 //jQuery("element-root").bind(DOMSubtreeModified,"domChangeListener");
 
+
+
+//////
+
+/**
+ * Given a text to store to the database, expand it with the episodeInformation
+ */
+function appendEpisodeInfo(text){
+  calculateEpisode();
+
+	return text + "&episodeCount=" + window.trackedEpisodeCount;
+}
+
+
+/**
+ * If the time since last recorded event is greater than the episode timeout
+ * increase the episode count and trigger an update in the server.
+ * Always update the last recorded event TS
+ */
+function calculateEpisode(){
+  //The first time, just record current TS
+  if ((window.trackedLastRecTS != -1) &&
+    ((new Date().getTime() - window.trackedLastRecTS) > episodeTimeout)){
+    window.trackedEpisodeCount++;
+    updateEpisodeInformation();
+  }
+  window.trackedLastRecTS = new Date().getTime();
+}
+
+/**
+ * Updates the episode count information.
+ * In this version, it contacts the MOVING framework interface.
+ * It's called at every episode count change, and every request to store the captured data.
+ */
+function updateEpisodeInformation(){
+  $.ajax("/capture/trackingUpdate/"+window.trackedEpisodeCount+"/"+window.trackedLastRecTS);
+}
