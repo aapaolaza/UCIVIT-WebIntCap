@@ -76,7 +76,9 @@ public class GenericEvent {
 		this.timestampms = eventData.get(EventConstants.TIMESTAMP);
 		
 		this.timestamp = formatDateFromMs(eventData.get(EventConstants.TIMESTAMP));
-				
+
+	    this.episodecount = eventData.get(EventConstants.EPISODECOUNT);
+
 		this.sessionstartms = eventData.get(EventConstants.SESSIONSTARTMS);
 		
 		this.sessionstartparsed = formatDateFromMs(eventData.get(EventConstants.SESSIONSTARTMS));
@@ -101,6 +103,7 @@ public class GenericEvent {
 		this.ip = tempClass.ip;
 		this.timestampms = tempClass.timestampms;
 		this.timestamp = tempClass.timestamp;
+	    this.episodecount = tempClass.episodecount;
 		this.sessionstartms = tempClass.sessionstartms;
 		this.sessionstartparsed = tempClass.sessionstartparsed;	
 		this.usertimezoneoffset = tempClass.usertimezoneoffset;
@@ -151,6 +154,11 @@ public class GenericEvent {
 	 * Timestamp of the event
 	 */
 	protected String timestamp ="";
+
+	/**
+	 * Episode count as provided by the client
+	 */
+	protected String episodecount = "";
 
 	/**
 	 * Timestamp in millisecons of the start of the session
@@ -212,7 +220,10 @@ public class GenericEvent {
 		return this.timestamp;
 	}
 
-
+	public String getEpisodecount() {
+		return this.episodecount;
+	}
+	
 	/**
 	 * @return the sd
 	 */
@@ -396,7 +407,10 @@ public class GenericEvent {
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
 	}
-
+	
+	public void setEpisodecount(String episodecount) {
+		this.episodecount = episodecount;
+	}
 
 	public void setSd(String sd) {
 		this.sd = sd;
@@ -535,7 +549,8 @@ public class GenericEvent {
 	public String toString() {
 		return "GenericEvent [ip=" + ip + ", timestampms=" + timestampms
 				+ ", timestamp=" + timestamp + ", sessionstartms="
-				+ sessionstartms + ", sessionstartparsed=" + sessionstartparsed
+				+ sessionstartms + ", episodecount=" + episodecount +
+				", sessionstartparsed=" + sessionstartparsed
 				+ ", usertimezoneoffset=" + usertimezoneoffset + ", sd=" + sd
 				+ ", sid=" + sid + ", event=" + event + ", platform="
 				+ platform + ", browser=" + browser + ", url=" + url + "]";

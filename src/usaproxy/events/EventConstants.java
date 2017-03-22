@@ -26,6 +26,7 @@ public class EventConstants {
 	public final static String IPADDRESS = "ip";
 	
 	public final static String TIMESTAMP = "time";
+	public final static String EPISODECOUNT = "episodeCount";
 	
 	public final static String SD = "sd";
 	
