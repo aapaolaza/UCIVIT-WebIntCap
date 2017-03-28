@@ -3,3 +3,4 @@ bin/
 errorLog.txt
 connectionData.txt
 .settings
+dbAccessData.txt
