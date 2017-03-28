@@ -1,4 +1,4 @@
-The info in the file can be in any order, as long as is in the format
+A file named dbAccessData.txt needs to be created with the following info in any order, as long as is in the format
 label=value
 Without spaces. The information required is IP (location of the database),
 DBNAME (name of the database), EVENTSCOLL (collection where the events are stored),
