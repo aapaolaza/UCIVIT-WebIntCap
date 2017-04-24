@@ -94,6 +94,11 @@ public class UsaProxy {
 	 * needs to be set to true
 	 */
 	private boolean isHTTPS = false;
+	
+	/**
+	 * If the server needs to be bound to a particular IP address. Empty otherwise
+	 */
+	private String bindIP = "";
 
 	/**
 	 * Constructor: creates a UsaProxy instance on a specific port, in the
@@ -116,9 +121,13 @@ public class UsaProxy {
 	 *            "pagereq": only page requests)
 	 * @param id
 	 *            is the name of this UsaProxy instance
+	 * @param isHTTPS
+	 *            indicates if the server should use the HTTPS protocol
+	 * @param bindIP
+	 *            empty by default, a string with an IP adress can be provided for the server to be bound to
 	 */
 	public UsaProxy(int port, Mode mode, boolean rm, boolean sb, boolean isLogging, String logMode, String id,
-			boolean isHTTPS) {
+			boolean isHTTPS, String bindIP) {
 
 		this.port = port;
 		this.mode = mode;
@@ -128,16 +137,7 @@ public class UsaProxy {
 		this.logMode = logMode;
 		this.id = id;
 		this.isHTTPS = isHTTPS;
-
-		try {
-			this.ip = java.net.InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			System.err.println("\nAn ERROR occured while retrieving UsaProxy IP address:\n" + e);
-
-			ErrorLogging.logError("UsaProxy.java: UsaProxy()", "ERROR occured while retrieving UsaProxy IP address", e);
-
-			System.exit(1);
-		}
+		this.bindIP = bindIP;
 
 		/** start UsaProxy-Server */
 		proxyStart();
@@ -203,12 +203,33 @@ public class UsaProxy {
 				try{
 					SSLServerSocketFactory sslServerSocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory
 							.getDefault();
-					sslServerSocket = (SSLServerSocket) sslServerSocketfactory
-							.createServerSocket(intSSLport);
+					
+					//Add the bindIP
+					if (this.bindIP!=""){
+						InetAddress addr = InetAddress.getByName(this.bindIP);
+						sslServerSocket = (SSLServerSocket) sslServerSocketfactory
+								.createServerSocket(intSSLport, 200, addr);
+					}
+					else{
+						sslServerSocket = (SSLServerSocket) sslServerSocketfactory
+								.createServerSocket(intSSLport);
+					}
+					
 				}catch (Exception e) {
 					System.out.println("Error initialising SSL. Is the keystore configuration correct? Check pass");
 					e.printStackTrace();
 				}
+				
+				try {
+					this.ip = java.net.InetAddress.getLocalHost();
+				} catch (UnknownHostException e) {
+					System.err.println("\nAn ERROR occured while retrieving UsaProxy IP address:\n" + e);
+
+					ErrorLogging.logError("UsaProxy.java: UsaProxy()", "ERROR occured while retrieving UsaProxy IP address", e);
+
+					System.exit(1);
+				}
+
 				while (true) {
 					/** wait for next incoming request and accept it */
 					SSLSocket clientConnect = (SSLSocket) sslServerSocket.accept();
@@ -237,10 +258,31 @@ public class UsaProxy {
 				// we increase the maximum size of the queue, the default size
 				// is
 				// 50. I will try with 200 for the time being
-				ServerSocket server = new ServerSocket(port, 200);
+				//ServerSocket server = new ServerSocket(port, 200);
+				
+				ServerSocket server = null;
+				//Add the bindIP
+				if (this.bindIP!=""){
+					InetAddress addr = InetAddress.getByName(this.bindIP);
+					server = new ServerSocket(this.port, 200, addr);
+				}
+				else{
+					server = new ServerSocket(port, 200);
+				}
+				
 
+				try {
+					this.ip = java.net.InetAddress.getLocalHost();
+				} catch (UnknownHostException e) {
+					System.err.println("\nAn ERROR occured while retrieving UsaProxy IP address:\n" + e);
+
+					ErrorLogging.logError("UsaProxy.java: UsaProxy()", "ERROR occured while retrieving UsaProxy IP address", e);
+
+					System.exit(1);
+				}
+				
 				/** Display start message */
-				System.out.println("UsaProxy started at port " + port + " with ID: " + (id == "" ? "undefined" : id));
+				System.out.println("UsaProxy started at port " + port + " on IP: " + this.ip);
 				if (isRM)
 					System.out.println("Joint experience via: Remote Monitoring");
 				if (isSB)
@@ -253,6 +295,7 @@ public class UsaProxy {
 
 				ErrorLogging.logCriticalError("UsaProxy.java:proxyStart()", "UsaProxy tool started", null);
 
+				
 				/** endless loop */
 				while (true) {
 
@@ -514,8 +557,16 @@ public class UsaProxy {
 			httpsMode = Boolean.valueOf(args[index + 1].toString());
 		}
 
+
+		/** Check if the server socket should bind to a particular IP*/
+		String bindIP = null;
+		/** try to detect server declaration */
+		if ((index = indexOf(args, "-bindIP")) != -1) {
+			bindIP = args[index + 1].toString();
+		}
+		
 		/** generate an UsaProxy instance */
-		new UsaProxy(port, mode, rm, sb, log, logMode, id, httpsMode);
+		new UsaProxy(port, mode, rm, sb, log, logMode, id, httpsMode,bindIP);
 
 	}
 
