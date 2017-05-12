@@ -148,6 +148,7 @@ public class SocketData {
      */
 	public static void send403 (OutputStream out, String message) throws IOException {
 			
+		System.out.println("SocketData:send403");
 			DataOutputStream dout = new DataOutputStream(out);
 			
 			/** new headers StringBuffer */

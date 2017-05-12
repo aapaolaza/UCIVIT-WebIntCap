@@ -4,3 +4,4 @@ errorLog.txt
 connectionData.txt
 .settings
 dbAccessData.txt
+startMongoServer.cmd

@@ -1,15 +1,19 @@
 package usaproxy;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -163,6 +167,10 @@ public class ClientRequest extends Thread {
 
 		String clientIP = "";
 
+		System.out.println("Request received");
+
+		//InputStream inCopy = in;
+		//printInput(inCopy);
 		try {
 			/** read in HTTP request headers */
 			in = client.getHeaders().readHeaders(in);
@@ -642,7 +650,8 @@ public class ClientRequest extends Thread {
 			 * appended by the EventManager instance
 			 * */
 			else if (requestURL.getPath().equals("/usaproxylolo/log")) {
-
+				System.out.println("/usaproxylolo/log");
+				System.out.println(requestURL.getQuery());
 				// /DEBUG TEST
 				//String[] dataArray = requestURL.getQuery().split("&xX");
 
@@ -654,7 +663,13 @@ public class ClientRequest extends Thread {
 				/** retrieve both collaborators' session ID query parameters */
 				String sid = HTTPData.getValue(requestURL.getQuery(), "sid");
 
+				System.out.println("Before reading content");
 				System.out.println("The request was:" + requestURL.getQuery());
+				System.out.println("Before reading POST");
+
+				System.out.println("The POST content was:");
+				String postData = readInputStreamToString(in);
+				System.out.println(postData);
 				System.out.println("Logging information for session: " + sid);
 
 				/** ascertain that parameter actually was applied */
@@ -708,7 +723,7 @@ public class ClientRequest extends Thread {
 							.send403(
 									new DataOutputStream(client
 											.getOut()),
-											"Wrong partner session ID URL parameter specified !");
+									"Wrong partner session ID URL parameter specified !");
 							return;
 						}
 
@@ -728,10 +743,11 @@ public class ClientRequest extends Thread {
 				if (usaProxy.isLogging()
 						&& !usaProxy.getLogMode().equals("pagereq")
 						&& requestURL.getQuery().indexOf("lastId=") == -1)
-					//					usaProxy.getEventManager().log(client.getOut(),
-					//							requestURL.getQuery(), client.getSocket());
+					/*Old version using GET data instead of post
+					 * usaProxy.getEventManager().log(client.getOut(),
+							requestURL.getQuery(), clientIP, client.getSocket());*/
 					usaProxy.getEventManager().log(client.getOut(),
-							requestURL.getQuery(), clientIP, client.getSocket());
+							postData, clientIP, client.getSocket());
 			}
 
 			/*********************************************************************
@@ -1204,7 +1220,7 @@ public class ClientRequest extends Thread {
 			catch(Exception e){
 				System.out.println("could not return 200");
 			}
-			
+
 		} catch (IOException e) {
 			// e.printStackTrace();
 			if (client.getSocket() != null) {
@@ -1370,9 +1386,9 @@ public class ClientRequest extends Thread {
 				|| (requestURL.getPath().startsWith("/remotemonitoring") && (requestURL
 						.getQuery() != null ? requestURL.getQuery().indexOf(
 								"usaproxyload&") == -1 : true))
-								|| (requestURL.getPath().startsWith("/sharedbrowsing") && (requestURL
-										.getQuery() != null ? requestURL.getQuery().indexOf(
-												"usaproxyload&") == -1 : true))) {
+				|| (requestURL.getPath().startsWith("/sharedbrowsing") && (requestURL
+						.getQuery() != null ? requestURL.getQuery().indexOf(
+								"usaproxyload&") == -1 : true))) {
 
 			/** add VIA-header in the form Via: <hostname> (UsaProxy/2.0) */
 			try {
@@ -1381,7 +1397,7 @@ public class ClientRequest extends Thread {
 				if (server.getHeaders().containsKey(HTTPData.HEADER_VIA))
 					newVia = (String) server.getHeaders().get(
 							HTTPData.HEADER_VIA)
-							+ ", ";
+					+ ", ";
 				newVia = newVia + i.getHostName() + " (UsaProxy/2.0)";
 				server.getHeaders().put(HTTPData.HEADER_VIA, newVia);
 			} catch (UnknownHostException e1) {
@@ -2067,4 +2083,41 @@ public class ClientRequest extends Thread {
 
 		//connections are closed, but now I want to get rid of the hashtables
 	}
+
+	/**
+	 * Simple function to just print the input from the user.
+	 * Inspired by http://stackoverflow.com/questions/3033755/reading-post-data-from-html-form-sent-to-serversocket
+	 * http://stackoverflow.com/questions/30901173/handling-post-request-via-socket-in-java
+	 * @param is
+	 * @throws IOException 
+	 */
+	String readInputStreamToString(InputStream is)
+	{
+		try {
+			// HTTP carries both textual and binary elements.
+			// Not using BufferedReader.readLine() so it does
+			// not "steal" bytes from BufferedInputStream...
+
+			// HTTP itself only allows 7bit ASCII characters
+			// in headers, but some header values may be
+			// further encoded using RFC 2231 or 5987 to
+			// carry Unicode characters ...
+
+			InputStreamReader r = new InputStreamReader(is, StandardCharsets.US_ASCII);
+			StringBuilder sb = new StringBuilder();
+			char c;
+
+			while ((c = (char) r.read()) >= 0) {
+				if (c == '\n') break;
+				sb.append(c);
+			}
+
+			return sb.toString();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 }
