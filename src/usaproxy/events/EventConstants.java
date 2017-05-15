@@ -155,6 +155,10 @@ public class EventConstants {
 	public static final String MOBILEMOTIONACCELMAX = "maxAcc";
 	public static final String MOBILEMOTIONACCELMAXINCLGRAV = "maxAccWithGrav";
 
+	
+	//Form inputs for the submit event
+	public static final String FORMINPUTS = "formInputs";
+
 	// //////////////////////////////////EVENTNAMES/////////////////////////////////////////////////
 	public final static String BLUR = "blur";
 
@@ -237,5 +241,8 @@ public class EventConstants {
 	public static final String SURVEYSHOWN = "surveyShown";
 	
 	public static final String SURVEYSTATE = "surveyState";
+	
+	public static final String SUBMIT = "submit";
+	
 
 }

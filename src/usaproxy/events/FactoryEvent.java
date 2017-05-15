@@ -160,6 +160,10 @@ public class FactoryEvent {
 			case EventConstants.SURVEYSHOWN:
 				jsonObject = SurveyShown.parseFromHash(eventHashMap).toGson();
 				break;
+
+			case EventConstants.SUBMIT:
+				jsonObject = Submit.parseFromHash(eventHashMap).toGson();
+				break;
 				
 			default:
 				ErrorLogging

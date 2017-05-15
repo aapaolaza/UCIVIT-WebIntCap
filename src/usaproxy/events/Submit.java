@@ -1,20 +1,21 @@
 package usaproxy.events;
 
 
+import java.util.ArrayList;
+
 import com.google.gson.Gson;
 /**
  * Event triggered when the user moves the mouse. It's not recorded every time the mouse is moved.
  * Instead the position is checked periodically, and stored when it's different. 
  * 
  */
-public class Mousemove extends GenericEvent{
+public class Submit extends GenericEvent{
 
 	/**
 	 * Empty constructor
 	 */
-	public Mousemove(){
+	public Submit(){
 		super();
-		this.mouseCoordinates = null;
 		this.nodeInfo = null;
 	}
 
@@ -24,7 +25,6 @@ public class Mousemove extends GenericEvent{
 //	 * @param sd
 //	 * @param sid
 //	 * @param event
-//	 * @param mouseCoordinates
 //	 * @param nodeInfo
 //	 * @param browser
 //	 * @param url
@@ -46,14 +46,13 @@ public class Mousemove extends GenericEvent{
 	 * @param serialised class in JSON
 	 */
 
-	public Mousemove (String json){
-		this(new Gson().fromJson(json, Mousemove.class));
+	public Submit (String json){
+		this(new Gson().fromJson(json, Submit.class));
 	}
 	
-	public Mousemove (Mousemove tempClass){
+	public Submit (Submit tempClass){
 		super(tempClass);
 		
-		this.mouseCoordinates = tempClass.mouseCoordinates;
 		this.nodeInfo = tempClass.nodeInfo;
 		
 	}
@@ -80,7 +79,6 @@ public class Mousemove extends GenericEvent{
 	 * sd --> sd
 	 * sid --> sid
 	 * event --> event
-	 * from variable --> mouseCoordinates
 	 * from variable --> nodeInfo
 	 * browser --> browser
 	 * url --> url
@@ -91,46 +89,42 @@ public class Mousemove extends GenericEvent{
 	 * 
 	 * 
 	 */
-	public static Mousemove parseFromHash(EventDataHashMap eventData) {
-
-		return new Mousemove(eventData);
+	public static Submit parseFromHash(EventDataHashMap eventData) {
+		
+		return new Submit(eventData);
 	}
 	
-	private Mousemove(EventDataHashMap eventData) {
+	private Submit(EventDataHashMap eventData) {
 		super(eventData);
 		
-		this.mouseCoordinates = MouseCoordinates.parseFromHash(eventData);
-
+		//Add the form input parsing functionality here
+		this.formInputs = new ArrayList<FormValue>();
+		
+		String formInputString = eventData.get(EventConstants.FORMINPUTS);
+		String[] formInputList = formInputString.split(";");
+		
+		for (int i=0; i< formInputList.length; i++){
+			/* For each formInput field, split it using ":" into label and value
+			 * and store it into the formInputs ArrayList
+			 */
+			String[] formInputItem = formInputList[i].split(":");
+			if (formInputItem.length > 1){
+				this.formInputs.add(new FormValue(formInputItem[0], formInputItem[1]));
+			}
+			//If any of the inputs is empty, we can either report it as empty or discard it completely 
+			else if (formInputItem.length > 0){
+				this.formInputs.add(new FormValue(formInputItem[0], ""));
+			}
+		}
+		
 		this.nodeInfo = NodeInfo.parseFromHash(eventData);
-
 	}
 
-
-	/**
-	 * MouseCoordinates element with all the information available of the mouse coordinates
-	 */
-	private MouseCoordinates mouseCoordinates;
 
 	/**
 	 * NodeInfo element with all the information available of the node
 	 */
 	private NodeInfo nodeInfo;
-
-	/**
-	 * @return the mouseCoordinates
-	 */
-	public MouseCoordinates getMouseCoordinates() {
-		return mouseCoordinates;
-	}
-
-
-	/**
-	 * @param mouseCoordinates the mouseCoordinates to set
-	 */
-	public void setMouseCoordinates(MouseCoordinates mouseCoordinates) {
-		this.mouseCoordinates = mouseCoordinates;
-	}
-
 
 	/**
 	 * @return the NodeInfo
@@ -140,9 +134,40 @@ public class Mousemove extends GenericEvent{
 	}
 
 	/**
-	 * @param nodeInfo the button to set
+	 * @param nodeInfo the nodeinfo to set
 	 */
 	public void setNodeInfo(NodeInfo nodeInfo) {
 		this.nodeInfo = nodeInfo;
+	}
+	
+	private ArrayList<FormValue> formInputs;
+	
+	/**
+	 * @return the formInputs
+	 */
+	public ArrayList<FormValue> getFormInputs() {
+		return formInputs;
+	}
+
+	/**
+	 * @param the formInputs to set
+	 */
+	public void setFormInputs(ArrayList<FormValue> formInputs) {
+		this.formInputs = formInputs;
+	}
+	
+	public class FormValue {
+		private String label;
+		private String value;
+		
+		public FormValue(String label, String value){
+			this.label = label;
+		    this.value = value;
+		}
+		
+		public String getLabel(){ return label; }
+		public String getValue(){ return value; }
+		public void setLabel(String label){ this.label = label; }
+		public void setValue(String value){ this.value = value; }
 	}
 }

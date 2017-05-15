@@ -523,6 +523,12 @@
       }
     };
 
+    /*Listen to the submit event, to capture form information */
+    $("form,form-control").on("submit", function (event) {
+      //ONLY FOR TESTING PURPOSES! Do not leave active for commits: event.preventDefault();
+      processSubmitEvent(event);
+    });
+
     /* We also register a function to check the window focus periodically*/
     IVL_windowFocusCheck = setInterval(processWindowFocusQuery, 1000);
 
@@ -1036,7 +1042,6 @@
       }
     }
   }
-  /** end of AJAX code */
 
 
   /** Sends tracked usage data (if any) to UsaProxy */
@@ -2081,6 +2086,35 @@
     return (html);
   }
 
+
+  /**
+   * Event to be triggered when a query is triggered. It will respond to a submit event
+   */
+
+  function processSubmitEvent(event) {
+    //console.log("submit happened on " + $(event).text())
+    //Can I get the target of the submit event?
+    var target = event.target;
+    //console.log(generateEventString_UsaProxy($(target).closest('[id]')[0]));
+
+    writeLog_UsaProxy("submit" + generateEventString_UsaProxy(target) + "&formInputs=" + getFormInputs());
+    saveLog_UsaProxy();
+  }
+
+  /**
+  * Extracts and encodes form inputs in the page. Content from text areas are also extracted
+  */
+  function getFormInputs() {
+
+    var formInputs = "";
+    //$('input').css('background-color','blue')
+    //$('input').css('background-color','')
+
+    $('input,textarea').each(function (index, element) {
+      formInputs += encodeURIComponent($(element).attr("id")) + ":" + encodeURIComponent($(element).val()) + ";";
+    });
+    return (formInputs);
+  }
 
   //////////////////////////////////////////////////////////////////////////
   ////////////////USEFUL FUNCTIONS//////////////////////////////////////////

@@ -99,7 +99,6 @@ public class SelectContent extends GenericEvent{
 	 */
 	
 	public static SelectContent parseFromHash(EventDataHashMap eventData) {
-
 		return new SelectContent(eventData);
 	}
 	
