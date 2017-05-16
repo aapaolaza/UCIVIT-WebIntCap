@@ -843,7 +843,7 @@
 
   function writeLog_UsaProxy(text) {
 
-    console.log("Recording: " + text);
+    //console.log("Recording: " + text);
 
     //We add the browser version
 
