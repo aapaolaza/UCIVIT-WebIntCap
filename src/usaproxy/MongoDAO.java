@@ -7,19 +7,28 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import org.bson.Document;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoTimeoutException;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.UpdateOptions;
 
 import usaproxy.domchanges.DOMBean;
 import usaproxy.events.EventConstants;
 import usaproxy.events.FactoryEvent;
 import usaproxy.events.GenericEvent;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 
 /**
  * This class will act as an interface to the MongoDatabase. It will return
@@ -31,14 +40,12 @@ import com.mongodb.MongoClient;
 public class MongoDAO {
 
 	public static MongoClient mongoClient = null;
-	public static DB db = null;
-	public static DBCollection eventsColl = null;
-	public static DBCollection domColl = null;
-	public static DBCollection domChangeColl = null;
-	public static DBCollection domTempColl = null;
+	public static MongoDatabase db = null;
+	public static MongoCollection<Document> eventsColl = null;
+	public static MongoCollection<Document> domColl = null;
+	public static MongoCollection<Document> domChangeColl = null;
+	public static MongoCollection<Document> domTempColl = null;
 
-	// Variable indicating if the authorisation was correct
-	private boolean auth;
 
 	private MongoDAO() throws UnknownHostException {
 
@@ -50,16 +57,24 @@ public class MongoDAO {
 
 			mongoClient = new MongoClient(getDbIP());
 
-			db = mongoClient.getDB(getDbName());
 
 			// if the user is an empty string, no authentication is used
 			if (getDbUser() != "") {
-				auth = db.authenticate(getDbUser(), getDbPassword().toCharArray());
-				if (!auth) {
-					System.out.println("Error authenticating to DB (is it running?");
-					ErrorLogging.logError("MongoDAO.java/MongoDAO()",
-							"There was an error trying to connect to the MongoDB database", null);
-				}
+				MongoCredential credential = MongoCredential.createCredential(getDbUser(),
+						getDbName(),
+						getDbPassword().toCharArray());
+				mongoClient = new MongoClient(new ServerAddress("localhost", 27017),
+						Arrays.asList(credential));
+			}
+
+			db = mongoClient.getDatabase(getDbName());
+
+			try {
+				db.runCommand(new Document("ping", 1));
+			} catch (MongoTimeoutException e) {
+				System.out.println("Error authenticating to DB (is it running?");
+				ErrorLogging.logError("MongoDAO.java/MongoDAO()",
+						"There was an error trying to connect to the MongoDB database", null);
 			}
 
 			System.out.println("initialising DB collections");
@@ -67,6 +82,10 @@ public class MongoDAO {
 			domColl = db.getCollection(getDbDOMCollection());
 			domChangeColl = db.getCollection(getDbDOMChangeCollection());
 			domTempColl = db.getCollection(getDbDOMTempCollection());
+			
+			//Create unique index (if doesn't exist) to prevent duplicates
+			createUniqueIndex();
+			System.out.println("Unique index created");
 		}
 	}
 
@@ -85,6 +104,7 @@ public class MongoDAO {
 		}
 		return null;
 	}
+
 
 	// ////////DATABASE ACCESS DATA
 
@@ -154,6 +174,20 @@ public class MongoDAO {
 			getDBInfoFromFile();
 		}
 		return dbPassword;
+	}
+
+	/**
+	 * Initialise an index that prevents duplicates in the database
+	 */
+	public boolean createUniqueIndex(){
+		try {
+			eventsColl.createIndex(Indexes.ascending("sid","sd","sessionstartms","event","timestampms"));
+			return true;
+		} catch (Exception e) {
+			ErrorLogging.logCriticalError("MongoDAO.java/createUniqueIndex()",
+					"Error trying to create the unique index", e);
+		}
+		return false;
 	}
 
 	/**
@@ -249,7 +283,7 @@ public class MongoDAO {
 			ErrorLogging.logError("MongoDAO.java:getDBInfoFromFile()",
 					"Database info is:" + dbIP + "," + dbName + "," + dbEventsCollection + "," + dbDOMCollection + ","
 							+ dbDOMChangeCollection + "," + dbDOMTempCollection + "," + dbUser + "," + dbPassword,
-					null);
+							null);
 
 		} catch (Exception e) {
 			ErrorLogging.logCriticalError("MongoDAO.java:getDBInfoFromFile()",
@@ -268,17 +302,9 @@ public class MongoDAO {
 	public boolean commitJsonToEvents(String jsonString) {
 
 		try {
-			// System.out.println("MongoDAO/commitJson(): Storing the following
-			// Json: "
-			// + jsonString);
-			Object o = com.mongodb.util.JSON.parse(jsonString);
-			DBObject dbObj = (DBObject) o;
+			Document doc = Document.parse(jsonString);
+			eventsColl.insertOne(doc);
 
-			eventsColl.insert(dbObj);
-			// WriteResult result = coll.insert(dbObj);
-
-			// I actually don't know what errors this may show...
-			// System.out.println(result.getError());
 			return true;
 		} catch (Exception e) {
 			ErrorLogging.logCriticalError("MongoDAO.java/commitJson()",
@@ -298,11 +324,8 @@ public class MongoDAO {
 	public boolean commitJsonToDOM(String jsonString) {
 
 		try {
-
-			Object o = com.mongodb.util.JSON.parse(jsonString);
-			DBObject dbObj = (DBObject) o;
-
-			domColl.insert(dbObj);
+			Document doc = Document.parse(jsonString);
+			domColl.insertOne(doc);
 
 			return true;
 		} catch (Exception e) {
@@ -324,11 +347,8 @@ public class MongoDAO {
 	public boolean commitJsonToDOMTemp(String jsonString) {
 
 		try {
-
-			Object o = com.mongodb.util.JSON.parse(jsonString);
-			DBObject dbObj = (DBObject) o;
-
-			domTempColl.insert(dbObj);
+			Document doc = Document.parse(jsonString);
+			domTempColl.insertOne(doc);
 
 			return true;
 		} catch (Exception e) {
@@ -349,11 +369,8 @@ public class MongoDAO {
 	public boolean commitJsonToDOMChange(String jsonString) {
 
 		try {
-
-			Object o = com.mongodb.util.JSON.parse(jsonString);
-			DBObject dbObj = (DBObject) o;
-
-			domChangeColl.insert(dbObj);
+			Document doc = Document.parse(jsonString);
+			domChangeColl.insertOne(doc);
 
 			return true;
 		} catch (Exception e) {
@@ -373,7 +390,7 @@ public class MongoDAO {
 	public ArrayList<GenericEvent> getAllEvents() {
 		ArrayList<GenericEvent> eventList = new ArrayList<GenericEvent>();
 
-		DBCursor cursor = eventsColl.find();
+		MongoCursor<Document> cursor = eventsColl.find().iterator();
 		try {
 			while (cursor.hasNext()) {
 				eventList.add(FactoryEvent.getEventFromDBObject(cursor.next()));
@@ -400,8 +417,7 @@ public class MongoDAO {
 		ArrayList<GenericEvent> eventList = new ArrayList<GenericEvent>();
 
 		BasicDBObject query = new BasicDBObject(EventConstants.EVENTNAME, eventType);
-
-		DBCursor cursor = eventsColl.find(query);
+		MongoCursor<Document> cursor = eventsColl.find(query).iterator();
 
 		try {
 			while (cursor.hasNext()) {
@@ -439,13 +455,9 @@ public class MongoDAO {
 	public Integer getCountOfUserDomMilestones(String sid) {
 
 		try {
-			ArrayList<GenericEvent> eventList = new ArrayList<GenericEvent>();
-
 			BasicDBObject query = new BasicDBObject("sid", sid);
 
-			DBCursor cursor = eventsColl.find(query);
-
-			return cursor.count();
+			return (int) eventsColl.count(query);
 
 		} catch (Exception e) {
 			ErrorLogging.logCriticalError("MongoDAO.java/getCountOfUserDomMilestones()",
@@ -472,14 +484,14 @@ public class MongoDAO {
 	 */
 	public DOMBean getTempMilestoneForSid(String sid, String sessionstartms) {
 
-		DBObject queryResult = null;
+		Document queryResult = null;
 		DOMBean tempDOM = null;
 		try {
 
 			BasicDBObject query = new BasicDBObject("sid", sid);
 			query.append("sessionstartms", sessionstartms);
 
-			DBCursor cursor = domTempColl.find(query);
+			MongoCursor<Document> cursor = domTempColl.find(query).iterator();
 
 			while (cursor.hasNext()) {
 				queryResult = cursor.next();
@@ -547,7 +559,9 @@ public class MongoDAO {
 			// System.out.println("MongoDAO.java upsertDOMTempForUser, DOMTEMP
 			// info to store: " + domObject.toGson());
 
-			domTempColl.update(query, domData, true, false);
+			UpdateOptions options = new UpdateOptions().upsert(true);
+
+			domTempColl.updateOne(query, domData, options);
 
 			return true;
 
@@ -578,16 +592,14 @@ public class MongoDAO {
 			BasicDBObject sortPredicate = new BasicDBObject();
 			sortPredicate.put("timestamp", -1);
 
-			DBCursor cur = eventsColl.find(query).sort(sortPredicate);
+			Document lastEvent = eventsColl.find(query).sort(Sorts.descending("timestamp")).first();
 
-			while (cur.hasNext()) {
-				timeString = FactoryEvent.getEventFromDBObject(cur.next()).getTimestamp();
+			timeString = FactoryEvent.getEventFromDBObject(lastEvent).getTimestamp();
 
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd,HH:mm:ss:SSS");
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd,HH:mm:ss:SSS");
 
-				return (sdf.parse(timeString).getTime());
+			return (sdf.parse(timeString).getTime());
 
-			}
 
 		} catch (Exception e) {
 			ErrorLogging.logCriticalError("MongoDAO.java/getLastEventTimestampForUser()",

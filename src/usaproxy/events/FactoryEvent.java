@@ -2,6 +2,8 @@ package usaproxy.events;
 
 import usaproxy.ErrorLogging;
 
+import org.bson.Document;
+
 import com.mongodb.DBObject;
 
 /**
@@ -190,7 +192,7 @@ public class FactoryEvent {
 	 * 
 	 */
 	
-	public static GenericEvent getEventFromDBObject(DBObject dbObject){
+	public static GenericEvent getEventFromDBObject(Document dbObject){
 		GenericEvent classObject = null;
 		
 		switch (dbObject.get(EventConstants.EVENTNAME).toString()) {
