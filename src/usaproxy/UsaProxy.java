@@ -12,31 +12,7 @@ import javax.net.ssl.TrustManager;
 import com.sun.net.ssl.internal.ssl.Provider;
 
 /**
- * UsaProxy - HTTP proxy for tracking, logging, and replay of user interactions
- * on websites in order to enable web-based collaboration. <br>
- * <br>
- * Copyright (C) 2006 Monika Wnuk - Media Informatics Group at the University of
- * Munich <br>
- * <br>
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version. <br>
- * <br>
- * UsaProxy main class manages deployment and operation mode settings, together
- * with global objects such as <code>EventManager</code>,
- * <code>ChatManager</code>, or <code>FileSender</code>.<br>
- * <br>
- * UsaProxy is started together with a couple of information on the proxy mode
- * (e.g. regular proxy, transparent proxy, application in front of a web
- * server), on the sharing mode (i.e. remote monitoring or shared browsing), and
- * on the logging mode. UsaProxy can be set up to either enable web-based
- * collaboration, or for simple logging of interactions, or both. In addition, a
- * UsaProxy instance ID can be assigned which identifies the launched instance.
- * <br>
- * <br>
- * Finally, the proxy is started and waits constantly for incoming HTTP
- * requests.
+ * UCIVIT - https://github.com/aapaolaza/UCIVIT-WebIntCap/
  */
 public class UsaProxy {
 
@@ -54,8 +30,7 @@ public class UsaProxy {
 	 * tracking JavaScript.
 	 */
 	private FileSender fileSender;
-	/** Provides methods for the management and exchange of chat messages. */
-	private ChatManager chatManager;
+
 	/**
 	 * Provides methods for the management of exchanged interactions/events and
 	 * for synchronized event logging to a file.
@@ -71,10 +46,6 @@ public class UsaProxy {
 	 */
 	private Users users;
 
-	/** True if UsaProxy is deployed in asymmetric remote monitoring mode. */
-	private boolean isRM;
-	/** True if UsaProxy is deployed in symmetric shared browsing mode */
-	private boolean isSB;
 	/** True if storage of user actions to a log file is enabled */
 	private boolean isLogging;
 	/**
@@ -101,10 +72,7 @@ public class UsaProxy {
 	private String bindIP = "";
 
 	/**
-	 * Constructor: creates a UsaProxy instance on a specific port, in the
-	 * specified proxy mode (e.g. regular proxy, transparent proxy, proxy in
-	 * front of a web server), in the specified sharing mode and logging mode,
-	 * and with the defined instance ID.
+	 * Constructor: creates a UCIVIT instance on a specific port and IP address
 	 * 
 	 * @param port
 	 *            is the port the UsaProxy will run on
@@ -126,13 +94,11 @@ public class UsaProxy {
 	 * @param bindIP
 	 *            empty by default, a string with an IP adress can be provided for the server to be bound to
 	 */
-	public UsaProxy(int port, Mode mode, boolean rm, boolean sb, boolean isLogging, String logMode, String id,
+	public UsaProxy(int port, Mode mode, boolean isLogging, String logMode, String id,
 			boolean isHTTPS, String bindIP) {
 
 		this.port = port;
 		this.mode = mode;
-		this.isRM = rm;
-		this.isSB = sb;
 		this.isLogging = isLogging;
 		this.logMode = logMode;
 		this.id = id;
@@ -156,7 +122,6 @@ public class UsaProxy {
 		/** Display message */
 
 		fileSender = new FileSender();
-		chatManager = new ChatManager();
 		eventManager = new EventManager(this);
 		httpTraffic = new HTTPTraffic();
 		users = new Users();
@@ -283,12 +248,9 @@ public class UsaProxy {
 				
 				/** Display start message */
 				System.out.println("UsaProxy started at port " + port + " on IP: " + this.ip);
-				if (isRM)
-					System.out.println("Joint experience via: Remote Monitoring");
-				if (isSB)
-					System.out.println("Joint experience via: Shared Browsing");
-				if (!isRM && !isSB)
-					System.out.println("Simple logging mode without joint experience");
+				
+				System.out.println("Simple logging mode without joint experience");
+				
 				System.out.println("Logging: "
 						+ (isLogging ? (logMode.equals("pagereq") ? "on (only page requests)" : "on") : "off"));
 				System.out.println("UsaProxy ready for accepting incoming connections !\n");
@@ -566,7 +528,7 @@ public class UsaProxy {
 		}
 		
 		/** generate an UsaProxy instance */
-		new UsaProxy(port, mode, rm, sb, log, logMode, id, httpsMode,bindIP);
+		new UsaProxy(port, mode, log, logMode, id, httpsMode,bindIP);
 
 	}
 
@@ -577,16 +539,6 @@ public class UsaProxy {
 	 */
 	public Mode getMode() {
 		return mode;
-	}
-
-	/**
-	 * Returns the <code>ChatManager</code> object which manages chat messages
-	 * exchanged during shared sessions.
-	 * 
-	 * @return the <code>ChatManager</code> instance.
-	 */
-	public ChatManager getChatManager() {
-		return chatManager;
 	}
 
 	/**
@@ -646,24 +598,6 @@ public class UsaProxy {
 	 */
 	public Users getUsers() {
 		return users;
-	}
-
-	/**
-	 * Returns true if UsaProxy is deployed in remote monitoring operation mode.
-	 * 
-	 * @return true in case UsaProxy operates in remote monitoring mode.
-	 */
-	public boolean isRM() {
-		return isRM;
-	}
-
-	/**
-	 * Returns true if UsaProxy is deployed in shared browsing operation mode.
-	 * 
-	 * @return true in case UsaProxy operates in shared browsing mode.
-	 */
-	public boolean isSB() {
-		return isSB;
 	}
 
 	/**

@@ -75,15 +75,18 @@
   var loadDate_UsaProxy = new Date();
 
   /**
-   * Mousemove periodic query
-   * Boolean: while flag set, mousemove logging is interrupted 
-   * for all following log attempts
+   * Mousemove variables
    */
-  var FLG_LogMousemove_UsaProxy;
+  var mousemoveLastTS;
 
-  var lastMousePosX_UsaProxy;		// Integer: last x position of the mouse pointer
+  var mousemoveLastPosX;		// Integer: last x position of the mouse pointer
 
-  var lastMousePosY_UsaProxy;		// Integer: last y position of the mouse pointer
+  var mousemoveLastPosY;		// Integer: last y position of the mouse pointer
+
+  /**
+   * Mouse move query time threshold in ms. If the time between mousemove recordings if bigger than this, the event will be recorded.
+   */
+  var mousemoveThreshold = 1;
 
 
   /**
@@ -137,7 +140,6 @@
    *  
    */
   var wheelQueryFrequency = 50;
-
 
   /**
    * Timestamp storing the last wheel interaction
@@ -315,23 +317,6 @@
 
 
   /**
-   * ANDY's BBC MODIFICATION
-   * It only works if it's Andy's experiment
-   */
-  if (websiteID == "10009")
-    window.setInterval("processAndyBBC()", 100);
-
-  var previousTitle = "";
-
-  function processAndyBBC() {
-    var title = document.getElementById("page_title").innerHTML;
-    if (previousTitle != title) {
-      previousTitle = title;
-      writeLog_UsaProxy("andyBBC&title=" + encodeURIComponent(title));
-    }
-  }
-
-  /**
   * I add jquery only if necessaryt to use certain interesting functions
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" type="text/javascript"></script>
   */
@@ -357,9 +342,8 @@
     window.status = "";
     FLG_writingLogVal_UsaProxy = false;
 
-    FLG_LogMousemove_UsaProxy = false;
-    lastMousePosX_UsaProxy = 0;
-    lastMousePosY_UsaProxy = 0;
+    mousemoveLastPosX = 0;
+    mousemoveLastPosY = 0;
 
     /* initialize lastScrollPos_UsaProxy with current top/left offset */
     lastScrollPosY_UsaProxy = (isNotOldIE) ? window.pageYOffset : document.body.scrollTop;
@@ -562,6 +546,7 @@
 
   //See https://developer.mozilla.org/en-US/docs/Web/API/Touch?redirectlocale=en-US&redirectslug=DOM%2FTouch
   function processMobileTouchStart(e) {
+    var eventTS = datestampInMillisec();
 
     var eventString = "mobileTouchStart";
 
@@ -591,13 +576,15 @@
     }
 
     eventString += generateEventString_UsaProxy(e.target);
-    writeLog_UsaProxy(eventString);
+    writeLog_UsaProxy(eventTS, eventString);
   }
 
 
   function processMobileTouchEnd(e) {
+    var eventTS = datestampInMillisec();
 
     var eventString = "mobileTouchEnd";
+
     eventString += "&numberOfTouches=" + e.touches.length
       + "&isCtrlKey=" + e.ctrlKey
       + "&isShiftKey=" + e.shiftKey
@@ -622,7 +609,7 @@
     }
 
     eventString += generateEventString_UsaProxy(e.target);
-    writeLog_UsaProxy(eventString);
+    writeLog_UsaProxy(eventTS, eventString);
 
     //Was this touch event employed to select something?
     processIfHtmlIsSelected("touch", target);
@@ -648,6 +635,7 @@
   // Update the event handler to do nothing more than store the values from the event
 
   function processMobileGyroscope(e) {
+    var eventTS = datestampInMillisec();
 
     //alpha: rotation around z-axis
     gyroAlpha = e.alpha;
@@ -670,7 +658,7 @@
       eventString += "&alpha=" + gyroAlpha
         + "&beta=" + gyroBeta
         + "&gamma=" + gyroGamma;
-      writeLog_UsaProxy(eventString);
+      writeLog_UsaProxy(eventTS, eventString);
     }
   }
 
@@ -678,6 +666,7 @@
    * Stores the orientation of the device
    */
   function processMobileOrientationChange(e) {
+    var eventTS = datestampInMillisec();
 
     // The device is in portrait orientation if the device is held at 0 or 180 degrees
     // The device is in landscape orientation if the device is at 90 or -90 degrees
@@ -690,7 +679,7 @@
     var eventString = "mobileOrientationChange";
     eventString += "&orientation=" + orientation
     eventString += "&orientationRaw=" + window.orientation
-    writeLog_UsaProxy(eventString);
+    writeLog_UsaProxy(eventTS, eventString);
   }
 
 
@@ -740,6 +729,7 @@
 
   function processMobileMotionEventAndSave(e) {
     if (maxAcc > motionThreshold) {
+      var eventTS = datestampInMillisec();
 
       // Output to the user the greatest current acceleration value in any axis, as
       // well as the greatest value in any axis including the effect of gravity
@@ -754,7 +744,7 @@
         + "&maxAcc=" + maxAcc
         + "&maxAccWithGrav=" + maxAccGrav;
 
-      writeLog_UsaProxy(eventString);
+      writeLog_UsaProxy(eventTS, eventString);
 
       //We reset the values so they can be refreshed in the next query
       accX = 0;
@@ -811,7 +801,6 @@
 
     // get milliseconds from load time
     var diffSecs = Math.abs(currentDate.getTime() - loadDate_UsaProxy.getTime());
-
     // return the value in ms of a new Date object according to UsaProxy start time + diffMSecs
     return (startDate_UsaProxy + diffSecs);
   }
@@ -841,7 +830,7 @@
   * and the current timestamp to logVal_UsaProxy
   */
 
-  function writeLog_UsaProxy(text) {
+  function writeLog_UsaProxy(eventTS, text) {
 
     //console.log("Recording: " + text);
 
@@ -857,7 +846,7 @@
     if (FLG_writingLogVal_UsaProxy) {
 
       window.setTimeout(function () {
-        writeLog_UsaProxy(text);
+        writeLog_UsaProxy(eventTS, text);
       }, 50);
 
       return false;
@@ -871,7 +860,7 @@
     var timezoneOffset = new Date().getTimezoneOffset();
 
     var logline;
-    logLine = "time=" + datestampInMillisec() + "&sessionStartTime=" + startDate_UsaProxy
+    logLine = "time=" + eventTS + "&sessionStartTime=" + startDate_UsaProxy
       + "&timezoneoffset=" + timezoneOffset + "&sd=" + websiteID
       + "&sid=" + sessionID + "&event=" + text
       + "&url=" + encodeURIComponent(url)
@@ -1063,6 +1052,7 @@
   /** Event logging functionality */
   /** Processes load event (logs load event together with the page size) */
   function processLoad_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
 
     /* get size
     * NS: first case (window.innerWidth/innerHeight available); IE: second case */
@@ -1070,7 +1060,7 @@
     var loadWidth, loadHeight;
     loadWidth = (window.innerWidth) ? window.innerWidth : document.body.offsetWidth;  // innerWidth=NS
     loadHeight = (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;  // innerHeight=NS
-    writeLog_UsaProxy("load&size=" + loadWidth + "x" + loadHeight
+    writeLog_UsaProxy(eventTS, "load&size=" + loadWidth + "x" + loadHeight
       + "&resolution=" + screen.width + "x" + screen.height
       + "&htmlSize=" + jQuery(document).width() + "x" + jQuery(document).height()
       + "&usableSize=" + jQuery(window).width() + "x" + jQuery(window).height());
@@ -1081,6 +1071,7 @@
 
   /** Processes window resize event (logs resize event together with the page size) */
   function processResize_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
 
     /* get size
     * NS: first case (window.innerWidth/innerHeight available); IE: second case */
@@ -1095,7 +1086,7 @@
       lastResizeHeigth = newHeight;
       lastResizeDate = new Date().getTime();
 
-      writeLog_UsaProxy("resize&size=" + newWidth + "x" + newHeight
+      writeLog_UsaProxy(eventTS, "resize&size=" + newWidth + "x" + newHeight
         + "&resolution=" + screen.width + "x" + screen.height
         + "&htmlSize=" + jQuery(document).width() + "x" + jQuery(document).height()
         + "&usableSize=" + jQuery(window).width() + "x" + jQuery(window).height());
@@ -1105,10 +1096,19 @@
 
   }
 
-  /** Processes mousemove event if FLG_LogMousemove_UsaProxy isn't set 
-    (FLG_LogMousemove_UsaProxy defers the next mousemove logging action
-    for 150 ms) */
+  /** Processes mousemove event if 
+   * the time between events is bigger than threshold, and coordinates are different
+   */
   function processMousemove_UsaProxy(e) {
+
+    var eventTS = datestampInMillisec();
+    //if the time since last mousemove event is greater than threshold, save event.
+    //otherwise, ignore
+    if ((eventTS - mousemoveLastTS)<=mousemoveThreshold){
+      return true
+    }
+    //update this as "last stored" mousevent before moving on
+    mousemoveLastTS = eventTS;
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
@@ -1129,34 +1129,25 @@
     /** if log mousemove flag is false, set it true and 
      * log a mousemove event if mouse pointer actually moved
      */
-    if (!FLG_LogMousemove_UsaProxy
-      && !(x == lastMousePosX_UsaProxy && y == lastMousePosY_UsaProxy)) {
+    if (x == mousemoveLastPosX && y == mousemoveLastPosY){
 
-      FLG_LogMousemove_UsaProxy = true;
-      window.setTimeout(setInactiv_UsaProxy(), mouseTimeout);
-      lastMousePosX_UsaProxy = x;
-      lastMousePosY_UsaProxy = y;
+      mousemoveLastPosX = x;
+      mousemoveLastPosY = y;
 
-      writeLog_UsaProxy("mousemove&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "mousemove&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
     }
   }
 
-
-
-  /**
-   *  Resets the log mousemove blocking flag so that the next 
-   *  mousemove event may be logged
-   */
-  function setInactiv_UsaProxy() {
-    FLG_LogMousemove_UsaProxy = false;
-  }
 
   /** Processes mouseover event.
   * logs mouseover events on all elements which have either an
   * id, name, href, or src property (logging more would cause a log overload).
   * In addition it applies the appropriate direct event listeners to form elements
   */
+  var mouseoverLastTS=0;
+  var mouseoverLastContent="";
   function processMouseover_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case 
@@ -1235,7 +1226,104 @@
     }
 
     // log mouseover coordinates and all available target attributes
-    writeLog_UsaProxy("mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+
+    var currentEventString = eventTS+ "&mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+      + generateEventString_UsaProxy(target);
+
+    //Check if the mouse event is different to a previous one, but contains the same timestamp
+    if ((mouseoverLastTS == eventTS) && (mouseoverLastContent!=currentEventString)){
+      console.log("duplicate mouseover, fixing timestamp before submitting");
+      console.log(mouseoverLastContent);
+      console.log(currentEventString);
+      eventTS++;
+    }
+    
+    mouseoverLastTS = eventTS;
+    mouseoverLastContent = eventTS+ "&mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+      + generateEventString_UsaProxy(target);
+  
+    writeLog_UsaProxy(eventTS, "mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+        + generateEventString_UsaProxy(target));
+  }
+
+   /**
+   * Processes mouseout event
+   */
+  var mouseoutLastTS=0;
+  var mouseoutLastContent="";
+  function processMouseOut_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
+
+
+    /* get event target
+      * NS: first case (window.Event available); IE: second case */
+
+    var ev = (isNotOldIE) ? e : window.event;
+    var target = (isNotOldIE) ? ev.target : ev.srcElement;
+    var x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    var y = (isNotOldIE) ? ev.pageY : ev.clientY;
+
+    if (privacyCheck(ev))
+      return true;
+
+    var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+    var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+
+    var currentEventString = eventTS+ "&mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+      + generateEventString_UsaProxy(target);
+
+    //Check if the mouse event is different to a previous one, but contains the same timestamp
+    if ((mouseoutLastTS == eventTS) && (mouseoutLastContent!=currentEventString)){
+      console.log("duplicate mosueout, fixing timestamp before submitting");
+      console.log(mouseoutLastContent);
+      console.log(currentEventString);
+      eventTS++;
+    }
+    
+    mouseoutLastTS = eventTS;
+    mouseoutLastContent = eventTS+ "&mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+      + generateEventString_UsaProxy(target);
+  
+    writeLog_UsaProxy(eventTS, "mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+        + generateEventString_UsaProxy(target));
+  }
+
+  function processMouseup_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
+
+    /* get event target, x, and y value of mouse position
+      * NS: first case (window.Event available); IE: second case */
+
+    var ev = (isNotOldIE) ? e : window.event;
+    var target = (isNotOldIE) ? ev.target : ev.srcElement;
+    var x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    var y = (isNotOldIE) ? ev.pageY : ev.clientY;
+
+    if (privacyCheck(ev))
+      return true;
+
+    var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
+    var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
+
+    /** mouse button detection: was middle or right mouse button clicked ?*/
+    var mbutton = "l";
+
+    if (ev.which) {  		// NS
+      switch (ev.which) {
+        case 2: mbutton = "m"; break;	// middle button
+        case 3: mbutton = "r"; break;	// right button
+      }
+    } else if (ev.button) {		// IE
+      switch (ev.button) {
+        case 4: mbutton = "m"; break;
+        case 2: mbutton = "r"; break;
+      }
+    }
+
+    writeLog_UsaProxy(eventTS, "mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+
+    //Was this mouse event employed to select something?
+    processIfHtmlIsSelected("mouse", target);
   }
 
   /** Processes mouse click event.
@@ -1245,6 +1333,7 @@
     the mouse pointer position is recorded relative to the hovered-over area/element. */
 
   function processMousedown_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
@@ -1280,7 +1369,7 @@
       }
     }
 
-    writeLog_UsaProxy("mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "mousedown&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
 
     if (recordDOM)
       recordCurrentDOM();
@@ -1293,6 +1382,7 @@
     a couple of field content properties such as the new field value. */
 
   function processChange_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case */
@@ -1313,13 +1403,13 @@
         { value = value + target.options[i].value; }
 
       // log entries
-      writeLog_UsaProxy("change&type=select-multiple"
+      writeLog_UsaProxy(eventTS, "change&type=select-multiple"
         + generateEventString_UsaProxy(target) + "&value=" + encodeURIComponent(value));
     }
 
     // if dropdown menu, log the selected entry's value
     else if (target.type == "select-one") {
-      writeLog_UsaProxy("change&type=select-one"
+      writeLog_UsaProxy(eventTS, "change&type=select-one"
         + generateEventString_UsaProxy(target) + "&value="
         + encodeURIComponent(target.options[target.selectedIndex].value)
         + "&selected=" + target.selectedIndex);
@@ -1328,7 +1418,7 @@
     // if text field/area, file field, log changed value
     else if (target.type == "text" || target.type == "textarea" || target.type == "file") {
 
-      writeLog_UsaProxy("change&type=" + target.type
+      writeLog_UsaProxy(eventTS, "change&type=" + target.type
         + generateEventString_UsaProxy(target) + "&value=" + encodeURIComponent(target.value));
     }
 
@@ -1346,19 +1436,19 @@
       }
       else { value == target.checked }
       // log entries
-      writeLog_UsaProxy("change&type=" + target.type + "&checked=" + target.checked + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "change&type=" + target.type + "&checked=" + target.checked + generateEventString_UsaProxy(target));
     }
 
     // in the case of a password field, log only THAT content was modified
 
     else if (target.type == "password") {
-      writeLog_UsaProxy("change&type=" + target.type + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "change&type=" + target.type + generateEventString_UsaProxy(target));
     }
 
     // log that radio button was clicked
     else if (target.type == "radio") {
       // log entries
-      writeLog_UsaProxy("change&type=" + target.type + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "change&type=" + target.type + generateEventString_UsaProxy(target));
     }
   }
 
@@ -1370,6 +1460,8 @@
    */
 
   function processScroll_UsaProxy() {
+    var eventTS = datestampInMillisec();
+
     /** since total HTML height/width may be modified through font size settings
         it must be computed each time a scrolling is performed */
 
@@ -1415,7 +1507,7 @@
       if (percentOfHeight.length == 2) percentOfHeight = "0" + percentOfHeight;
       percentOfHeight = percentOfHeight.substring(0, 1) + "." + percentOfHeight.substring(1);
 
-      writeLog_UsaProxy("scroll&scrolly=" + percentOfHeight);
+      writeLog_UsaProxy(eventTS, "scroll&scrolly=" + percentOfHeight);
       // set last scrollbar position
       lastScrollPosY_UsaProxy = currentScrollPosY;
     }
@@ -1429,7 +1521,7 @@
       if (percentOfWidth.length == 2) percentOfWidth = "0" + percentOfWidth;
       percentOfWidth = percentOfWidth.substring(0, 1) + "." + percentOfWidth.substring(1);
 
-      writeLog_UsaProxy("scroll&scrollx=" + percentOfWidth);
+      writeLog_UsaProxy(eventTS, "scroll&scrollx=" + percentOfWidth);
 
       // set last scrollbar position
       lastScrollPosX_UsaProxy = currentScrollPosX;
@@ -1440,6 +1532,7 @@
   /** Processes blur event */
 
   function processBlur_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
 
     //console.log("blur event");
     /* get event target
@@ -1452,11 +1545,13 @@
       return true;
 
     // log all available target attributes
-    writeLog_UsaProxy("blur" + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "blur" + generateEventString_UsaProxy(target));
   }
 
   /** Processes focus event */
   function processFocus_UsaProxy(e) {
+    var eventTS = datestampInMillisec();
+
     /* get event target
     * NS: first case (window.Event available); IE: second case */
 
@@ -1466,13 +1561,15 @@
     if (privacyCheck(ev))
       return true;
     // log all available target attributes
-    writeLog_UsaProxy("focus" + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "focus" + generateEventString_UsaProxy(target));
   }
 
   /** Processes the selection of text within the web page's content.
   * Function is invoked on mousedown */
 
   function processSelection_UsaProxy(target) {
+    var eventTS = datestampInMillisec();
+
     var currentSelection;
     // NS
     if (window.getSelection) currentSelection = window.getSelection();
@@ -1483,7 +1580,7 @@
 
     // if selection is not empty and new text was selected, log select event
     if (currentSelection != "" && lastSelection_UsaProxy != currentSelection) {
-      writeLog_UsaProxy("select" + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(currentSelection));
+      writeLog_UsaProxy(eventTS, "select" + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(currentSelection));
       // set last selected text
       lastSelection_UsaProxy = currentSelection;
       saveLog_UsaProxy();
@@ -1498,13 +1595,14 @@
     * Function is invoked periodically */
 
   function processWindowFocusQuery() {
+    var eventTS = datestampInMillisec();
 
     if (document.hasFocus() != isWindowFocusedQuery) {
       //If different, we record the event
       if (document.hasFocus())
-        writeLog_UsaProxy("windowqueryfocus");
+        writeLog_UsaProxy(eventTS, "windowqueryfocus");
       else
-        writeLog_UsaProxy("windowqueryblur");
+        writeLog_UsaProxy(eventTS, "windowqueryblur");
       isWindowFocusedQuery = document.hasFocus();
     }
   }
@@ -1639,70 +1737,11 @@
    * When called, records the entire DOM as an event
    */
   function recordCurrentDOM() {
-    writeLog_UsaProxy("domchange&domContent=" + encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML));
+    var eventTS = datestampInMillisec();
+    writeLog_UsaProxy(eventTS, "domchange&domContent=" + encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML));
   }
 
-  /**
-   * Processes mouseout event
-   */
-  function processMouseOut_ExtraEvent(e) {
-    /* get event target
-      * NS: first case (window.Event available); IE: second case */
-
-    var ev = (isNotOldIE) ? e : window.event;
-    var target = (isNotOldIE) ? ev.target : ev.srcElement;
-    var x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    var y = (isNotOldIE) ? ev.pageY : ev.clientY;
-
-    if (privacyCheck(ev))
-      return true;
-
-    var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
-    var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
-
-    // log mouseout coordinates and all available target attributes
-    // if element has an id attribute
-
-    writeLog_UsaProxy("mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
-      + generateEventString_UsaProxy(target));
-  }
-
-  function processMouseup_ExtraEvent(e) {
-
-    /* get event target, x, and y value of mouse position
-      * NS: first case (window.Event available); IE: second case */
-
-    var ev = (isNotOldIE) ? e : window.event;
-    var target = (isNotOldIE) ? ev.target : ev.srcElement;
-    var x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    var y = (isNotOldIE) ? ev.pageY : ev.clientY;
-
-    if (privacyCheck(ev))
-      return true;
-
-    var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
-    var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
-
-    /** mouse button detection: was middle or right mouse button clicked ?*/
-    var mbutton = "l";
-
-    if (ev.which) {  		// NS
-      switch (ev.which) {
-        case 2: mbutton = "m"; break;	// middle button
-        case 3: mbutton = "r"; break;	// right button
-      }
-    } else if (ev.button) {		// IE
-      switch (ev.button) {
-        case 4: mbutton = "m"; break;
-        case 2: mbutton = "r"; break;
-      }
-    }
-
-    writeLog_UsaProxy("mouseup&but=" + mbutton + "&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
-
-    //Was this mouse event employed to select something?
-    processIfHtmlIsSelected("mouse", target);
-  }
+ 
 
   /**
    * Processes the particular event of "open a contextmenu" event
@@ -1723,13 +1762,14 @@
     var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
     var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 
-    writeLog_UsaProxy("contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "contextmenu&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + generateEventString_UsaProxy(target));
   }
 
   /**
    * Processes the particular event of a "cut" event
    */
   function processCut_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
 
     var ev = (isNotOldIE) ? e : window.event;
     var target = (isNotOldIE) ? ev.target : ev.srcElement;
@@ -1740,7 +1780,7 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart != target.selectionEnd) {
-      writeLog_UsaProxy("cut&content=" + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "cut&content=" + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) + generateEventString_UsaProxy(target));
     }
   }
 
@@ -1749,6 +1789,8 @@
    * Processes the particular event of a "copy" event
    */
   function processCopy_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
+
     var ev = (isNotOldIE) ? e : window.event;
     var target = (isNotOldIE) ? ev.target : ev.srcElement;
     var data = (isNotOldIE) ? ev.data : ev.data;
@@ -1758,7 +1800,7 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart != target.selectionEnd) {
-      writeLog_UsaProxy("copy&content=" + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "copy&content=" + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) + generateEventString_UsaProxy(target));
     }
   }
 
@@ -1767,6 +1809,8 @@
    * Processes the particular event of a "paste" event
    */
   function processPaste_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
+
     var ev = (isNotOldIE) ? e : window.event;
     var target = (isNotOldIE) ? ev.target : ev.srcElement;
     var data = (isNotOldIE) ? ev.data : ev.data;
@@ -1776,7 +1820,7 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart != target.selectionEnd) {
-      writeLog_UsaProxy("paste&content=" + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) + generateEventString_UsaProxy(target));
+      writeLog_UsaProxy(eventTS, "paste&content=" + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) + generateEventString_UsaProxy(target));
     }
   }
 
@@ -1784,6 +1828,7 @@
    * Processes the particular event of a "doubleclick" event
    */
   function processDblClick_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
@@ -1812,7 +1857,7 @@
       }
     }
 
-    writeLog_UsaProxy("dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&but=" + mbutton
+    writeLog_UsaProxy(eventTS, "dblclick&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset + "&but=" + mbutton
       + generateEventString_UsaProxy(target));
   }
 
@@ -1820,15 +1865,18 @@
    * Processes the particular event of an "error" event
    */
   function processError_ExtraEvent(e) {
-    writeLog_UsaProxy("javascripterror");
+    var eventTS = datestampInMillisec();
+
+    writeLog_UsaProxy(eventTS, "javascripterror");
   }
 
   /**
    * Processes the particular event of an "error" event
    */
   function processhashChange_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
 
-    writeLog_UsaProxy("hashChange");
+    writeLog_UsaProxy(eventTS, "hashChange");
 
   }
 
@@ -1838,6 +1886,8 @@
    * E.g. capital letters are not recorded, but rather the lowercase letter indicating the location in the keyboard
    */
   function processKeydown_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
+
     /* get keycode
     * IE: first case (window.event available); NS: second case */
     var ev = window.event ? window.event : e;
@@ -1849,7 +1899,7 @@
 
     keyName_UsaProxy = returnKeyValue(KeyID);
 
-    writeLog_UsaProxy("keydown&key=" + encodeInput(keyName_UsaProxy) + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "keydown&key=" + encodeInput(keyName_UsaProxy) + generateEventString_UsaProxy(target));
     keyName_UsaProxy = "";
   }
 
@@ -1857,6 +1907,8 @@
    * Logs all regular single key presses.
    */
   function processKeypress_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
+
     /* get keycode
     * IE: first case (window.event available); NS: second case */
     var ev = window.event ? window.event : e;
@@ -1865,13 +1917,14 @@
 
     if (privacyCheck(ev))
       return true;
-    writeLog_UsaProxy("keypress&key=" + encodeInput(String.fromCharCode(KeyID)) + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "keypress&key=" + encodeInput(String.fromCharCode(KeyID)) + generateEventString_UsaProxy(target));
   }
 
   /*
    * Keyup event, we don't take into account any combination of keys detector flag.
    */
   function processKeyUp_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
@@ -1884,7 +1937,7 @@
     if (privacyCheck(ev))
       return true;
 
-    writeLog_UsaProxy("keyup&key=" + encodeInput(keyName_UsaProxy) + generateEventString_UsaProxy(target));
+    writeLog_UsaProxy(eventTS, "keyup&key=" + encodeInput(keyName_UsaProxy) + generateEventString_UsaProxy(target));
 
     keyName_UsaProxy = "";
   }
@@ -1916,6 +1969,8 @@
   * This function will accummulate the mouse wheel movement in order to record it periodically 
   */
   function handleWheelEvents(delta, node) {
+    var eventTS = datestampInMillisec();
+
     var currentTime = new Date();
 
     //if node is null, we have to store this event as a new one. Store the delta value and start the timer
@@ -1939,7 +1994,7 @@
       //If the time expired for the event, just record the event, and the next time user uses the wheel, it will be recorded as a different event
       if (currentTime.getTime() - wheelLastEventTimestampGlobal.getTime() > wheelGranularity) {
         wheelDeltaGlobal += delta;
-        writeLog_UsaProxy("mousewheel&delta=" + wheelDeltaGlobal + generateEventString_UsaProxy(node));
+        writeLog_UsaProxy(eventTS, "mousewheel&delta=" + wheelDeltaGlobal + generateEventString_UsaProxy(node));
 
         //We set the variables ready for the next event, resetting delta counter, and setting the node to null
         wheelDeltaGlobal = 0;
@@ -1977,7 +2032,7 @@
     //if globalNode is neither the same nor null, the user must be using the wheel in another DOM element.
     //record the previous one and start recording this one
     else {
-      writeLog_UsaProxy("mousewheel&delta=" + wheelDeltaGlobal + generateEventString_UsaProxy(node));
+      writeLog_UsaProxy(eventTS, "mousewheel&delta=" + wheelDeltaGlobal + generateEventString_UsaProxy(node));
 
       //We "restart" the counters with the new event we received
       wheelDeltaGlobal = delta;
@@ -2004,7 +2059,7 @@
       return true;
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart != target.selectionEnd) {
-      writeLog_UsaProxy("select_Extra" + generateEventString_UsaProxy(target) + "&selectedContent="
+      writeLog_UsaProxy(eventTS, "select_Extra" + generateEventString_UsaProxy(target) + "&selectedContent="
         + encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)));
     }
   }
@@ -2014,7 +2069,9 @@
   * The end of the interaction (last interaction event recorded) will be considered the end of the session instead
   */
   function processUnload_ExtraEvent(e) {
-    writeLog_UsaProxy("unload");
+    var eventTS = datestampInMillisec();
+
+    writeLog_UsaProxy(eventTS, "unload");
     //Try to save it as soon as the event takes place, rather than waiting for the periodic save
     saveLog_UsaProxy();
     //Alternatively, a wait could be triggered to ensure it's recorded, but is not advisable
@@ -2038,7 +2095,9 @@
   */
 
   function processWindowFocusEvent() {
-    writeLog_UsaProxy("windowfocus");
+    var eventTS = datestampInMillisec();
+
+    writeLog_UsaProxy(eventTS, "windowfocus");
   }
 
   /**
@@ -2047,7 +2106,9 @@
   * after going to another tab, or minimizing the window
   */
   function processWindowBlurEvent() {
-    writeLog_UsaProxy("windowblur");
+    var eventTS = datestampInMillisec();
+
+    writeLog_UsaProxy(eventTS, "windowblur");
   }
 
   /**
@@ -2057,9 +2118,11 @@
   */
 
   function processIfHtmlIsSelected(selectionTool, target) {
+    var eventTS = datestampInMillisec();
+
     var selectedContent = getSelectionHtml();
     if (selectedContent != "") {
-      writeLog_UsaProxy("selectextra&selectionTool=" + selectionTool
+      writeLog_UsaProxy(eventTS, "selectextra&selectionTool=" + selectionTool
         + generateEventString_UsaProxy(target) + "&selectedContent=" + encodeURIComponent(selectedContent));
     }
   }
@@ -2092,12 +2155,14 @@
    */
 
   function processSubmitEvent(event) {
+    var eventTS = datestampInMillisec();
+
     //console.log("submit happened on " + $(event).text())
     //Can I get the target of the submit event?
     var target = event.target;
     //console.log(generateEventString_UsaProxy($(target).closest('[id]')[0]));
 
-    writeLog_UsaProxy("submit" + generateEventString_UsaProxy(target) + "&formInputs=" + getFormInputs());
+    writeLog_UsaProxy(eventTS, "submit" + generateEventString_UsaProxy(target) + "&formInputs=" + getFormInputs());
     saveLog_UsaProxy();
   }
 
@@ -2302,6 +2367,8 @@
    */
 
   function cookieSensitivePermission() {
+    var eventTS = datestampInMillisec();
+
     //First we check if the users opted out of the research, if so, stop.
     if (cookieSensitiveCookieCheck() == true) {
       //console.log("User opted out. Capture interrupted");
@@ -2317,7 +2384,7 @@
 
     //If we cannot find the cookie, we need to ask the user, although we will start the tool anyway
     //console.log("Tracking cookie NOT found. Asking implicit permission");	
-    writeLog_UsaProxy("cookiedisclaimershown");
+    writeLog_UsaProxy(eventTS, "cookiedisclaimershown");
 
     //if not, we show the sensitive disclaimer
     var htmlDivContent = document.createElement("div");
@@ -2376,8 +2443,10 @@
   */
 
   function cookieSensitiveHandleRejection() {
+    var eventTS = datestampInMillisec();
+
     //User clicked in the cookie disclaimer button, we record the user rejected to be tracked
-    writeLog_UsaProxy("cookiedisclaimerrejected");
+    writeLog_UsaProxy(eventTS, "cookiedisclaimerrejected");
 
     //Set rejection cookie
     setCookie(cookieRejection, true, cookieLife);
@@ -2453,6 +2522,7 @@
   */
 
   function cookieNormalPermission() {
+    var eventTS = datestampInMillisec();
 
     //If we can get the Session ID from the cookie, we start the tool and finish
     if (getSessionFromCookie()) {
@@ -2462,7 +2532,7 @@
 
     //We showed the disclaimer so we store an event
 
-    writeLog_UsaProxy("cookiedisclaimershown");
+    writeLog_UsaProxy(eventTS, "cookiedisclaimershown");
 
     //if not, we show the disclaimer
     //alert("showing cookie disclaimer");
@@ -2518,13 +2588,14 @@
   */
 
   function cookieNormalHandleImplicitPermission() {
+    var eventTS = datestampInMillisec();
 
     //Implicit acceptance event was triggered, we test if the disclaimer was visible, if so, register the cookie.
     var div = document.getElementById("proxyCookieDisclaimer");
 
     if (div != null) {
       //disclaimer is visible
-      writeLog_UsaProxy("cookiedisclaimeraccepted");
+      writeLog_UsaProxy(eventTS, "cookiedisclaimeraccepted");
 
       setCookie(sessionIDCookieName, sessionID_Proxy, cookieLife);
       sessionID = sessionID_Proxy;

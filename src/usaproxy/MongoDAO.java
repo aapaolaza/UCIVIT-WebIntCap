@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -21,9 +22,11 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
+import com.sun.corba.se.impl.orbutil.closure.Constant;
 
 import usaproxy.domchanges.DOMBean;
 import usaproxy.events.EventConstants;
@@ -45,6 +48,10 @@ public class MongoDAO {
 	public static MongoCollection<Document> domColl = null;
 	public static MongoCollection<Document> domChangeColl = null;
 	public static MongoCollection<Document> domTempColl = null;
+	
+	//Special collection for problematic events
+	private final static String debugColName = "debugEvents";
+	public static MongoCollection<Document> debugCol = null;
 
 
 	private MongoDAO() throws UnknownHostException {
@@ -83,9 +90,13 @@ public class MongoDAO {
 			domChangeColl = db.getCollection(getDbDOMChangeCollection());
 			domTempColl = db.getCollection(getDbDOMTempCollection());
 			
+			debugCol = db.getCollection(debugColName);
+			
 			//Create unique index (if doesn't exist) to prevent duplicates
-			createUniqueIndex();
-			System.out.println("Unique index created");
+			if(createUniqueIndex())
+				System.out.println("Unique index created");
+			else
+				System.out.println("Problem creating index");
 		}
 	}
 
@@ -180,12 +191,34 @@ public class MongoDAO {
 	 * Initialise an index that prevents duplicates in the database
 	 */
 	public boolean createUniqueIndex(){
+		
+		//Index options
+		IndexOptions indexOptions = new IndexOptions().unique(true);
+		indexOptions.name("ucivit_unique");
+		
+		Bson indexFields = Indexes.ascending("sid","sd","sessionstartms","event","timestampms");
+
+		
 		try {
-			eventsColl.createIndex(Indexes.ascending("sid","sd","sessionstartms","event","timestampms"));
+			eventsColl.createIndex(indexFields, indexOptions);
 			return true;
-		} catch (Exception e) {
+		} catch (Exception e1) {
+			//if there is an error, it means that the same index exists, but with different options, delete it
 			ErrorLogging.logCriticalError("MongoDAO.java/createUniqueIndex()",
-					"Error trying to create the unique index", e);
+					"Error trying to create the unique index", e1);
+			
+			eventsColl.dropIndex(indexFields);
+			System.out.println("Deleting index");
+			try {
+				eventsColl.createIndex(indexFields, indexOptions);
+				return true;
+			} catch (Exception e2) {
+				//if there is YET another error, there was an error deleting an recreating another index
+				//Maybe there is a duplicate event already?
+				ErrorLogging.logCriticalError("MongoDAO.java/createUniqueIndex()",
+						"Error trying to create the unique index", e2);
+			}
+			
 		}
 		return false;
 	}
@@ -309,6 +342,9 @@ public class MongoDAO {
 		} catch (Exception e) {
 			ErrorLogging.logCriticalError("MongoDAO.java/commitJson()",
 					"Error trying to commit the following Json to the Database: \n" + jsonString, e);
+			
+			Document doc = Document.parse(jsonString);
+			debugCol.insertOne(doc);
 		}
 		return false;
 	}
@@ -319,7 +355,7 @@ public class MongoDAO {
 	 * @param jsonString
 	 *            Json document to commit
 	 * 
-	 * @return boolean indicating if the operation was succesfull
+	 * @return boolean indicating if the operation was successfull
 	 */
 	public boolean commitJsonToDOM(String jsonString) {
 
