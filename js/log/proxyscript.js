@@ -1232,9 +1232,9 @@
 
     //Check if the mouse event is different to a previous one, but contains the same timestamp
     if ((mouseoverLastTS == eventTS) && (mouseoverLastContent!=currentEventString)){
-      console.log("duplicate mouseover, fixing timestamp before submitting");
+      /*console.log("duplicate mouseover, fixing timestamp before submitting");
       console.log(mouseoverLastContent);
-      console.log(currentEventString);
+      console.log(currentEventString);*/
       eventTS++;
     }
     
@@ -1274,9 +1274,9 @@
 
     //Check if the mouse event is different to a previous one, but contains the same timestamp
     if ((mouseoutLastTS == eventTS) && (mouseoutLastContent!=currentEventString)){
-      console.log("duplicate mosueout, fixing timestamp before submitting");
+      /*console.log("duplicate mosueout, fixing timestamp before submitting");
       console.log(mouseoutLastContent);
-      console.log(currentEventString);
+      console.log(currentEventString);*/
       eventTS++;
     }
     
