@@ -1747,6 +1747,7 @@
    * Processes the particular event of "open a contextmenu" event
    */
   function processContextMenu_ExtraEvent(e) {
+    var eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
       * NS: first case (window.Event available); IE: second case */
