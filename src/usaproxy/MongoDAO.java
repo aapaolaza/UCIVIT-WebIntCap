@@ -92,11 +92,17 @@ public class MongoDAO {
 			
 			debugCol = db.getCollection(debugColName);
 			
+			//Create indexes to speed up queries
+			if(createIndexes())
+				System.out.println("Indexes created");
+			else
+				System.out.println("Problem creating indexes");
+			
 			//Create unique index (if doesn't exist) to prevent duplicates
 			if(createUniqueIndex())
 				System.out.println("Unique index created");
 			else
-				System.out.println("Problem creating index");
+				System.out.println("Problem creating unique index");
 		}
 	}
 
@@ -219,6 +225,32 @@ public class MongoDAO {
 						"Error trying to create the unique index", e2);
 			}
 			
+		}
+		return false;
+	}
+	
+	
+	/**
+	 * Initialise a set of indexes to make queries more efficient
+	 */
+	public boolean createIndexes(){
+
+		try {
+			eventsColl.createIndex(Indexes.ascending("sid"));
+			eventsColl.createIndex(Indexes.ascending("sd"));
+			eventsColl.createIndex(Indexes.ascending("event"));
+			eventsColl.createIndex(Indexes.ascending("timestamp"));
+			eventsColl.createIndex(Indexes.ascending("timestampms"));
+			eventsColl.createIndex(Indexes.ascending("url"));
+			eventsColl.createIndex(Indexes.ascending("sid", "url"));
+			eventsColl.createIndex(Indexes.ascending("sid", "sd"));
+			eventsColl.createIndex(Indexes.ascending("sid", "episodecount"));
+			eventsColl.createIndex(Indexes.ascending("sid", "url","episodecount"));			 
+			return true;
+		} catch (Exception e1) {
+			//if there is an error, it means that the same index exists, but with different options, delete it
+			ErrorLogging.logCriticalError("MongoDAO.java/createIndexes()",
+					"Error trying to create indexes", e1);
 		}
 		return false;
 	}

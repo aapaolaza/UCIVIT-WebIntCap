@@ -983,7 +983,7 @@
   }
 
 
-  /** Sends an asynchronous HTTP request to UsaProxy.
+  /** Sends an asynchronous HTTP request to the capture interaction server.
     Examines each existent XMLHttpRequest object in xmlreqs_UsaProxy array,
     whether it is ready to handle this request. If not, a new OBJ_XHR_UsaProxy
     object is created with a freed value of 1 and added to the array.
