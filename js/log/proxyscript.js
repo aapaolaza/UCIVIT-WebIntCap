@@ -884,6 +884,13 @@
     if (node.id) {
       eventString = eventString + "&id=" + node.id;
     }
+    /*This code would look for the id of the closest element
+    might cause issues if ONLY the ID element is used for queries,
+    as there might be various items with the same ID
+    */
+    /*else if (node.closest('[id]')){
+      eventString = eventString + "&id=" + node.closest('[id]').id;
+    }*/
 
     //if target has a name property
     if (node.name) {
@@ -1104,7 +1111,7 @@
     var eventTS = datestampInMillisec();
     //if the time since last mousemove event is greater than threshold, save event.
     //otherwise, ignore
-    if ((eventTS - mousemoveLastTS)<=mousemoveThreshold){
+    if ((eventTS - mousemoveLastTS) <= mousemoveThreshold) {
       return true
     }
     //update this as "last stored" mousevent before moving on
@@ -1129,7 +1136,7 @@
     /** if log mousemove flag is false, set it true and 
      * log a mousemove event if mouse pointer actually moved
      */
-    if (x == mousemoveLastPosX && y == mousemoveLastPosY){
+    if (x == mousemoveLastPosX && y == mousemoveLastPosY) {
 
       mousemoveLastPosX = x;
       mousemoveLastPosY = y;
@@ -1144,8 +1151,8 @@
   * id, name, href, or src property (logging more would cause a log overload).
   * In addition it applies the appropriate direct event listeners to form elements
   */
-  var mouseoverLastTS=0;
-  var mouseoverLastContent="";
+  var mouseoverLastTS = 0;
+  var mouseoverLastContent = "";
   function processMouseover_UsaProxy(e) {
     var eventTS = datestampInMillisec();
 
@@ -1227,30 +1234,30 @@
 
     // log mouseover coordinates and all available target attributes
 
-    var currentEventString = eventTS+ "&mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+    var currentEventString = eventTS + "&mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
       + generateEventString_UsaProxy(target);
 
     //Check if the mouse event is different to a previous one, but contains the same timestamp
-    if ((mouseoverLastTS == eventTS) && (mouseoverLastContent!=currentEventString)){
+    if ((mouseoverLastTS == eventTS) && (mouseoverLastContent != currentEventString)) {
       /*console.log("duplicate mouseover, fixing timestamp before submitting");
       console.log(mouseoverLastContent);
       console.log(currentEventString);*/
       eventTS++;
     }
-    
+
     mouseoverLastTS = eventTS;
-    mouseoverLastContent = eventTS+ "&mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+    mouseoverLastContent = eventTS + "&mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
       + generateEventString_UsaProxy(target);
-  
+
     writeLog_UsaProxy(eventTS, "mouseover&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
-        + generateEventString_UsaProxy(target));
+      + generateEventString_UsaProxy(target));
   }
 
-   /**
-   * Processes mouseout event
-   */
-  var mouseoutLastTS=0;
-  var mouseoutLastContent="";
+  /**
+  * Processes mouseout event
+  */
+  var mouseoutLastTS = 0;
+  var mouseoutLastContent = "";
   function processMouseOut_ExtraEvent(e) {
     var eventTS = datestampInMillisec();
 
@@ -1269,23 +1276,23 @@
     var xOffset = x - absLeft(target);	// compute x offset relative to the hovered-over element
     var yOffset = y - absTop(target);	// compute y offset relative to the hovered-over element
 
-    var currentEventString = eventTS+ "&mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+    var currentEventString = eventTS + "&mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
       + generateEventString_UsaProxy(target);
 
     //Check if the mouse event is different to a previous one, but contains the same timestamp
-    if ((mouseoutLastTS == eventTS) && (mouseoutLastContent!=currentEventString)){
+    if ((mouseoutLastTS == eventTS) && (mouseoutLastContent != currentEventString)) {
       /*console.log("duplicate mosueout, fixing timestamp before submitting");
       console.log(mouseoutLastContent);
       console.log(currentEventString);*/
       eventTS++;
     }
-    
+
     mouseoutLastTS = eventTS;
-    mouseoutLastContent = eventTS+ "&mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
+    mouseoutLastContent = eventTS + "&mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
       + generateEventString_UsaProxy(target);
-  
+
     writeLog_UsaProxy(eventTS, "mouseout&coord=" + x + "," + y + "&offset=" + xOffset + "," + yOffset
-        + generateEventString_UsaProxy(target));
+      + generateEventString_UsaProxy(target));
   }
 
   function processMouseup_ExtraEvent(e) {
@@ -1741,7 +1748,7 @@
     writeLog_UsaProxy(eventTS, "domchange&domContent=" + encodeURIComponent(document.getElementsByTagName("body")[0].innerHTML));
   }
 
- 
+
 
   /**
    * Processes the particular event of "open a contextmenu" event
@@ -2176,7 +2183,7 @@
     //$('input').css('background-color','blue')
     //$('input').css('background-color','')
 
-    $('input,textarea').each(function (index, element) {
+    $('input,select,textarea').each(function (index, element) {
       formInputs += encodeURIComponent($(element).attr("id")) + ":" + encodeURIComponent($(element).val()) + ";";
     });
     return (formInputs);
