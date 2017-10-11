@@ -1,0 +1,13 @@
+{
+  "extends": "airbnb-base",
+  
+  //Commands to be ignored by the "not-defined" rule
+  "globals": {
+    // Mocha testing
+    "describe": false,
+    "it": false,
+    // mongodb library
+    "connect":false,
+    "db":false
+  }
+}
