@@ -1,6 +1,7 @@
 // To implement the corresponding capture JS
 // Wrapped the script to prevent propagation
 
+// TODO: rearrange the code so functions are grouped together
 /**
  * Before injecting this JS, the Web page site should
  * make sure they have the appropriate permissions from the user
@@ -507,6 +508,8 @@
     return (ucivitServerTS + diffSecs);
   }
 
+
+  // ///////////////////////// Log storing and data communication /////////////////
   /**
    * Appends an event log entry together with the httptrafficindex referencing this page,
    * the client's session ID,
@@ -551,6 +554,57 @@
     logValLocked = false;
 
     return true;
+  }
+
+  /**
+   * Ajax request to store data
+   */
+
+  function sendJsonData(url, userID, lastEventTS, jsonLogData) {
+    $.ajax({
+      type: 'POST',
+      url,
+      data: { userID, lastEventTS, jsonLogData },
+      dataType: 'jsonp',
+      statusCode: {
+        404: () => {
+          console.log('Server not reachable');
+        },
+      },
+    });
+  }
+
+  /** Sends tracked usage data (if any) to the server */
+  function saveLog() {
+    if (logEntry !== '') {
+      // Add the sid to the get request
+      sendJsonData(`${window.protocol + window.ucivitServerIP}/storeevent/log`, sessionID, getCookie(lastEventTSCookieName), logEntry);
+      // we record current time as the last event recorded
+      setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
+      logEntry = ''; // reset log data
+      updateEpisodeInformation();// updates the stored episode count information}
+    }
+  }
+
+  // ///////////////////////////////// Element location functions ////////////////
+  /**
+   * Computes the element's offset from the left edge
+   * of the browser window
+   */
+  function absLeft(element) {
+    if (element.pageX) return element.pageX;
+    return (element.offsetParent) ?
+      element.offsetLeft + absLeft(element.offsetParent) : element.offsetLeft;
+  }
+
+  /**
+   * Computes the element's offset from the top edge
+   * of the browser window
+   */
+  function absTop(element) {
+    if (element.pageY) return element.pageY;
+    return (element.offsetParent) ?
+      element.offsetTop + absTop(element.offsetParent) : element.offsetTop;
   }
 
   /**
@@ -670,34 +724,77 @@
     return nodeInfo;
   }
 
-
   /**
-   * Ajax request to store data
-   */
+  * Returns currently selected (highlighted) text in the web page
+  */
+  function getSelectionHtml() {
+    let html = '';
+    if (typeof window.getSelection !== 'undefined') {
+      const sel = window.getSelection();
+      if (sel.rangeCount) {
+        const container = document.createElement('div');
+        for (let i = 0, len = sel.rangeCount; i < len; i += 1) {
+          container.appendChild(sel.getRangeAt(i).cloneContents());
+        }
 
-  function sendJsonData(url, userID, lastEventTS, jsonLogData) {
-    $.ajax({
-      type: 'POST',
-      url,
-      data: { userID, lastEventTS, jsonLogData },
-      dataType: 'jsonp',
-      statusCode: {
-        404: () => {
-          console.log('Server not reachable');
-        },
-      },
-    });
+        html = container.innerHTML;
+      }
+    } else if (typeof document.selection !== 'undefined') {
+      if (document.selection.type === 'Text') {
+        html = document.selection.createRange().htmlText;
+      }
+    }
+    return (html);
   }
 
-  /** Sends tracked usage data (if any) to the server */
-  function saveLog() {
-    if (logEntry !== '') {
-      // Add the sid to the get request
-      sendJsonData(`${window.protocol + window.ucivitServerIP}/storeevent/log`, sessionID, getCookie(lastEventTSCookieName), logEntry);
-      // we record current time as the last event recorded
-      setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
-      logEntry = ''; // reset log data
-      updateEpisodeInformation();// updates the stored episode count information}
+  /**
+  * Returns true if it detects that something has been selected in the web page.
+  * If it's true, then it records the content of the selection as a selection event
+  * The usual functions that will call this function are mouse up and keyup
+  */
+
+  function processIfHtmlIsSelected(selectionTool, target) {
+    const eventTS = datestampInMillisec();
+
+    const selectedContent = getSelectionHtml();
+    if (selectedContent !== '') {
+      const eventObj = {
+        event: 'selectextra',
+        selectionTool,
+        selectedContent: encodeURIComponent(selectedContent),
+      };
+      Object.assign(eventObj, getNodeInfo(target));
+      writeLog(eventTS, eventObj);
+    }
+  }
+
+  /** Processes the selection of text within the web page's content.
+  * Function is invoked on mousedown */
+
+  function processMousedownSelection(target) {
+    const eventTS = datestampInMillisec();
+
+    let currentSelection;
+    // NS
+    if (window.getSelection) currentSelection = window.getSelection();
+    // safari, konqueror
+    else if (document.getSelection) currentSelection = document.getSelection();
+    // IE
+    else if (document.selection) currentSelection = document.selection.createRange().text;
+
+    // if selection is not empty and new text was selected, log select event
+    if (currentSelection !== '' && lastSelection !== currentSelection) {
+      const eventObj = {
+        event: 'select',
+        selectedContent: encodeURIComponent(currentSelection),
+      };
+      Object.assign(eventObj, getNodeInfo(target));
+
+      writeLog(eventTS, eventObj);
+
+      // set last selected text
+      lastSelection = currentSelection;
+      saveLog();
     }
   }
 
@@ -727,7 +824,8 @@
     const eventObj = {
       event: 'load',
       size: `${loadWidth}x${loadHeight}`,
-
+      // TODO: Why is this triggering a global variable error?
+      // eslint-disable-next-line
       resolution: `${screen.width}x${screen.height}`,
       htmlSize: `${$(document).width()}x${$(document).height()}`,
       usableSize: `${$(window).width()} x${$(window).height()}`,
@@ -772,7 +870,6 @@
    * the time between events is bigger than threshold, and coordinates are different
    */
   function processMousemove(e) {
-
     const eventTS = datestampInMillisec();
     // if the time since last mousemove event is greater than threshold, save event.
     // otherwise, ignore
@@ -786,28 +883,25 @@
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
     // if target event is private, do nothing
-    if (privacyCheck(ev)) {
-      return true;
-    }
+    if (privacyCheck(ev)) return true;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    /** if log mousemove flag is false, set it true and 
+    /** if log mousemove flag is false, set it true and
      * log a mousemove event if mouse pointer actually moved
      */
-    if (x == mousemoveLastPosX && y == mousemoveLastPosY) {
-
+    if (x === mousemoveLastPosX && y === mousemoveLastPosY) {
       mousemoveLastPosX = x;
       mousemoveLastPosY = y;
 
-      let eventObj = {
+      const eventObj = {
         event: 'mousemove',
         coord: `${x},${y}`,
         offset: `${xOffset},${yOffset}`,
@@ -816,6 +910,7 @@
       writeLog(eventTS, eventObj);
     }
 
+    return true;
   }
 
   /** Processes mouseover event.
@@ -829,39 +924,39 @@
     let eventTS = datestampInMillisec();
 
     /* get event target
-    * NS: first case (window.Event available); IE: second case 
+    * NS: first case (window.Event available); IE: second case
     * */
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
     // if target event is private, do nothing
-    if (privacyCheck(ev)) {
-      return true;
-    }
+    if (privacyCheck(ev)) return true;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
     // log mouseover coordinates and all available target attributes
 
-    let eventObj = {
+    const eventObj = {
       event: 'mouseover',
       coord: `${x},${y}`,
       offset: `${xOffset},${yOffset}`,
     };
     Object.assign(eventObj, getNodeInfo(target));
 
-    // Work around to handle multiple mouseover events queuing one after anohter, getting the same timestamp assigned.
+    // Work around to handle multiple mouseover events queuing one after anohter,
+    // getting the same timestamp assigned.
     // Check if the mouse event is different to a previous one, but contains the same timestamp
-    if ((mouseoverLastTS == eventTS) && (mouseoverLastContent !== JSON.stringify(eventObj))) {
-      eventTS++;
+    if ((mouseoverLastTS === eventTS) && (mouseoverLastContent !== JSON.stringify(eventObj))) {
+      eventTS += 1;
     }
     mouseoverLastTS = eventTS;
     mouseoverLastContent = JSON.stringify(eventObj);
 
     writeLog(eventTS, eventObj);
+    return true;
   }
 
   /**
@@ -869,34 +964,34 @@
   */
   let mouseoutLastTS = 0;
   let mouseoutLastContent = '';
-  function processMouseOut_ExtraEvent(e) {
+  function processMouseout(e) {
     let eventTS = datestampInMillisec();
 
     /* get event target
       * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    let eventObj = {
+    const eventObj = {
       event: 'mouseout',
       coord: `${x},${y}`,
       offset: `${xOffset},${yOffset}`,
     };
     Object.assign(eventObj, getNodeInfo(target));
 
-    // Work around to handle multiple mouseover events queuing one after anohter, getting the same timestamp assigned.
+    // Work around to handle multiple mouseover events queuing one after another,
+    // getting the same timestamp assigned.
     // Check if the mouse event is different to a previous one, but contains the same timestamp
-    if ((mouseoutLastTS == eventTS) && (mouseoutLastContent !== JSON.stringify(eventObj))) {
-      eventTS++;
+    if ((mouseoutLastTS === eventTS) && (mouseoutLastContent !== JSON.stringify(eventObj))) {
+      eventTS += 1;
     }
     mouseoutLastTS = eventTS;
     mouseoutLastContent = JSON.stringify(eventObj);
@@ -904,43 +999,44 @@
     writeLog(eventTS, eventObj);
   }
 
-  function processMouseup_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processMouseup(e) {
+    const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
       * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
     /** mouse button detection: was middle or right mouse button clicked ? */
-    let mbutton = 'l';
+    let mbutton;
 
     if (ev.which) { // NS
       switch (ev.which) {
         case 2: mbutton = 'm'; break; // middle button
-        case 3: mbutton = 'r'; break; // right button}
+        case 3: mbutton = 'r'; break; // right button
+        default: mbutton = 'l'; break; // left button as default
       }
     } else if (ev.button) { // IE
       switch (ev.button) {
         case 4: mbutton = 'm'; break;
         case 2: mbutton = 'r'; break;
+        default: mbutton = 'l'; break;
       }
     }
 
-    let eventObj = {
+    const eventObj = {
       event: 'mouseup',
       coord: `${x},${y}`,
       offset: `${xOffset},${yOffset}`,
-      but: mbutton
+      but: mbutton,
     };
     Object.assign(eventObj, getNodeInfo(target));
 
@@ -957,54 +1053,54 @@
     the mouse pointer position is recorded relative to the hovered-over area/element. */
 
   function processMousedown(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    /* check if text was selected, if true, discontinue, 
-      since this is handled by processSelection_UsaProxy */
+    /* check if text was selected, if true, discontinue,
+      since this is handled by processMousedownSelection */
 
-    if (processSelection_UsaProxy(target)) return;
+    if (processMousedownSelection(target)) return;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
     /** mouse button detection: was middle or right mouse button clicked ? */
-    let mbutton = 'l';// The default will be left
+    let mbutton;
 
     if (ev.which) { // NS
       switch (ev.which) {
         case 2: mbutton = 'm'; break; // middle button
-        case 3: mbutton = 'r'; break; // right button}
+        case 3: mbutton = 'r'; break; // right button
+        default: mbutton = 'l'; break; // left button as default
       }
     } else if (ev.button) { // IE
       switch (ev.button) {
         case 4: mbutton = 'm'; break;
         case 2: mbutton = 'r'; break;
+        default: mbutton = 'l'; break;
       }
     }
 
-    let eventObj = {
+    const eventObj = {
       event: 'mousedown',
       coord: `${x},${y}`,
       offset: `${xOffset},${yOffset}`,
-      but: mbutton
+      but: mbutton,
     };
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
 
-    if (recordDOM)
-      recordCurrentDOM();
+    if (recordDOM) recordCurrentDOM();
   }
 
   /**
@@ -1015,32 +1111,35 @@
    */
 
   function processChange(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
 
     // if target event is private, do nothing
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
     // basic 'change' event
-    let eventObj = {
+    const eventObj = {
       event: 'change',
       type: target.type,
     };
     Object.assign(eventObj, getNodeInfo(target));
 
-    //depending on the target, we'll add more information
+    // depending on the target, we'll add more information
+    let value = '';
+
     switch (target.type) {
       case 'select-multiple':
-        var value = '';
         // check which entries were selected
-        for (var i = 0; i < target.options.length; i++)
-          if (target.options[i].selected) { value = value + target.options[i].value; }
+        for (let i = 0; i < target.options.length; i += 1) {
+          if (target.options[i].selected) {
+            value += target.options[i].value;
+          }
+        }
         eventObj.value = encodeURIComponent(value);
         break;
 
@@ -1050,16 +1149,15 @@
         break;
 
       case 'checkbox':
-        var value = '';
         // check boxes in checkbox group
         if (target.length > 1) {
-          for (i = 0; i < target.length; i++) {
-            if (target[i].checked == true)
+          for (let i = 0; i < target.length; i += 1) {
+            if (target[i].checked === true) {
               value = `${value}.${target[i].value} `;
+            }
           }
-          if (value == '') value = 'none';
-        }
-        else { value == target.checked }
+          if (value === '') value = 'none';
+        } else { value = target.checked; }
 
         eventObj.value = encodeURIComponent(target.options[target.selectedIndex].value);
         eventObj.checked = target.checked;
@@ -1074,7 +1172,7 @@
 
       case 'password':
       case 'radio':
-        //Leave the default event
+        // Leave the default event
         break;
 
       default:
@@ -1091,7 +1189,7 @@
    */
 
   function processScroll() {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
     /** since total HTML height/width may be modified through font size settings
         it must be computed each time a scrolling is performed */
@@ -1101,49 +1199,45 @@
 
     if (document.documentElement && document.documentElement.scrollHeight) {
       // Explorer 6 Strict
-      scrollHeight = document.documentElement.scrollHeight;
-      scrollWidth = document.documentElement.scrollWidth;
-    }
-
-    else if (document.body) {
+      ({ scrollHeight, scrollWidth } = document.documentElement);
+    } else if (document.body) {
       // all other Explorers
-      scrollHeight = document.documentElement.scrollHeight;
-      scrollWidth = document.documentElement.scrollWidth;
+      ({ scrollHeight, scrollWidth } = document.document.body);
     }
 
+
+    let currentScrollPosX;
+    let currentScrollPosY;
+
+    // TODO: "self" is a global, but is still giving eslint errors
     /* get current offset */
     if (self.pageYOffset) {
       // all except Explorer
       currentScrollPosX = self.pageXOffset;
       currentScrollPosY = self.pageYOffset;
-    }
-
-    else if (document.documentElement && document.documentElement.scrollTop) {
+    } else if (document.documentElement && document.documentElement.scrollTop) {
       // Explorer 6 Strict
       currentScrollPosX = document.documentElement.scrollLeft;
       currentScrollPosY = document.documentElement.scrollTop;
-    }
-
-    else if (document.body) {
+    } else if (document.body) {
       // all other Explorers
       currentScrollPosX = document.body.scrollLeft;
       currentScrollPosY = document.body.scrollTop;
     }
 
     // basic 'scroll' event
-    let eventObj = {
+    const eventObj = {
       event: 'scroll',
     };
 
     // if vertical scrollbar was moved new scrollbar position is logged
-    if (lastScrollPosY != currentScrollPosY) {
-
+    if (lastScrollPosY !== currentScrollPosY) {
       /** e.g. 100, 80, 6, 0 */
-      let percentOfHeight = `${Math.round(currentScrollPosY / scrollHeight * 100)} `;
+      let percentOfHeight = `${Math.round((currentScrollPosY / scrollHeight) * 100)} `;
       /** shift */
-      if (percentOfHeight.length == 0) percentOfHeight = '000';
-      if (percentOfHeight.length == 1) percentOfHeight = `00${percentOfHeight} `;
-      if (percentOfHeight.length == 2) percentOfHeight = `0${percentOfHeight} `;
+      if (percentOfHeight.length === 0) percentOfHeight = '000';
+      if (percentOfHeight.length === 1) percentOfHeight = `00${percentOfHeight} `;
+      if (percentOfHeight.length === 2) percentOfHeight = `0${percentOfHeight} `;
       percentOfHeight = `${percentOfHeight.substring(0, 1)}.${percentOfHeight.substring(1)} `;
 
       eventObj.scrolly = percentOfHeight;
@@ -1153,12 +1247,12 @@
     }
 
     // if horizontal scrollbar was moved new scrollbar position is logged
-    if (lastScrollPosX != currentScrollPosX) {
-      let percentOfWidth = `${Math.round(currentScrollPosX / scrollWidth * 100)} `;
+    if (lastScrollPosX !== currentScrollPosX) {
+      let percentOfWidth = `${Math.round((currentScrollPosX / scrollWidth) * 100)} `;
       /** shift */
-      if (percentOfWidth.length == 0) percentOfWidth = '000';
-      if (percentOfWidth.length == 1) percentOfWidth = `00${percentOfWidth} `;
-      if (percentOfWidth.length == 2) percentOfWidth = `0${percentOfWidth} `;
+      if (percentOfWidth.length === 0) percentOfWidth = '000';
+      if (percentOfWidth.length === 1) percentOfWidth = `00${percentOfWidth} `;
+      if (percentOfWidth.length === 2) percentOfWidth = `0${percentOfWidth} `;
       percentOfWidth = `${percentOfWidth.substring(0, 1)}.${percentOfWidth.substring(1)} `;
 
       eventObj.scrollx = percentOfWidth;
@@ -1167,213 +1261,78 @@
       lastScrollPosX = currentScrollPosX;
     }
 
-    //only store the event if any change in scroll was detected.
-    if (Object.keys(eventObj).length > 1)
-      writeLog(eventTS, eventObj);
+    // only store the event if any change in scroll was detected.
+    if (Object.keys(eventObj).length > 1) writeLog(eventTS, eventObj);
   }
 
   /** Processes blur event */
 
   function processBlur(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
     // console.log("blur event");
     /* get event target
     * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
     writeLog(eventTS, Object.assign({ event: 'blur' }, getNodeInfo(target)));
   }
 
   /** Processes focus event */
   function processFocus(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
     writeLog(eventTS, Object.assign({ event: 'focus' }, getNodeInfo(target)));
   }
 
-  /** Processes the selection of text within the web page's content.
-  * Function is invoked on mousedown */
-
-  function processSelection_UsaProxy(target) {
-    let eventTS = datestampInMillisec();
-
-    let currentSelection;
-    // NS
-    if (window.getSelection) currentSelection = window.getSelection();
-    // safari, konqueror
-    else if (document.getSelection) currentSelection = document.getSelection();
-    // IE
-    else if (document.selection) currentSelection = document.selection.createRange().text;
-
-    // if selection is not empty and new text was selected, log select event
-    if (currentSelection !== '' && lastSelection !== currentSelection) {
-
-      let eventObj = {
-        event: 'select',
-        selectedContent: encodeURIComponent(currentSelection)
-      };
-      Object.assign(eventObj, getNodeInfo(target));
-
-      writeLog(eventTS, eventObj);
-
-      // set last selected text
-      lastSelection = currentSelection;
-      saveLog();
-    }
-  }
 
   /** Function that registers the focus state of the current window,
    * if different than the last registered state
     * Function is invoked periodically */
 
   function processWindowFocusQuery() {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
-    if (document.hasFocus() != isWindowFocusedQuery) {
+    if (document.hasFocus() !== isWindowFocusedQuery) {
       // If different, we record the event
-      if (document.hasFocus())
-        writeLog(eventTS, { event: 'select' });
-      else
-        writeLog(eventTS, { event: 'windowqueryblur' });
+      if (document.hasFocus()) writeLog(eventTS, { event: 'windowqueryfocus' });
+      else writeLog(eventTS, { event: 'windowqueryblur' });
       isWindowFocusedQuery = document.hasFocus();
     }
-
   }
-
-  /** end events logging */
-
-
-
-  /** 
-   * Returns the position of the specified node 
-   * in its parent node's childNodes array
-   */
-  function getDOMIndex(node /*DOM element */) {
-    let parent = node.parentNode;
-    let children = parent.childNodes;
-    let length = children.length;
-    let position = 0;
-    for (let i = 0; i < length; i++) {
-      /* if nodeType==1 same as nodetype==Node.ELEMENT_NODE, IE doesn't speak constants */
-      if (children[i].nodeType == 1) { // count only element nodes
-        position += 1;
-        if (children[i] == node) return mapToAlph(position);
-      }
-    }
-
-  }
-
-  /**
-   * Optional: returns a hex representation of DOM path
-   * e.g. having a path of <HTML><BODY><FORM><P>1st<INPUT>
-   * results in 2h2h1h1h1h
-   * e.g. having a path of <HTML><BODY><FORM><P>34th<INPUT>
-   * results in 2h2h1h1h22h
-   * with an "h" as hex suffix
-   */
-
-  function mapToHex(position /*number */) {
-    return (`${position.toString(16)} h`);
-  }
-
-  /* Returns an alphabetic representation of the DOM path
-   * e.g. having a path of <HTML><BODY><FORM><P>1st<INPUT>
-   * results in bbaaa
-   * e.g. having a path of <HTML><BODY><FORM><P>34th<INPUT>
-   * results in bbaa1h
-   * with an optional number as prefix which indicates the extent
-   * to which the position exceeds the number of characters available
-   * e.g. a position of 54 is represented by 2b (= 2x26 + b)
-   */
-
-  let alphArray = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
-
-  function mapToAlph(position /* number*/) {
-    let amountAlphs = 0;
-    let alphRemain = '';
-    if (position > alphArray.length) { // if position > available indexes
-      amountAlphs = Math.floor(position / alphArray.length);
-      alphRemain = alphArray[(position % alphArray.length) - 1];
-    }
-
-    if (amountAlphs > 0) return (amountAlphs + alphRemain);
-    return (alphArray[position - 1]);
-  }
-
-  /**
-   * Computes the element's offset from the left edge
-   * of the browser window
-   */
-  function absLeft(element) {
-    if (element.pageX) return element.pageX;
-    else
-      return (element.offsetParent) ?
-        element.offsetLeft + absLeft(element.offsetParent) : element.offsetLeft;
-  }
-
-  /**
-   * Computes the element's offset from the top edge
-   * of the browser window 
-   */
-  function absTop(element) {
-    if (element.pageY) return element.pageY;
-    else
-      return (element.offsetParent) ?
-        element.offsetTop + absTop(element.offsetParent) : element.offsetTop;
-  }
-
-
-  /**
-   * Returns the coordinates of a given element
-   */
-  function getPageXY(element) {
-    let x = 0, y = 0;
-    while (element) {
-      x += element.offsetLeft;
-      y += element.offsetTop;
-      element = element.offsetParent;
-    }
-    return [x, y];
-  }
-
-
 
   /**
    * Processes the particular event of "open a contextmenu" event
    */
-  function processContextMenu_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processContextMenu(e) {
+    const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
       * NS: first case (window.Event available); IE: second case */
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    let eventObj = { event: 'contextmenu', coord: `${x},${y}`, offset: `${xOffset},${yOffset}` };
+    const eventObj = { event: 'contextmenu', coord: `${x},${y}`, offset: `${xOffset},${yOffset}` };
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -1382,111 +1341,100 @@
   /**
    * Processes the particular event of a "cut" event
    */
-  function processCut_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processCut(e) {
+    const eventTS = datestampInMillisec();
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let data = (isNotOldIE) ? ev.data : ev.data;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
     // if selection is not empty, log select event with the selected text
-    if (target.selectionStart != target.selectionEnd) {
-
-      let eventObj = { event: 'cut', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
+    if (target.selectionStart !== target.selectionEnd) {
+      const eventObj = { event: 'cut', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
       Object.assign(eventObj, getNodeInfo(target));
 
       writeLog(eventTS, eventObj);
     }
-
   }
 
   /**
    * Processes the particular event of a "copy" event
    */
-  function processCopy_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processCopy(e) {
+    const eventTS = datestampInMillisec();
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let data = (isNotOldIE) ? ev.data : ev.data;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
     // if selection is not empty, log select event with the selected text
-    if (target.selectionStart != target.selectionEnd) {
-      let eventObj = { event: 'copy', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
+    if (target.selectionStart !== target.selectionEnd) {
+      const eventObj = { event: 'copy', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
       Object.assign(eventObj, getNodeInfo(target));
-
       writeLog(eventTS, eventObj);
     }
-
   }
 
   /**
    * Processes the particular event of a "paste" event
    */
-  function processPaste_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processPaste(e) {
+    const eventTS = datestampInMillisec();
 
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let data = (isNotOldIE) ? ev.data : ev.data;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
     // if selection is not empty, log select event with the selected text
-    if (target.selectionStart != target.selectionEnd) {
-      let eventObj = { event: 'paste', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
+    if (target.selectionStart !== target.selectionEnd) {
+      const eventObj = { event: 'paste', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
       Object.assign(eventObj, getNodeInfo(target));
-
       writeLog(eventTS, eventObj);
     }
-
   }
 
   /**
    * Processes the particular event of a "doubleclick" event
    */
-  function processDblClick_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processDblClick(e) {
+    const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let x = (isNotOldIE) ? ev.pageX : ev.clientX;
-    let y = (isNotOldIE) ? ev.pageY : ev.clientY;
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const x = (isNotOldIE) ? ev.pageX : ev.clientX;
+    const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
-    let yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
+    const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
+    const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
     /** mouse button detection: was middle or right mouse button clicked ? */
-    let mbutton = 'l';
+    let mbutton;
     if (ev.which) { // NS
       switch (ev.which) {
         case 2: mbutton = 'm'; break; // middle button
-        case 3: mbutton = 'r'; break; // right button}
+        case 3: mbutton = 'r'; break; // right button
+        default: mbutton = 'l'; break; // left button as default
       }
     } else if (ev.button) { // IE
       switch (ev.button) {
         case 4: mbutton = 'm'; break;
         case 2: mbutton = 'r'; break;
+        default: mbutton = 'l'; break;
       }
     }
 
-    let eventObj = {
+    const eventObj = {
       event: 'dblclick',
       coord: `${x},${y}`,
       offset: `${xOffset},${yOffset}`,
-      but: mbutton
+      but: mbutton,
     };
     Object.assign(eventObj, getNodeInfo(target));
 
@@ -1496,39 +1444,37 @@
   /**
    * Processes the particular event of an "error" event
    */
-  function processError_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
-
+  function processError() {
+    const eventTS = datestampInMillisec();
     writeLog(eventTS, { event: 'javascripterror' });
   }
 
   /**
    * Processes the particular event of an "error" event
    */
-  function processhashChange_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
-
+  function processhashChange() {
+    const eventTS = datestampInMillisec();
     writeLog(eventTS, { event: 'hashChange' });
-
   }
 
   /**
-   * Logs key presses. The key value represents the key pressed in the keyboard, rather than the resulting value.
-   * E.g. capital letters are not recorded, but rather the lowercase letter indicating the location in the keyboard
+   * Logs key presses. The key value represents the key pressed in the keyboard,
+   * rather than the resulting value.
+   * E.g. capital letters are not recorded, but rather the lowercase letter
+   * indicating the location in the keyboard
    */
-  function processKeydown_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processKeydown(e) {
+    const eventTS = datestampInMillisec();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
-    let ev = window.event ? window.event : e;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let KeyID = ev.which ? ev.which : ev.keyCode;
+    const ev = window.event ? window.event : e;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const KeyID = ev.which ? ev.which : ev.keyCode;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let eventObj = {
+    const eventObj = {
       event: 'keydown',
       key: encodeInput(returnKeyValue(KeyID)),
     };
@@ -1540,19 +1486,18 @@
   /**
    * Logs all regular single key presses.
    */
-  function processKeypress_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processKeypress(e) {
+    const eventTS = datestampInMillisec();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
-    let ev = window.event ? window.event : e;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let KeyID = ev.which ? ev.which : ev.keyCode;
+    const ev = window.event ? window.event : e;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const KeyID = ev.which ? ev.which : ev.keyCode;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let eventObj = {
+    const eventObj = {
       event: 'keypress',
       key: encodeInput(String.fromCharCode(KeyID)),
     };
@@ -1564,25 +1509,112 @@
   /*
    * Keyup event, we don't take into account any combination of keys detector flag.
    */
-  function processKeyUp_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processKeyUp(e) {
+    const eventTS = datestampInMillisec();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
-    let ev = window.event ? window.event : e;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    let KeyID = ev.which ? ev.which : ev.keyCode;
+    const ev = window.event ? window.event : e;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    const KeyID = ev.which ? ev.which : ev.keyCode;
 
-    if (privacyCheck(ev))
-      return true;
+    if (privacyCheck(ev)) return;
 
-    let eventObj = {
+    const eventObj = {
       event: 'keyup',
       key: encodeInput(returnKeyValue(KeyID)),
     };
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
+  }
+
+
+  /**
+  * This function will accummulate the mouse wheel movement in order to record it periodically
+  */
+  function handleWheelEvents(delta, node) {
+    const eventTS = datestampInMillisec();
+
+    const currentTime = new Date();
+
+    // if node is null, we have to store this event as a new one.
+    // Store the delta value and start the timer
+    if (wheelNodeGlobal == null) {
+      wheelDeltaGlobal += delta; // wheelDeltaGlobal should be 'zero' here anyway
+      wheelNodeGlobal = node;
+      wheelLastEventTimestampGlobal = new Date();
+
+      // START TIMEOUT! But first I need to cancel the previous timeout,
+      // otherwise this function will be called more than once
+      // This timeout should be cancelled already anyway
+      if (wheelTimeOutFunction != null) window.clearTimeout(wheelTimeOutFunction);
+
+      wheelTimeOutFunction = setTimeout(() => {
+        handleWheelEvents(0, wheelNodeGlobal);
+      }, wheelQueryFrequency);
+    } else if (node.isEqualNode(wheelNodeGlobal)) {
+      // If same node, check time to either record it or to program next timeout function
+
+      // If it´s time just record the event, and record next wheel as different event
+      if (currentTime.getTime() - wheelLastEventTimestampGlobal.getTime() > wheelGranularity) {
+        wheelDeltaGlobal += delta;
+
+        const eventObj = {
+          event: 'mousewheel',
+          delta: wheelDeltaGlobal,
+        };
+        Object.assign(eventObj, getNodeInfo(node));
+
+        writeLog(eventTS, eventObj);
+
+        // reset the variables ready for next event
+        wheelDeltaGlobal = 0;
+        wheelNodeGlobal = null;
+
+        // we also have to remove the timeouts
+        if (wheelTimeOutFunction != null) window.clearTimeout(wheelTimeOutFunction);
+      } else if (delta === 0) {
+        // if it's not time, but delta is 0, that means it's just the timeout function.
+        // Recall the function without altering the "wheelLastEventTimestampGlobal"
+        if (wheelTimeOutFunction != null) window.clearTimeout(wheelTimeOutFunction);
+
+        wheelTimeOutFunction = setTimeout(() => {
+          handleWheelEvents(0, wheelNodeGlobal);
+        }, wheelQueryFrequency);
+      } else {
+        // if it's not time, but we have delta values
+        wheelDeltaGlobal += delta;
+        wheelLastEventTimestampGlobal = currentTime;
+
+        // START TIMEOUT! first cancel the previous timeout
+        if (wheelTimeOutFunction != null) window.clearTimeout(wheelTimeOutFunction);
+        wheelTimeOutFunction = setTimeout(() => {
+          handleWheelEvents(0, wheelNodeGlobal);
+        }, wheelQueryFrequency);
+      }
+    } else {
+      // if globalNode is neither the same nor null, then it corresponds to a different target
+      // record the previous one and start recording this one
+      const eventObj = {
+        event: 'mousewheel',
+        delta: wheelDeltaGlobal,
+      };
+      Object.assign(eventObj, getNodeInfo(wheelNodeGlobal));
+
+      writeLog(eventTS, eventObj);
+
+      // We "restart" the counters with the new event we received
+      wheelDeltaGlobal = delta;
+      wheelNodeGlobal = node;
+      wheelLastEventTimestampGlobal = currentTime;
+
+      // START TIMEOUT! first cancel the previous timeout
+      if (wheelTimeOutFunction != null) window.clearTimeout(wheelTimeOutFunction);
+      wheelTimeOutFunction = setTimeout(() => {
+        handleWheelEvents(0, wheelNodeGlobal);
+      }, wheelQueryFrequency);
+    }
   }
 
   /**
@@ -1592,148 +1624,48 @@
 
   function processMousewheel(e) {
     let event = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? event.target : event.srcElement;
+    if (!event) ({ event } = window); // For IE.
+
+    const target = (isNotOldIE) ? event.target : event.srcElement;
     let delta = 0;
 
-    if (!event) /* For IE. */
-      event = window.event;
-    if (event.wheelDelta) { /* IE/Opera. */
-      delta = event.wheelDelta / 120;
-    }
-    else if (event.detail) { /** Mozilla case. */
-      /** In Mozilla, sign of delta is different than in IE.
-      * Also, delta is multiple of 3.
-      */
-      delta = -event.detail / 3;
-    }
+    if (event.wheelDelta) delta = event.wheelDelta / 120; // IE/Opera.
+    else if (event.detail) delta = -event.detail / 3; // Mozilla case. */
+    /** In Mozilla, sign of delta is different than in IE.
+    * Also, delta is multiple of 3.
+    */
 
     handleWheelEvents(delta, target);
   }
 
   /**
-  * This function will accummulate the mouse wheel movement in order to record it periodically 
-  */
-  function handleWheelEvents(delta, node) {
-    let eventTS = datestampInMillisec();
-
-    let currentTime = new Date();
-
-    // if node is null, we have to store this event as a new one. Store the delta value and start the timer
-    if (wheelNodeGlobal == null) {
-      wheelDeltaGlobal += delta; // wheelDeltaGlobal should be 'zero' here anyway
-      wheelNodeGlobal = node;
-      wheelLastEventTimestampGlobal = new Date();
-
-      // START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
-      // This timeout should be cancelled already anyway
-      if (wheelTimeOutFunction != null) window.clearTimeout(wheelTimeOutFunction);
-
-      wheelTimeOutFunction = setTimeout(() => {
-        handleWheelEvents(0, wheelNodeGlobal);
-      }, wheelQueryFrequency);
-    }
-
-    // If it's the same node, we check the time to see if it's time to record it or to program next timeout function
-    else if (node.isEqualNode(wheelNodeGlobal)) {
-
-      // If the time expired for the event, just record the event, and the next time user uses the wheel, it will be recorded as a different event
-      if (currentTime.getTime() - wheelLastEventTimestampGlobal.getTime() > wheelGranularity) {
-        wheelDeltaGlobal += delta;
-
-        let eventObj = {
-          event: 'mousewheel',
-          delta: wheelDeltaGlobal,
-        };
-        Object.assign(eventObj, getNodeInfo(target));
-
-        writeLog(eventTS, eventObj);
-
-        // We set the variables ready for the next event, resetting delta counter, and setting the node to null
-        wheelDeltaGlobal = 0;
-        wheelNodeGlobal = null;
-
-        // we also have to remove the timeouts
-        if (wheelTimeOutFunction != null)
-          window.clearTimeout(wheelTimeOutFunction);
-      }
-
-      // if it's not time, but delta is 0, that means it's just the timeout function.
-      // Recall the function without altering the "wheelLastEventTimestampGlobal"
-      else if (delta == 0) {
-        if (wheelTimeOutFunction != null)
-          window.clearTimeout(wheelTimeOutFunction);
-        wheelTimeOutFunction = setTimeout(() => {
-          handleWheelEvents(0, wheelNodeGlobal);
-        }, wheelQueryFrequency);
-      }
-
-      // if it's not time, but we have delta values
-      else {
-        wheelDeltaGlobal += delta;
-        wheelLastEventTimestampGlobal = currentTime;
-
-        // START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
-        if (wheelTimeOutFunction != null)
-          window.clearTimeout(wheelTimeOutFunction);
-        wheelTimeOutFunction = setTimeout(() => {
-          handleWheelEvents(0, wheelNodeGlobal);
-        }, wheelQueryFrequency);
-      }
-    }
-
-    // if globalNode is neither the same nor null, the user must be using the wheel in another DOM element.
-    // record the previous one and start recording this one
-    else {
-      let eventObj = {
-        event: 'mousewheel',
-        delta: wheelDeltaGlobal,
-      };
-      Object.assign(eventObj, getNodeInfo(target));
-
-      writeLog(eventTS, eventObj);
-
-      // We "restart" the counters with the new event we received
-      wheelDeltaGlobal = delta;
-      wheelNodeGlobal = node;
-      wheelLastEventTimestampGlobal = currentTime;
-
-      // START TIMEOUT! But first I need to cancel the previous timeout, otherwise this function will be called more than once
-      if (wheelTimeOutFunction != null)
-        window.clearTimeout(wheelTimeOutFunction);
-      wheelTimeOutFunction = setTimeout(() => {
-        handleWheelEvents(0, wheelNodeGlobal);
-      }, wheelQueryFrequency);
-    }
-  }
-
-  /**
    * Processes the particular event of a "select" event
    */
-  function processSelectText_ExtraEvent(e) {
-    let ev = (isNotOldIE) ? e : window.event;
-    let target = (isNotOldIE) ? ev.target : ev.srcElement;
-    if (privacyCheck(ev))
-      return true;
-    // if selection is not empty, log select event with the selected text
-    if (target.selectionStart != target.selectionEnd) {
+  function processSelectText(e) {
+    const eventTS = datestampInMillisec();
 
-      let eventObj = {
+    const ev = (isNotOldIE) ? e : window.event;
+    const target = (isNotOldIE) ? ev.target : ev.srcElement;
+    if (privacyCheck(ev)) return;
+    // if selection is not empty, log select event with the selected text
+    if (target.selectionStart !== target.selectionEnd) {
+      const eventObj = {
         event: 'select_Extra',
-        selectedContent: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)),
+        selectedContent: encodeURIComponent(target.value
+          .substring(target.selectionStart, target.selectionEnd)),
       };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
-
     }
-
   }
 
   /**
   * This function is rarely called, as we don't have time to process it before the window closes.
-  * The end of the interaction (last interaction event recorded) will be considered the end of the session instead
+  * The end of the interaction (last interaction event recorded) will be considered
+  * the end of the session instead
   */
-  function processUnload_ExtraEvent(e) {
-    let eventTS = datestampInMillisec();
+  function processUnload() {
+    const eventTS = datestampInMillisec();
 
     writeLog(eventTS, { event: 'unload' });
     // Try to save it as soon as the event takes place, rather than waiting for the periodic save
@@ -1754,7 +1686,7 @@
   function processWindowFocusEvent() {
     if (!windowIsFocused) {
       windowIsFocused = true;
-      let eventTS = datestampInMillisec();
+      const eventTS = datestampInMillisec();
       writeLog(eventTS, { event: 'windowfocus' });
     }
   }
@@ -1768,55 +1700,24 @@
     if (windowIsFocused) {
       windowIsFocused = false;
 
-      let eventTS = datestampInMillisec();
+      const eventTS = datestampInMillisec();
       writeLog(eventTS, { event: 'windowblur' });
     }
   }
 
-  /**
-  * Returns true if it detects that something has been selected in the web page.
-  * If it's true, then it records the content of the selection as a selection event
-  * The usual functions that will call this function are mouse up and keyup
-  */
-
-  function processIfHtmlIsSelected(selectionTool, target) {
-    let eventTS = datestampInMillisec();
-
-    let selectedContent = getSelectionHtml();
-    if (selectedContent != '') {
-
-      let eventObj = {
-        event: 'selectextra',
-        selectionTool: selectionTool,
-        selectedContent: encodeURIComponent(selectedContent),
-      };
-      Object.assign(eventObj, getNodeInfo(target));
-      writeLog(eventTS, eventObj);
-    }
-  }
 
   /**
-  * Returns currently selected (highlighted) text in the web page
-  */
-  function getSelectionHtml() {
-    let html = '';
-    if (typeof window.getSelection != 'undefined') {
-      let sel = window.getSelection();
-      if (sel.rangeCount) {
-        let container = document.createElement('div');
-        for (let i = 0, len = sel.rangeCount; i < len; ++i) {
-          container.appendChild(sel.getRangeAt(i).cloneContents());
-        }
+    * Extracts and encodes form inputs in the page. Content from text areas are also extracted
+    */
+  function getFormInputs() {
+    let formInputs = '';
+    // $('input').css('background-color','blue')
+    // $('input').css('background-color','')
 
-        html = container.innerHTML;
-      }
-    }
-    else if (typeof document.selection != 'undefined') {
-      if (document.selection.type == 'Text') {
-        html = document.selection.createRange().htmlText;
-      }
-    }
-    return (html);
+    $('input,select,textarea').each((index, element) => {
+      formInputs += `${encodeURIComponent($(element).attr('id'))}:${encodeURIComponent($(element).val())};`;
+    });
+    return (formInputs);
   }
 
   /**
@@ -1824,46 +1725,26 @@
    */
 
   function processSubmitEvent(event) {
-    let eventTS = datestampInMillisec();
-
-    let target = event.target;
-
-    let eventObj = {
+    const eventTS = datestampInMillisec();
+    const { target } = event;
+    const eventObj = {
       event: 'submit',
-      formInputs: getFormInputs()
+      formInputs: getFormInputs(),
     };
     Object.assign(eventObj, getNodeInfo(target));
-
     writeLog(eventTS, eventObj);
-
     saveLog();
   }
 
-  /**
-  * Extracts and encodes form inputs in the page. Content from text areas are also extracted
-  */
-  function getFormInputs() {
-
-    let formInputs = '';
-    // $('input').css('background-color','blue')
-    // $('input').css('background-color','')
-
-    $('input,select,textarea').each(function (index, element) {
-      formInputs += `${encodeURIComponent($(element).attr('id'))}:${encodeURIComponent($(element).val())};`;
-    }
-    );
-    return (formInputs);
-  }
-
-  //////////////////MOBILE EVENTS
+  // ////////////////MOBILE EVENTS////////////////
 
   // See https://developer.mozilla.org/en-US/docs/Web/API/Touch?redirectlocale=en-US&redirectslug=DOM%2FTouch
   function processMobileTouchStart(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
-    let eventObj = { event: 'mobileTouchStart' };
+    const eventObj = { event: 'mobileTouchStart' };
 
-    eventObj.numberOfTouches = e.touches.length
+    eventObj.numberOfTouches = e.touches.length;
     eventObj.isCtrlKey = e.ctrlKey;
     eventObj.isShiftKey = e.shiftKey;
     eventObj.isAltKey = e.altKey;
@@ -1872,16 +1753,16 @@
     // Retrieve the list of all touch points
     eventObj.touchList = e.touches;
 
-    Object.assign(eventObj, getNodeInfo(target));
+    Object.assign(eventObj, getNodeInfo(e.target));
     writeLog(eventTS, eventObj);
   }
 
   function processMobileTouchEnd(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
-    let eventObj = { event: 'mobileTouchEnd' };
+    const eventObj = { event: 'mobileTouchEnd' };
 
-    eventObj.numberOfTouches = e.touches.length
+    eventObj.numberOfTouches = e.touches.length;
     eventObj.isCtrlKey = e.ctrlKey;
     eventObj.isShiftKey = e.shiftKey;
     eventObj.isAltKey = e.altKey;
@@ -1890,33 +1771,34 @@
     // Retrieve the list of all touch points
     eventObj.touchList = e.touches;
 
-    Object.assign(eventObj, getNodeInfo(target));
+    Object.assign(eventObj, getNodeInfo(e.target));
     writeLog(eventTS, eventObj);
 
     // Was this touch event employed to select something?
-    processIfHtmlIsSelected('touch', target);
+    processIfHtmlIsSelected('touch', e.target);
   }
 
   /**
    * Gyroscope values to compare if values change
    */
-  let gyroAlpha = 0,
-    gyroBeta = 0,
-    gyroGamma = 0;
+  let gyroAlpha = 0;
+  let gyroBeta = 0;
+  let gyroGamma = 0;
 
-  let gyroAlphaOld = 0,
-    gyroBetaOld = 0,
-    gyroGammaOld = 0;
+  let gyroAlphaOld = 0;
+  let gyroBetaOld = 0;
+  let gyroGammaOld = 0;
 
   /**
-   * This threshold will determine what is the minimum value for the motion to be meaningful enough to be recorded
+   * This threshold will determine what is the minimum value for the
+   * motion to be meaningful enough to be recorded
    */
-  let gyroscopeThreshold = 10;
+  const gyroscopeThreshold = 10;
 
   // Update the event handler to do nothing more than store the values from the event
 
   function processMobileGyroscope(e) {
-    let eventTS = datestampInMillisec();
+    const eventTS = datestampInMillisec();
 
     // alpha: rotation around z-axis
     gyroAlpha = e.alpha;
@@ -1929,15 +1811,14 @@
     if ((Math.abs(gyroAlphaOld - gyroAlpha) > gyroscopeThreshold)
       || (Math.abs(gyroBetaOld - gyroBeta) > gyroscopeThreshold)
       || (Math.abs(gyroGammaOld - gyroGamma) > gyroscopeThreshold)) {
-
-      let eventObj = { event: 'mobileGyroscope' };
+      const eventObj = { event: 'mobileGyroscope' };
 
       gyroAlphaOld = gyroAlpha;
       gyroBetaOld = gyroBeta;
       gyroGammaOld = gyroGamma;
 
       eventObj.alpha = gyroAlpha;
-      eventObj.beta = gyroBeta
+      eventObj.beta = gyroBeta;
       eventObj.gamma = gyroGamma;
 
       writeLog(eventTS, eventObj);
@@ -1947,18 +1828,18 @@
   /**
    * Stores the orientation of the device
    */
-  function processMobileOrientationChange(e) {
-    let eventTS = datestampInMillisec();
+  function processMobileOrientationChange() {
+    const eventTS = datestampInMillisec();
 
     // The device is in portrait orientation if the device is held at 0 or 180 degrees
     // The device is in landscape orientation if the device is at 90 or -90 degrees
 
-    let isPortrait = window.orientation % 180 === 0;
+    const isPortrait = window.orientation % 180 === 0;
     // Set the class of the <body> tag according to the orientation of the device
 
-    let orientation = isPortrait ? 'portrait' : 'landscape';
+    const orientation = isPortrait ? 'portrait' : 'landscape';
 
-    let eventObj = { event: 'mobileOrientationChange' };
+    const eventObj = { event: 'mobileOrientationChange' };
 
     eventObj.orientation = orientation;
     eventObj.orientationRaw = window.orientation;
@@ -1969,13 +1850,13 @@
   /**
    * Accelerometer values to compare if values change
    */
-  let accX = 0,
-    accY = 0,
-    accZ = 0;
+  let accX = 0;
+  let accY = 0;
+  let accZ = 0;
 
   let maxAcc = 0;
   let maxAccGrav = 0;
-  let motionThreshold = 2;
+  const motionThreshold = 2;
 
   /**
   * Query the sensors and store them if bigger than temp values
@@ -1983,43 +1864,38 @@
 
   function processMobileMotionEvent(e) {
     // Get the current acceleration values in 3 axes and find the greatest of these
-    let accTemp = e.acceleration;
+    const accTemp = e.acceleration;
 
-    let maxAccTemp = Math.max(Math.abs(accTemp.x), Math.abs(accTemp.y), Math.abs(accTemp.z));
+    const maxAccTemp = Math.max(Math.abs(accTemp.x), Math.abs(accTemp.y), Math.abs(accTemp.z));
 
-    if (maxAccTemp > maxAcc)
-      maxAcc = maxAccTemp;
+    if (maxAccTemp > maxAcc) maxAcc = maxAccTemp;
 
     // Get the acceleration values including gravity and find the greatest of these
-    let accGravity = e.accelerationIncludingGravity;
-    let maxAccGravTemp = Math.max(accGravity.x, accGravity.y, accGravity.z);
-    if (maxAccGravTemp > maxAccGrav)
-      maxAccGrav = maxAccGravTemp;
+    const accGravity = e.accelerationIncludingGravity;
+    const maxAccGravTemp = Math.max(accGravity.x, accGravity.y, accGravity.z);
+    if (maxAccGravTemp > maxAccGrav) maxAccGrav = maxAccGravTemp;
 
-    if (accTemp.x > accX)
-      accX = accTemp.x;
+    if (accTemp.x > accX) accX = accTemp.x;
 
-    if (accTemp.y > accY)
-      accY = accTemp.y;
+    if (accTemp.y > accY) accY = accTemp.y;
 
-    if (accTemp.z > accZ)
-      accZ = accTemp.z;
+    if (accTemp.z > accZ) accZ = accTemp.z;
   }
 
   /**
   * It periodically queries the value of the sensors and store them if bigger than the threshold
   */
 
-  function processMobileMotionEventAndSave(e) {
+  function processMobileMotionEventAndSave() {
     if (maxAcc > motionThreshold) {
-      let eventTS = datestampInMillisec();
+      const eventTS = datestampInMillisec();
 
       // Output to the user the greatest current acceleration value in any axis, as
       // well as the greatest value in any axis including the effect of gravity
       // console.log("Current acceleration: " + maxAcc +  "m/s^2");
       // console.log("Value incl. gravity: " + maxAccGravity + "m/s^2");
 
-      let eventObj = { event: 'mobileMotion' };
+      const eventObj = { event: 'mobileMotion' };
 
       eventObj.accX = accX;
       eventObj.accY = accY;
@@ -2039,7 +1915,7 @@
     }
   }
 
-
+  // ////////////////// End of event processing ///////////////////////////
 
 
   /**
@@ -2086,22 +1962,22 @@
     listenersArray.push({ target: document, event: 'mousedown', function: processMousedown });
     listenersArray.push({ target: document, event: 'mousemove', function: processMousemove });
     listenersArray.push({ target: document, event: 'mouseover', function: processMouseover });
-    listenersArray.push({ target: document, event: 'mouseout', function: processMouseOut_ExtraEvent });
-    listenersArray.push({ target: document, event: 'mouseup', function: processMouseup_ExtraEvent });
+    listenersArray.push({ target: document, event: 'mouseout', function: processMouseout });
+    listenersArray.push({ target: document, event: 'mouseup', function: processMouseup });
 
-    listenersArray.push({ target: document, event: 'contextmenu', function: processContextMenu_ExtraEvent });
-    listenersArray.push({ target: document, event: 'cut', function: processCut_ExtraEvent });
-    listenersArray.push({ target: document, event: 'copy', function: processCopy_ExtraEvent });
-    listenersArray.push({ target: document, event: 'paste', function: processPaste_ExtraEvent });
-    listenersArray.push({ target: document, event: 'dblclick', function: processDblClick_ExtraEvent });
-    listenersArray.push({ target: document, event: 'error', function: processError_ExtraEvent });
-    listenersArray.push({ target: document, event: 'hashchange', function: processhashChange_ExtraEvent });
+    listenersArray.push({ target: document, event: 'contextmenu', function: processContextMenu });
+    listenersArray.push({ target: document, event: 'cut', function: processCut });
+    listenersArray.push({ target: document, event: 'copy', function: processCopy });
+    listenersArray.push({ target: document, event: 'paste', function: processPaste });
+    listenersArray.push({ target: document, event: 'dblclick', function: processDblClick });
+    listenersArray.push({ target: document, event: 'error', function: processError });
+    listenersArray.push({ target: document, event: 'hashchange', function: processhashChange });
     listenersArray.push({ target: document, event: 'mousewheel', function: processMousewheel });
-    listenersArray.push({ target: document, event: 'select', function: processSelectText_ExtraEvent });
+    listenersArray.push({ target: document, event: 'select', function: processSelectText });
 
-    listenersArray.push({ target: document, event: 'keydown', function: processKeydown_ExtraEvent });
-    listenersArray.push({ target: document, event: 'keyup', function: processKeyUp_ExtraEvent });
-    listenersArray.push({ target: document, event: 'keypress', function: processKeypress_ExtraEvent });
+    listenersArray.push({ target: document, event: 'keydown', function: processKeydown });
+    listenersArray.push({ target: document, event: 'keyup', function: processKeyUp });
+    listenersArray.push({ target: document, event: 'keypress', function: processKeypress });
 
     listenersArray.push({ target: document, event: 'focusin', function: processFocus });
     listenersArray.push({ target: document, event: 'focusout', function: processBlur });
@@ -2120,7 +1996,7 @@
 
     // Window target
     listenersArray.push({ target: window, event: 'resize', function: processResize });
-    listenersArray.push({ target: window, event: 'unload', function: processUnload_ExtraEvent });
+    listenersArray.push({ target: window, event: 'unload', function: processUnload });
     listenersArray.push({ target: window, event: 'focus', function: processWindowFocusEvent });
     listenersArray.push({ target: window, event: 'blur', function: processWindowBlurEvent });
 
@@ -2155,7 +2031,7 @@
     * Adds a reference to jQuery
     */
   function includeJquery() {
-    const jQuerySrc = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'
+    const jQuerySrc = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
 
     // we add the script dinamically
     const jQueryScriptNode = document.createElement('script');
