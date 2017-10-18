@@ -17,7 +17,7 @@ router.route('/storeevent/log')
     if (!userId || !eventJson) {
       res.send(500);
     } else {
-      mongoDAO.commitJsonToEvents(eventJson, (commitErr) => {
+      mongoDAO.commitJsonListToEvents(eventJson, (commitErr) => {
         if (commitErr) {
           res.send(500);
         } else {

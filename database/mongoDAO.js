@@ -120,23 +120,23 @@ function initIndexes(callback) {
 
 /**
  * Tests if the json to be inserted is valid
- * @param {*} jsonDoc
+ * @param {*} jsonDocList
  * @param {*} callback
  */
-function validateJson(jsonDoc, callback) {
+function validateJsonList(jsonDocList, callback) {
   callback(null, true);
 }
 
 /**
  * Given a json document, it introduces its content to the database
- * @param {JSON} jsonDoc
+ * @param {JSON} jsonDocList list
  * @param {*} callback
  */
-function commitJsonToEvents(jsonDoc, callback) {
+function commitJsonListToEvents(jsonDocList, callback) {
   async.waterfall([
     (asyncCallback) => {
       // validate json before inserting it to the database
-      validateJson(jsonDoc, (err, isJsonValid) => {
+      validateJsonList(jsonDocList, (err, isJsonValid) => {
         if (err || !isJsonValid) {
           asyncCallback('ERROR Json could not be validated');
         } else {
@@ -148,7 +148,7 @@ function commitJsonToEvents(jsonDoc, callback) {
       // The waterfall will only get here if the json is valid
       connectDB((connectErr, db) => {
         if (connectErr) asyncCallback(connectErr);
-        db.collection(eventCollName).eventsColl.insertOne(jsonDoc, (insertErr) => {
+        db.collection(eventCollName).eventsColl.insertMany(jsonDocList, (insertErr) => {
           asyncCallback(insertErr);
         });
       });
@@ -175,5 +175,5 @@ function getLastEventTimestampForUser(sid, callback) {
 }
 
 
-module.exports.commitJsonToEvents = commitJsonToEvents;
+module.exports.commitJsonListToEvents = commitJsonListToEvents;
 module.exports.getLastEventTimestampForUser = getLastEventTimestampForUser;

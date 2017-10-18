@@ -7,14 +7,6 @@
  * make sure they have the appropriate permissions from the user
  */
 (() => {
-  const trackedEpisodeCountCookie = 'trackedEpisodeCount';
-  const trackedLastRecTSCookie = 'trackedLastRecTS';
-  let customMovingRequest = false;
-
-  let recordDOM = false;
-
-  const episodeTimeout = 40 * 60 * 1000;
-
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////COOKIE HANDLER////////////////////////////////////
   // ////////////////////////////////////////////////////////////////////////
@@ -57,6 +49,7 @@
     document.cookie = `${cookieName}=${cookieValue}`;
   }
 
+  /*
   function printCookiesOnConsole() {
     const cookieArray = document.cookie.split(';');
     for (let i = 0; i < cookieArray.length; i += 1) {
@@ -66,6 +59,18 @@
       console.log(`${x}:${y}`);
     }
   }
+*/
+
+  // ///// CONSTANTS AND RETRIEVING VALUES FROM GLOBAL VARIABLES //////////
+
+  const trackedEpisodeCountCookie = 'trackedEpisodeCount';
+  const trackedLastRecTSCookie = 'trackedLastRecTS';
+  let customMovingRequest = false;
+
+  let recordDOM = false;
+
+  const episodeTimeout = 40 * 60 * 1000;
+
 
   // If episode count or user has not been preset, get it from the cookie
   if (window.trackedEpisodeCount == null) {
@@ -105,8 +110,8 @@
   console.log(`window.trackedLastRecTS: ${window.trackedLastRecTS}`);
   console.log(`window.trackedEpisodeCount: ${window.trackedEpisodeCount}`);
 
-  let logEntry; // String: Initialised when page loads. Contains current event log entries
-  let logValLocked; // Boolean: if flag set, writing log entry to logEntry not possible
+  let logEntry = []; // Array: Initialised when page loads. Contains current event json log entries
+  let logValLocked = false; // Boolean: if flag set, writing log entry to logEntry not possible
 
   /**
    * Date: Initialised by UsaProxy. Load completion timestamp is
@@ -234,12 +239,13 @@
   }
 
 
+  // ////////////CODE FOR GETTING BROWSER INFORMATION/////////////
+
+  // code obtained from https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
+
   /**
    * We infer browser's version only at the start, we want it to be the first thing it does
    */
-  // ////////////CODE FOR GETTING BROWSER INFORMATION
-  // code obtained from https://stackoverflow.com/questions/5916900/how-can-you-detect-the-version-of-a-browser
-
   function inferClientBrowserInfo() {
     const ua = navigator.userAgent;
     let tem;
@@ -294,9 +300,7 @@
   }
 
 
-  /** *
-   * FUNCTIONS ENSURING PRIVACY
-   */
+  // ////////////////// PRIVACY FUNCTIONS /////////////////
 
   /**
   * This function will take an event as input, and it will compare its target's parents' id
@@ -433,6 +437,9 @@
     }
   }
 
+
+  // /////////////// EPISODE FUNCTIONS ////////////////////////
+
   /**
    * Updates the client cookie with the corresponding episode information value
    */
@@ -488,13 +495,6 @@
   }
 
   /**
-   * Initializing the array of log requests
-   * contains the currently used XMLHttpRequest objects
-   * TODO: I will replace how I communicate information to the server
-   */
-  const xmlreqs_UsaProxy = new Array();
-
-  /**
   * Returns the computed datestamp in milliseconds
   */
 
@@ -510,6 +510,7 @@
 
 
   // ///////////////////////// Log storing and data communication /////////////////
+
   /**
    * Appends an event log entry together with the httptrafficindex referencing this page,
    * the client's session ID,
@@ -574,7 +575,7 @@
     });
   }
 
-  /** Sends tracked usage data (if any) to the server */
+  /** Called periodically to send tracked usage data (if any) to the server */
   function saveLog() {
     if (logEntry !== '') {
       // Add the sid to the get request
