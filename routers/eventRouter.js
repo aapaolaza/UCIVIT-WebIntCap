@@ -11,7 +11,7 @@ router.use((req, res, next) => {
 
 
 // Handles requests to store data. ALL information is stored in the POST
-router.route('/storeevent/')
+router.route('/storeevent/log')
   .get((req, res) => {
     const { userId, eventJson } = req.query;
     if (!userId || !eventJson) {

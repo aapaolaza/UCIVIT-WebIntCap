@@ -2,6 +2,8 @@ const mongodb = require('mongodb');
 const async = require('async');
 const dateFormat = require('dateformat');
 
+const eventFields = require('./constants').eventFields;
+
 const mongoClient = mongodb.MongoClient;
 
 const {
@@ -70,25 +72,31 @@ function closeConnection() {
  * Returns an error if any of the indexes fail
  */
 function initIndexes(callback) {
+
   const indexObjectList = [
-    { sid: 1 },
-    { sd: 1 },
-    { event: 1 },
-    { timestamp: 1 },
-    { timestampms: 1 },
-    { url: 1 },
-    { sid: 1, url: 1 },
-    { sid: 1, sd: 1 },
-    { sid: 1, episodecount: 1 },
-    { sid: 1, url: 1, episodecount: 1 },
+    { [eventFields.SID]: 1 },
+    { [eventFields.SD]: 1 },
+    { [eventFields.EVENT]: 1 },
+    { [eventFields.TIMESTAMP]: 1 },
+    { [eventFields.TIMESTAMPMS]: 1 },
+    { [eventFields.URL]: 1 },
+    { [eventFields.SID]: 1, [eventFields.URL]: 1 },
+    { [eventFields.SID]: 1, [eventFields.SD]: 1 },
+    { [eventFields.SID]: 1, [eventFields.EPISODECOUNT]: 1 },
+    { [eventFields.SID]: 1, [eventFields.URL]: 1, [eventFields.EPISODECOUNT]: 1 },
   ];
 
-  const uniqueIndex = { sid: 1, sd: 1, sessionstartms: 1, event: 1, timestampms: 1 };
+  const uniqueIndex = {
+    [eventFields.SID]: 1,
+    [eventFields.SD]: 1,
+    [eventFields.SESSIONSTARTMS]: 1,
+    [eventFields.EVENT]: 1,
+    [eventFields.TIMESTAMPMS]: 1,
+  };
 
   async.each(indexObjectList, (indexObject, asyncCallback) => {
     db.collection(eventCollName).createIndex(indexObject, (err) => {
       if (err) {
-        console.log(indexObject);
         asyncCallback(err);
       } else {
         asyncCallback(null);
@@ -105,8 +113,7 @@ function initIndexes(callback) {
           } else {
             callback(null);
           }
-        }
-      );
+        });
     }
   });
 }
@@ -159,10 +166,10 @@ function commitJsonToEvents(jsonDoc, callback) {
  * @return long timestamp value in ms, "0" if there is any error
  */
 function getLastEventTimestampForUser(sid, callback) {
-  db.collection(eventCollName).find({ sid }).sort({ timestampms: -1 }).limit(1)
+  db.collection(eventCollName).find({ sid }).sort([eventFields.TIMESTAMPMS]).limit(1)
     .toArray((findErr, result) => {
       if (findErr) callback(findErr);
-      const dateObj = new Date(result.timestampms);
+      const dateObj = new Date(result[eventFields.TIMESTAMPMS]);
       callback(null, dateFormat(dateObj, 'yyyy-mm-dd,HH:MM:ss:lll'));
     });
 }

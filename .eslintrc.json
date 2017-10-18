@@ -1,13 +1,22 @@
 {
   "extends": "airbnb-base",
-  
   //Commands to be ignored by the "not-defined" rule
   "globals": {
     // Mocha testing
     "describe": false,
     "it": false,
     // mongodb library
-    "connect":false,
-    "db":false
+    "connect": false,
+    "db": false,
+    // Web browser variables
+    "$": false,
+    "window": false,
+    "document": false,
+    "navigator": false,
+    "screen": false,
+    // variables created in server
+    "ucivitServerTime": false,
+    "ucivitServerSessionID": false,
+    "ucivitServerEncodeLogData": false
   }
 }
