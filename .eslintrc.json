@@ -17,6 +17,7 @@
     "screen": false,
     "self": false,
     // global ucivit variables
+    "ucivitOptions":false,
     "ucivitServerTime": false,
     "ucivitSessionID": false,
     "ucivitServerEncodeLogData": false,

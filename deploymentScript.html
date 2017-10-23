@@ -1,22 +1,24 @@
 <!-- ucivit script start -->
 <script type="text/javascript">
   //The webpageindex will be specific to each site
-  window.ucivitWebpageIndex = 'WEBSITEID';
-  window.ucivitServerIP = 'CAPTURESERVERADDRESS:2727';
-  var PROTOCOL ={
-    HTTPS  : 'https://',
-    HTTP   : 'http://'};
-  window.ucivitProtocol = PROTOCOL.HTTP;
+  const ucivitOptions = {};
+  ucivitOptions.webpageIndex = 'WEBSITEID';
+  ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727';
+  var PROTOCOL = {
+    HTTPS: 'https://',
+    HTTP: 'http://'
+  };
+  ucivitOptions.protocol = PROTOCOL.HTTP;
 
-  window.ucivitSessionID = getCookie('proxyUserID');
+  ucivitOptions.userId = getCookie('proxyUserID');
 
-  window.ucivitSrc = `${window.ucivitProtocol}${window.ucivitServerIP}/ucivit.js`
+  ucivitOptions.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`
 
   //we add the script dinamically
-  var ucivitScriptNode = document.createElement('script');
+  let ucivitScriptNode = document.createElement('script');
   ucivitScriptNode.id = 'ucivitScript';
   ucivitScriptNode.type = 'text/javascript';
-  ucivitScriptNode.src = window.ucivitSrc;
+  ucivitScriptNode.src = ucivitOptions.src;
 
   document.getElementsByTagName('head')[0].appendChild(ucivitScriptNode);
 

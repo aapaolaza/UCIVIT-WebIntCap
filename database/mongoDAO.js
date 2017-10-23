@@ -148,16 +148,14 @@ function commitJsonListToEvents(jsonDocList, callback) {
       // The waterfall will only get here if the json is valid
       connectDB((connectErr, db) => {
         if (connectErr) asyncCallback(connectErr);
-        console.log(`storing ${jsonDocList.length} documents`);
-        console.log(jsonDocList);
         db.collection(eventCollName).insertMany(jsonDocList, (insertErr, insertResults) => {
-          console.log(`inserted ${insertResults.insertedCount} results`);
+          // console.log(`inserted ${insertResults.insertedCount} results`);
           asyncCallback(insertErr);
         });
       });
     },
   ], (err) => {
-    console.log(err);
+    if (err) console.log(err);
     callback(err);
   });
 }

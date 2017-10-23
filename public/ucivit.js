@@ -11,8 +11,8 @@
  */
 (() => {
   // ///// URLS ////
-  const eventLogURL = `${window.ucivitProtocol + window.ucivitServerIP}/log`;
-  const timeQueryURL = `${window.ucivitProtocol + window.ucivitServerIP}/ucivitTime`;
+  const eventLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log`;
+  const timeQueryURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/ucivitTime`;
   const jQueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
 
   /**
@@ -83,10 +83,10 @@
 
   // ///// CONSTANTS AND RETRIEVING VALUES FROM GLOBAL VARIABLES //////////
 
-  const trackedEpisodeCountCookie = 'trackedEpisodeCount';
-  const trackedLastRecTSCookie = 'trackedLastRecTS';
+  const episodeCountCookie = 'ucivitEpisodeCount';
+  const lastLogTSCookie = 'ucivitLastLogTS';
   let customMovingRequest = false;
-  if (typeof ucivitMovingRequest !== 'undefined' && ucivitMovingRequest) customMovingRequest = true;
+  if (typeof ucivitOptions.movingRequest !== 'undefined' && ucivitOptions.movingRequest) customMovingRequest = true;
 
   let recordDOM = false;
 
@@ -94,42 +94,41 @@
 
 
   // If episode count or user has not been preset, get it from the cookie
-  if (window.trackedEpisodeCount == null) {
-    if (getCookie(trackedEpisodeCountCookie)) {
-      window.trackedEpisodeCount = getCookie(trackedEpisodeCountCookie);
+  if (ucivitOptions.episodeCount == null) {
+    if (getCookie(episodeCountCookie)) {
+      ucivitOptions.episodeCount = getCookie(episodeCountCookie);
     } else {
       // set it to 1 if it's the first time
-      window.trackedEpisodeCount = 1;
+      ucivitOptions.episodeCount = 1;
     }
   }
 
-  if (window.trackedUser == null) {
-    if (getCookie(trackedEpisodeCountCookie)) {
-      window.trackedUser = getCookie(trackedEpisodeCountCookie);
+  if (ucivitOptions.trackedUser == null) {
+    if (getCookie(episodeCountCookie)) {
+      ucivitOptions.trackedUser = getCookie(episodeCountCookie);
     }
   }
 
   /**
    * By default, the DOM won't be captured, to capture it,the deployment script needs to
-   * set `window.isDOMrecorded` to true
+   * set `ucivitOptions.isDOMrecorded` to true
    */
-  if (window.isDOMrecorded) recordDOM = true;
+  if (ucivitOptions.isDOMrecorded) recordDOM = true;
 
-  const websiteID = window.ucivitWebpageIndex;
+  const websiteID = ucivitOptions.webpageIndex;
 
   /**
    * List of node IDs containing sensitive information (such as password entry fields).
    * No interaction will be captured from them.
    */
   let protectedIds = [];
-  if (window.protectedIds) {
+  if (ucivitOptions.protectedIds) {
     ({ protectedIds } = window);
   }
 
-  console.log(`window.host: ${window.host}`);
-  console.log(`window.trackedUser: ${window.trackedUser}`);
-  console.log(`window.trackedLastRecTS: ${window.trackedLastRecTS}`);
-  console.log(`window.trackedEpisodeCount: ${window.trackedEpisodeCount}`);
+  console.log(`ucivitOptions.trackedUser: ${ucivitOptions.trackedUser}`);
+  console.log(`ucivitOptions.lastLogTS: ${ucivitOptions.lastLogTS}`);
+  console.log(`ucivitOptions.episodeCount: ${ucivitOptions.episodeCount}`);
 
   let logEntry = []; // Array: Initialised when page loads. Contains current event json log entries
   let logValLocked = false; // Boolean: if flag set, writing log entry to logEntry not possible
@@ -228,17 +227,17 @@
   }
 
   // //////////////////////////Session ID////////////////////
-  const sessionIDCookieName = 'ucivitUserId';
+  const userIdCookie = 'ucivitUserId';
 
-  let sessionID = null;
-  // ucivitSessionID is provided by the script loading UCIVIT
-  if (typeof window.ucivitSessionID !== 'undefined') {
-    sessionID = window.ucivitSessionID;
+  let userId = null;
+  // ucivituserId is provided by the script loading UCIVIT
+  if (typeof ucivitOptions.userId !== 'undefined') {
+    userId = ucivitOptions.userId;
   } else {
     // If no sid has been provided, check the cookie
-    sessionID = getCookie(sessionIDCookieName);
+    userId = getCookie(userIdCookie);
   }
-  setCookie(sessionIDCookieName, sessionID, cookieLife);
+  setCookie(userIdCookie, userId, cookieLife);
 
 
   /**
@@ -456,8 +455,8 @@
    * Updates the client cookie with the corresponding episode information value
    */
   function updateEpisodeInformationCookie() {
-    setCookie(trackedEpisodeCountCookie, window.trackedEpisodeCount, cookieLife);
-    setCookie(trackedLastRecTSCookie, window.trackedLastRecTS, cookieLife);
+    setCookie(episodeCountCookie, ucivitOptions.episodeCount, cookieLife);
+    setCookie(lastLogTSCookie, ucivitOptions.lastLogTS, cookieLife);
   }
 
   /**
@@ -469,7 +468,7 @@
   function updateEpisodeInformation() {
     if (customMovingRequest) {
       $.ajax({
-        url: `/capture/trackingUpdate/${window.trackedEpisodeCount}/${window.trackedLastRecTS}`,
+        url: `/capture/trackingUpdate/${ucivitOptions.episodeCount}/${ucivitOptions.lastLogTS}`,
         error: (XMLHttpRequest, textStatus, errorThrown) => {
           console.log(errorThrown);
           customMovingRequest = true;
@@ -489,13 +488,13 @@
    */
   function calculateEpisode() {
     // The first time, just record current TS
-    if ((window.trackedLastRecTS !== -1) &&
-      ((new Date().getTime() - window.trackedLastRecTS) > episodeTimeout)) {
-      window.trackedEpisodeCount += 1;
+    if ((ucivitOptions.lastLogTS !== -1) &&
+      ((new Date().getTime() - ucivitOptions.lastLogTS) > episodeTimeout)) {
+      ucivitOptions.episodeCount += 1;
       updateEpisodeInformation();
     }
 
-    window.trackedLastRecTS = new Date().getTime();
+    ucivitOptions.lastLogTS = new Date().getTime();
   }
 
   /**
@@ -503,7 +502,7 @@
    */
   function getEpisodeInfo() {
     calculateEpisode();
-    return { episodeCount: window.trackedEpisodeCount };
+    return { episodeCount: ucivitOptions.episodeCount };
   }
 
   /**
@@ -556,7 +555,7 @@
     logObj.sessionstartms = ucivitServerTS;
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
-    logObj.sid = sessionID;
+    logObj.sid = userId;
     logObj.url = encodeURIComponent(url);
     logObj.needsEncoding = isLogDataEncoded;
 
@@ -574,22 +573,6 @@
    */
 
   function sendJsonData(userID, lastEventTS, jsonLogData) {
-    let sameCount = 0;
-    jsonLogData.forEach((json, index) => {
-      console.log('comparing Jsons');
-      const jsonString = JSON.stringify(json);
-      for (let i = index + 1; i < jsonLogData.length; i += 1) {
-        const compareJson = JSON.stringify(jsonLogData[i]);
-        if (compareJson === jsonString) {
-          console.log('json objects were the same');
-          console.log(json);
-          console.log(jsonLogData[i]);
-          sameCount += 1;
-        }
-      }
-    });
-    console.log(`Out of ${jsonLogData.length}, ${sameCount} were the same`);
-
     $.ajax({
       type: 'POST',
       url: eventLogURL,
@@ -604,7 +587,7 @@
   function saveLog() {
     if (logEntry.length > 0) {
       // Add the sid to the get request
-      sendJsonData(sessionID, getCookie(lastEventTSCookieName), logEntry);
+      sendJsonData(userId, getCookie(lastEventTSCookieName), logEntry);
       // we record current time as the last event recorded
       setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
       logEntry = []; // reset log data
@@ -1097,7 +1080,6 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    console.log(`Mousedown was triggered at ${datestampInMillisec()}`);
     const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
@@ -2111,15 +2093,8 @@
     window.setInterval(processMobileMotionEventAndSave,200);
     */
 
-    // unregister all these events first
     listenersArray.forEach((listenerObj) => {
-      console.log(listenerObj);
       $(listenerObj.target).off(listenerObj.event, '*', listenerObj.function);
-    });
-
-    console.log('registering the following listeners');
-    listenersArray.forEach((listenerObj) => {
-      console.log(listenerObj);
       $(listenerObj.target).on(listenerObj.event, '*', listenerObj.function);
     });
 
