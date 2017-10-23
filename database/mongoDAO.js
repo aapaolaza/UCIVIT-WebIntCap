@@ -2,7 +2,7 @@ const mongodb = require('mongodb');
 const async = require('async');
 const dateFormat = require('dateformat');
 
-const eventFields = require('./constants').eventFields;
+const { eventFields } = require('./constants');
 
 const mongoClient = mongodb.MongoClient;
 
@@ -13,21 +13,6 @@ const {
 const eventCollName = 'events';
 let globalDbConnection = null;
 const mongoTimeout = 0;
-
-/**
- * Connect to the mongoDB and authenticate (if necessary).
- * If a connection already exists, return it.
- */
-function connectDB(callback) {
-  // var mongoclient = new MongoClient(new Server(mongoPath), {native_parser: true});
-  // globalDbConnection=null;
-  if (globalDbConnection && globalDbConnection.serverConfig.isConnected()) {
-    callback(null, globalDbConnection);
-  } else {
-    createNewConnection(callback);
-  }
-}
-
 
 function createNewConnection(callback) {
   let mongoConnectionPath = mongoPath;
@@ -61,6 +46,21 @@ function createNewConnection(callback) {
     globalDbConnection = dbConnection;
     callback(err, dbConnection);
   });
+}
+
+
+/**
+ * Connect to the mongoDB and authenticate (if necessary).
+ * If a connection already exists, return it.
+ */
+function connectDB(callback) {
+  // var mongoclient = new MongoClient(new Server(mongoPath), {native_parser: true});
+  // globalDbConnection=null;
+  if (globalDbConnection && globalDbConnection.serverConfig.isConnected()) {
+    callback(null, globalDbConnection);
+  } else {
+    createNewConnection(callback);
+  }
 }
 
 function closeConnection() {
@@ -148,12 +148,16 @@ function commitJsonListToEvents(jsonDocList, callback) {
       // The waterfall will only get here if the json is valid
       connectDB((connectErr, db) => {
         if (connectErr) asyncCallback(connectErr);
-        db.collection(eventCollName).eventsColl.insertMany(jsonDocList, (insertErr) => {
+        console.log(`storing ${jsonDocList.length} documents`);
+        console.log(jsonDocList);
+        db.collection(eventCollName).insertMany(jsonDocList, (insertErr, insertResults) => {
+          console.log(`inserted ${insertResults.insertedCount} results`);
           asyncCallback(insertErr);
         });
       });
     },
   ], (err) => {
+    console.log(err);
     callback(err);
   });
 }

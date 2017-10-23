@@ -1,15 +1,35 @@
 // To implement the corresponding capture JS
 // Wrapped the script to prevent propagation
 
-// TODO: rearrange the code so functions are grouped together
+
 /**
  * Before injecting this JS, the Web page site should
- * make sure they have the appropriate permissions from the user
+ * make sure they have the appropriate permissions from the client
+ *
+ * All global variables start with 'ucivit' and should be set before loading this script
+ *
  */
 (() => {
+  // ///// URLS ////
+  const eventLogURL = `${window.ucivitProtocol + window.ucivitServerIP}/log`;
+  const timeQueryURL = `${window.ucivitProtocol + window.ucivitServerIP}/ucivitTime`;
+  const jQueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
+
+  /**
+   * Date: Initialised by query to the UCIVIT server.
+   * Load completion timestamp is calculated relative to this timestamp.
+   */
+  let ucivitServerTS;
+
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////COOKIE HANDLER////////////////////////////////////
   // ////////////////////////////////////////////////////////////////////////
+
+  /** Cookie variables */
+  const lastEventTSCookieName = 'ucivitLastEventTS';
+
+  /** Will determine the lifespan of the cookie, in days */
+  const cookieLife = 10000;
 
   function getCookie(cookieName) {
     const cookieArray = document.cookie.split(';');
@@ -66,6 +86,7 @@
   const trackedEpisodeCountCookie = 'trackedEpisodeCount';
   const trackedLastRecTSCookie = 'trackedLastRecTS';
   let customMovingRequest = false;
+  if (typeof ucivitMovingRequest !== 'undefined' && ucivitMovingRequest) customMovingRequest = true;
 
   let recordDOM = false;
 
@@ -94,7 +115,7 @@
    */
   if (window.isDOMrecorded) recordDOM = true;
 
-  const websiteID = window.webpageIndex;
+  const websiteID = window.ucivitWebpageIndex;
 
   /**
    * List of node IDs containing sensitive information (such as password entry fields).
@@ -112,13 +133,6 @@
 
   let logEntry = []; // Array: Initialised when page loads. Contains current event json log entries
   let logValLocked = false; // Boolean: if flag set, writing log entry to logEntry not possible
-
-  /**
-   * Date: Initialised by UsaProxy. Load completion timestamp is
-   * calculated relative to this timestamp.
-   * Doesn't need to be created as the server adds it with its corresponding value
-   */
-  const ucivitServerTS = parseInt(ucivitServerTime, 10);
 
   /**
    * Date: Initialised on load. All further timestamps are calculated
@@ -214,20 +228,18 @@
   }
 
   // //////////////////////////Session ID////////////////////
+  const sessionIDCookieName = 'ucivitUserId';
 
   let sessionID = null;
-  // TODO: I need to make sure the server provides the corresponding value for sessionID
-  if (typeof sessionIDServer !== 'undefined') {
-    sessionID = ucivitServerSessionID;
+  // ucivitSessionID is provided by the script loading UCIVIT
+  if (typeof window.ucivitSessionID !== 'undefined') {
+    sessionID = window.ucivitSessionID;
+  } else {
+    // If no sid has been provided, check the cookie
+    sessionID = getCookie(sessionIDCookieName);
   }
+  setCookie(sessionIDCookieName, sessionID, cookieLife);
 
-  /** Cookie variables */
-  const lastEventTSCookieName = 'ucivitLastEventTS';
-
-  /**
-   * Will determine the lifespan of the cookie, in days
-   */
-  const cookieLife = 10000;
 
   /**
    * Variable given as parameter indicating if the log data for this Web site should be encoded
@@ -540,9 +552,9 @@
     // we will also store users' timezone
     const timezoneOffset = new Date().getTimezoneOffset();
 
-    logObj.time = eventTS;
-    logObj.sessionStartTime = ucivitServerTS;
-    logObj.timezoneoffset = timezoneOffset;
+    logObj.timestampms = eventTS;
+    logObj.sessionstartms = ucivitServerTS;
+    logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = sessionID;
     logObj.url = encodeURIComponent(url);
@@ -561,28 +573,41 @@
    * Ajax request to store data
    */
 
-  function sendJsonData(url, userID, lastEventTS, jsonLogData) {
+  function sendJsonData(userID, lastEventTS, jsonLogData) {
+    let sameCount = 0;
+    jsonLogData.forEach((json, index) => {
+      console.log('comparing Jsons');
+      const jsonString = JSON.stringify(json);
+      for (let i = index + 1; i < jsonLogData.length; i += 1) {
+        const compareJson = JSON.stringify(jsonLogData[i]);
+        if (compareJson === jsonString) {
+          console.log('json objects were the same');
+          console.log(json);
+          console.log(jsonLogData[i]);
+          sameCount += 1;
+        }
+      }
+    });
+    console.log(`Out of ${jsonLogData.length}, ${sameCount} were the same`);
+
     $.ajax({
       type: 'POST',
-      url,
-      data: { userID, lastEventTS, jsonLogData },
+      url: eventLogURL,
+      data: { userID, lastEventTS, jsonLogString: JSON.stringify(jsonLogData) },
       dataType: 'jsonp',
-      statusCode: {
-        404: () => {
-          console.log('Server not reachable');
-        },
-      },
+    }).done((response) => {
+      console.log(response);
     });
   }
 
   /** Called periodically to send tracked usage data (if any) to the server */
   function saveLog() {
-    if (logEntry !== '') {
+    if (logEntry.length > 0) {
       // Add the sid to the get request
-      sendJsonData(`${window.protocol + window.ucivitServerIP}/storeevent/log`, sessionID, getCookie(lastEventTSCookieName), logEntry);
+      sendJsonData(sessionID, getCookie(lastEventTSCookieName), logEntry);
       // we record current time as the last event recorded
       setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
-      logEntry = ''; // reset log data
+      logEntry = []; // reset log data
       updateEpisodeInformation();// updates the stored episode count information}
     }
   }
@@ -623,7 +648,7 @@
     for (let i = 0; i < siblings.length; i += 1) {
       const sibling = siblings[i];
       if (sibling === element) {
-        return `${getPathTo(element.parentNode)} /${element.tagName}[${ix + 1}]`;
+        return `${getPathTo(element.parentNode)}/${element.tagName}[${ix + 1}]`;
       }
       if (sibling.nodeType === 1 && sibling.tagName === element.tagName) { ix += 1; }
     }
@@ -722,7 +747,7 @@
     nodeInfo.textContent = encodeURIComponent(textContent);
     nodeInfo.textValue = encodeURIComponent(node.value);
 
-    return nodeInfo;
+    return { nodeInfo };
   }
 
   /**
@@ -871,6 +896,9 @@
    * the time between events is bigger than threshold, and coordinates are different
    */
   function processMousemove(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
     // if the time since last mousemove event is greater than threshold, save event.
     // otherwise, ignore
@@ -922,6 +950,9 @@
   let mouseoverLastTS = 0;
   let mouseoverLastContent = '';
   function processMouseover(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     let eventTS = datestampInMillisec();
 
     /* get event target
@@ -966,6 +997,9 @@
   let mouseoutLastTS = 0;
   let mouseoutLastContent = '';
   function processMouseout(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     let eventTS = datestampInMillisec();
 
     /* get event target
@@ -1001,6 +1035,9 @@
   }
 
   function processMouseup(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
@@ -1054,6 +1091,13 @@
     the mouse pointer position is recorded relative to the hovered-over area/element. */
 
   function processMousedown(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
+    console.log(`Mousedown was triggered at ${datestampInMillisec()}`);
     const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
@@ -1107,11 +1151,14 @@
   /**
    *  Processes change event in select lists, input fields, textareas.
    *  Logs change event together with the corresponding field type, and
-   * a couple of field content properties such as the new field value. 
+   * a couple of field content properties such as the new field value.
    * TODO: Review if there is a better way to hndle these change events
    */
 
   function processChange(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get event target
@@ -1269,6 +1316,9 @@
   /** Processes blur event */
 
   function processBlur(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     // console.log("blur event");
@@ -1285,6 +1335,9 @@
 
   /** Processes focus event */
   function processFocus(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get event target
@@ -1318,6 +1371,9 @@
    * Processes the particular event of "open a contextmenu" event
    */
   function processContextMenu(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
@@ -1343,6 +1399,9 @@
    * Processes the particular event of a "cut" event
    */
   function processCut(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     const ev = (isNotOldIE) ? e : window.event;
@@ -1363,6 +1422,9 @@
    * Processes the particular event of a "copy" event
    */
   function processCopy(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     const ev = (isNotOldIE) ? e : window.event;
@@ -1382,6 +1444,9 @@
    * Processes the particular event of a "paste" event
    */
   function processPaste(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     const ev = (isNotOldIE) ? e : window.event;
@@ -1401,6 +1466,9 @@
    * Processes the particular event of a "doubleclick" event
    */
   function processDblClick(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get event target, x, and y value of mouse position
@@ -1465,6 +1533,9 @@
    * indicating the location in the keyboard
    */
   function processKeydown(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get keycode
@@ -1488,6 +1559,9 @@
    * Logs all regular single key presses.
    */
   function processKeypress(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get keycode
@@ -1511,6 +1585,9 @@
    * Keyup event, we don't take into account any combination of keys detector flag.
    */
   function processKeyUp(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     /* get keycode
@@ -1624,6 +1701,9 @@
    */
 
   function processMousewheel(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     let event = (isNotOldIE) ? e : window.event;
     if (!event) ({ event } = window); // For IE.
 
@@ -1643,6 +1723,9 @@
    * Processes the particular event of a "select" event
    */
   function processSelectText(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     const ev = (isNotOldIE) ? e : window.event;
@@ -1725,9 +1808,12 @@
    * Event to be triggered when a query is triggered. It will respond to a submit event
    */
 
-  function processSubmitEvent(event) {
+  function processSubmitEvent(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
-    const { target } = event;
+    const { target } = e;
     const eventObj = {
       event: 'submit',
       formInputs: getFormInputs(),
@@ -1741,6 +1827,9 @@
 
   // See https://developer.mozilla.org/en-US/docs/Web/API/Touch?redirectlocale=en-US&redirectslug=DOM%2FTouch
   function processMobileTouchStart(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     const eventObj = { event: 'mobileTouchStart' };
@@ -1759,6 +1848,9 @@
   }
 
   function processMobileTouchEnd(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     const eventObj = { event: 'mobileTouchEnd' };
@@ -1799,6 +1891,9 @@
   // Update the event handler to do nothing more than store the values from the event
 
   function processMobileGyroscope(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     const eventTS = datestampInMillisec();
 
     // alpha: rotation around z-axis
@@ -1864,6 +1959,9 @@
   */
 
   function processMobileMotionEvent(e) {
+    // ensures the function is only called on the target of the interaction, preventing bubble up
+    if (e.target !== e.currentTarget) return;
+
     // Get the current acceleration values in 3 axes and find the greatest of these
     const accTemp = e.acceleration;
 
@@ -1926,8 +2024,6 @@
 
   function initUcivit() {
     console.log('UCIVIT starts');
-    logEntry = [];
-    window.status = '';
     logValLocked = false;
 
     mousemoveLastPosX = 0;
@@ -1952,14 +2048,13 @@
      */
 
     // jQuery listeners
-    // the use of a selector ensures all elements added dynamically are also registered for the events
+    // the use of a selector ensures all listeners register for elements added dynamically
     // TODO: Although convenient, I need to test the performance of using '*' as a selector
 
     // We will keep a list of all registered events
     const listenersArray = [];
 
     // entire document as target
-    listenersArray.push({ target: document, event: 'mousedown', function: processMousedown });
     listenersArray.push({ target: document, event: 'mousedown', function: processMousedown });
     listenersArray.push({ target: document, event: 'mousemove', function: processMousemove });
     listenersArray.push({ target: document, event: 'mouseover', function: processMouseover });
@@ -2016,7 +2111,15 @@
     window.setInterval(processMobileMotionEventAndSave,200);
     */
 
+    // unregister all these events first
     listenersArray.forEach((listenerObj) => {
+      console.log(listenerObj);
+      $(listenerObj.target).off(listenerObj.event, '*', listenerObj.function);
+    });
+
+    console.log('registering the following listeners');
+    listenersArray.forEach((listenerObj) => {
+      console.log(listenerObj);
       $(listenerObj.target).on(listenerObj.event, '*', listenerObj.function);
     });
 
@@ -2032,22 +2135,34 @@
     * Adds a reference to jQuery
     */
   function includeJquery() {
-    const jQuerySrc = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
-
     // we add the script dinamically
     const jQueryScriptNode = document.createElement('script');
     jQueryScriptNode.id = 'proxyScript_jQuery';
     jQueryScriptNode.type = 'text/javascript';
-    jQueryScriptNode.src = jQuerySrc;
+    jQueryScriptNode.src = jQueryURL;
     document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
   }
 
   /**
-   * Delays the execution of the rest of the functions until jQuery is ready
-      */
+   * Before starting the logging, it ensures all requirements are met:
+   * Jquery is loaded
+   * timestamp from the server is available
+   */
   function checkJquery(timePassed) {
     if (window.jQuery) {
-      initUcivit();
+      console.log(`requesting timestamp from ${timeQueryURL}`);
+      // Once jQuery is available, request timestamp and start logging
+      $.ajax({
+        type: 'POST',
+        url: timeQueryURL,
+        dataType: 'jsonp',
+      }).done((response) => {
+        ucivitServerTS = parseInt(response.serverTime, 10);
+        console.log(ucivitServerTS);
+        initUcivit();
+      }).fail((jqXHR, textStatus) => {
+        console.log(`request failed ${textStatus}`);
+      });
     } else if (timePassed > 1000) {
       includeJquery();
       checkJquery(0);

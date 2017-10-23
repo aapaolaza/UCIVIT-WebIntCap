@@ -16,9 +16,10 @@
     "navigator": false,
     "screen": false,
     "self": false,
-    // variables created in server
+    // global ucivit variables
     "ucivitServerTime": false,
-    "ucivitServerSessionID": false,
-    "ucivitServerEncodeLogData": false
+    "ucivitSessionID": false,
+    "ucivitServerEncodeLogData": false,
+    "ucivitMovingRequest": false
   }
 }

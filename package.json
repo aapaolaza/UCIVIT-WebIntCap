@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "async": "^2.5.0",
+    "body-parser": "^1.18.2",
     "dateformat": "^3.0.2",
     "express": "^4.16.2",
     "mongodb": "^2.2.31"
@@ -16,7 +17,8 @@
     "mocha": "^4.0.1"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "preinstall": "start cmd.exe /k mongod --rest --bind_ip 127.0.0.1"
   },
   "author": "",
   "license": "ISC"

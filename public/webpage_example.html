@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+  <!-- ucivit script start -->
+  <script type="text/javascript">
+    //The ucivitWebpageIndex will be specific to each site
+    window.ucivitucivitWebpageIndex = 'WEBSITEID';
+    window.ucivitServerIP = 'CAPTURESERVERADDRESS:2727';
+    var PROTOCOL = {
+      HTTPS: 'https://',
+      HTTP: 'http://'
+    };
+    window.ucivitProtocol = PROTOCOL.HTTP;
+
+    function setParameters() {
+      window.ucivitWebpageIndex = document.getElementById("ucivitWebpageIndexInput").value;
+      window.ucivitServerIP = document.getElementById("ucivitServerIPInput").value;
+      window.ucivitProtocol = $('input[name="protocol"]:checked').val();
+      console.log("The following parameters were set:");
+      console.log(window.ucivitWebpageIndex);
+      console.log(window.ucivitServerIP);
+      console.log(window.ucivitProtocol);
+      loadScript();
+    }
+
+    function loadScript() {
+      console.log("Starting tracking script");
+      window.ucivitSessionID = getCookie('proxyUserID');
+
+      window.ucivitSrc = `${window.ucivitProtocol}${window.ucivitServerIP}/ucivit.js`
+
+      //we add the script dinamically
+      var ucivitScriptNode = document.createElement('script');
+      ucivitScriptNode.id = 'ucivitScript';
+      ucivitScriptNode.type = 'text/javascript';
+      ucivitScriptNode.src = window.ucivitSrc;
+
+      document.getElementsByTagName('head')[0].appendChild(ucivitScriptNode);
+
+      function getCookie(c_name) {
+        var i, x, y, ARRcookies = document.cookie.split(";");
+        for (i = 0; i < ARRcookies.length; i++) {
+          x = ARRcookies[i].substr(0, ARRcookies[i].indexOf("="));
+          y = ARRcookies[i].substr(ARRcookies[i].indexOf("=") + 1);
+          x = x.replace(/^\s+|\s+$/g, "");
+          if (x == c_name) {
+            return unescape(y);
+          }
+        }
+        //we didn't find the cookie, so we return null
+        return "null";
+      }
+    }
+
+    function checkAndStartWhenUCIVITready() {
+
+      if (typeof init_UsaProxy === "function") {
+        console.log("UCIVIT was loaded, starting it now")
+        init_UsaProxy();
+
+      }
+      else {
+        console.log("UCIVIT was not loaded, checking again in 100ms")
+        window.setTimeout(function () { checkAndStartWhenUCIVITready() }, 100);
+      }
+    }
+  </script>
+  <!-- ucivit script end -->
+</head>
+
+<body>
+  <h1> UCIVIT testing Web page
+  </h1>
+
+  <h2>
+    Configuration
+  </h2>
+  ucivitWebpageIndex:
+  <br>
+  <input type="text" id="ucivitWebpageIndexInput" value="10001">
+  <br> ucivitServerIP:PORT
+  <br>
+  <input type="text" id="ucivitServerIPInput" value="localhost:2929">
+  <br>
+  <br> window.protocol:
+  <form id="protocolInput">
+    <input type="radio" name="protocol" value="http://" checked> HTTP
+    <br>
+    <input type="radio" name="protocol" value="https://"> HTTPS
+    <br>
+  </form>
+
+  <button type="button" onclick="setParameters()">Set parameters and start tracking</button>
+
+  <p> A grey banner will usually appear every time you open this page, to ask for permission before deploying a cookie. It should
+    only happen the first time.
+  </p>
+  <p>Browsers do not store cookies for the file:// url protocol, so if run locally, this banner will appear everytime, and the
+    userID will always be set to
+    <i>null</i>.
+  </p>
+
+  <h2>
+    Network requests
+  </h2>
+
+  <p>
+    If you open the developer tool for your browser, and see the network requests, you will be able to see each query to get
+    logged to the database.
+  </p>
+
+  <p>
+    Just hovering over the page will trigger events that will be captured by your server.
+  </p>
+
+</body>
