@@ -10,10 +10,6 @@ const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-const eventRouter = require('./routers/eventRouter');
-
-app.use('/eventrouter', eventRouter);
-
 // Returns the current timestamp of the server
 app.all('/ucivitTime', (req, res) => {
   console.log('request: time');

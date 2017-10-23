@@ -23,7 +23,7 @@ const eventFields = {
   NODELINK: 'link',
   NODETEXT: 'text',
   NODETYPE: 'nodeType',
-  NODETEXTVALUE: 'textvalue',
+  NODETEXTVALUE: 'textValue',
   NODETEXTCONTENT: 'textContent',
 
   // Particular to MouseCoordinates
@@ -40,7 +40,7 @@ const eventFields = {
   CONTENT: 'content',
 
   // particular to DomChange
-  NUMBEROFCHANGES: 'numberofchanges',
+  NUMBEROFCHANGES: 'numberOfChanges',
 
   // particular to Keydown, keypress and keyup
   KEY: 'key',
@@ -58,8 +58,8 @@ const eventFields = {
   DELTA: 'delta',
 
   // particular to scroll
-  SCROLLX: 'scrollx',
-  SCROLLY: 'scrolly',
+  SCROLLX: 'scrollX',
+  SCROLLY: 'scrollY',
 
   // particular to selectContent
   SELECTIONTOOL: 'selectionTool',
@@ -72,7 +72,7 @@ const eventFields = {
   SESSIONSTARTMS: 'sessionStartTime',
 
   // User's timezone
-  USERTIMEZONEOFFSET: 'timezoneoffset',
+  USERTIMEZONEOFFSET: 'timezoneOffset',
 
   // Mobile event constants
 
@@ -158,6 +158,6 @@ const eventFields = {
   SURVEYSHOWN: 'surveyShown',
   SURVEYSTATE: 'surveyState',
   SUBMIT: 'submit',
-}
+};
 
 module.exports.eventFields = eventFields;

@@ -232,7 +232,7 @@
   let userId = null;
   // ucivituserId is provided by the script loading UCIVIT
   if (typeof ucivitOptions.userId !== 'undefined') {
-    userId = ucivitOptions.userId;
+    ({ userId } = ucivitOptions);
   } else {
     // If no sid has been provided, check the cookie
     userId = getCookie(userIdCookie);
@@ -245,8 +245,8 @@
    */
   let isLogDataEncoded = false;
 
-  if (typeof ucivitServerEncodeLogData !== 'undefined') {
-    isLogDataEncoded = ucivitServerEncodeLogData;
+  if (typeof ucivitOptions.encodeLogData !== 'undefined') {
+    isLogDataEncoded = ucivitOptions.encodeLogData;
   }
 
 
@@ -557,7 +557,7 @@
     logObj.sd = websiteID;
     logObj.sid = userId;
     logObj.url = encodeURIComponent(url);
-    logObj.needsEncoding = isLogDataEncoded;
+    if (isLogDataEncoded) logObj.needsEncoding = isLogDataEncoded;
 
     // set synchronization flag (block function)
     logValLocked = true;

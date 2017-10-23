@@ -63,8 +63,11 @@ function connectDB(callback) {
   }
 }
 
-function closeConnection() {
-  if (globalDbConnection) globalDbConnection.close();
+function closeConnection(callback) {
+  if (globalDbConnection) {
+    globalDbConnection.close();
+    callback(null, globalDbConnection.serverConfig.isConnected());
+  }
 }
 
 /**
@@ -72,7 +75,6 @@ function closeConnection() {
  * Returns an error if any of the indexes fail
  */
 function initIndexes(callback) {
-
   const indexObjectList = [
     { [eventFields.SID]: 1 },
     { [eventFields.SD]: 1 },
@@ -83,6 +85,7 @@ function initIndexes(callback) {
     { [eventFields.SID]: 1, [eventFields.URL]: 1 },
     { [eventFields.SID]: 1, [eventFields.SD]: 1 },
     { [eventFields.SID]: 1, [eventFields.EPISODECOUNT]: 1 },
+    { [eventFields.SID]: 1, [eventFields.URL]: 1, [eventFields.TIMESTAMPMS]: 1 },
     { [eventFields.SID]: 1, [eventFields.URL]: 1, [eventFields.EPISODECOUNT]: 1 },
   ];
 
@@ -94,27 +97,42 @@ function initIndexes(callback) {
     [eventFields.TIMESTAMPMS]: 1,
   };
 
-  async.each(indexObjectList, (indexObject, asyncCallback) => {
-    db.collection(eventCollName).createIndex(indexObject, (err) => {
+  connectDB((connectErr, db) => {
+    if (connectErr) callback(connectErr);
+
+    async.each(indexObjectList, (indexObject, asyncCallback) => {
+      db.collection(eventCollName).createIndex(indexObject, (err) => {
+        if (err) {
+          asyncCallback(err);
+        } else {
+          asyncCallback(null);
+        }
+      });
+    }, (err) => {
       if (err) {
-        asyncCallback(err);
+        callback(err);
       } else {
-        asyncCallback(null);
+        db.collection(eventCollName).createIndex(
+          uniqueIndex, { unique: true },
+          (uniqueIndexErr) => {
+            if (uniqueIndexErr) {
+              callback(uniqueIndexErr);
+            } else {
+              callback(null);
+            }
+          });
       }
     });
-  }, (err) => {
-    if (err) {
-      callback(err);
-    } else {
-      db.collection(eventCollName).createIndex(uniqueIndex, { unique: true },
-        (uniqueIndexErr) => {
-          if (uniqueIndexErr) {
-            callback(uniqueIndexErr);
-          } else {
-            callback(null);
-          }
-        });
-    }
+  });
+}
+
+function getIndexList(callback) {
+  connectDB((connectErr, db) => {
+    if (connectErr) callback(connectErr);
+    db.collection(eventCollName)
+      .indexInformation((indexErr, indexInfo) => {
+        callback(indexErr, indexInfo);
+      });
   });
 }
 
@@ -176,6 +194,9 @@ function getLastEventTimestampForUser(sid, callback) {
     });
 }
 
-
+module.exports.connectDB = connectDB;
+module.exports.closeConnection = closeConnection;
+module.exports.initIndexes = initIndexes;
+module.exports.getIndexList = getIndexList;
 module.exports.commitJsonListToEvents = commitJsonListToEvents;
 module.exports.getLastEventTimestampForUser = getLastEventTimestampForUser;
