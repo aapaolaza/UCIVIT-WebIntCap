@@ -7,37 +7,35 @@ const { eventFields } = require('./constants');
 const mongoClient = mongodb.MongoClient;
 
 const {
-  mongoPath, mongoAuthenticateDB, mongoQueryDB, mongoUser, mongoPass,
+  mongoPath, mongoTestPath, mongoAuthenticateDB, mongoUser, mongoPass,
 } = require('./dbAccessData');
 
 const eventCollName = 'events';
 let globalDbConnection = null;
 const mongoTimeout = 0;
+let isTestMode = false;
 
+/**
+ * Creates a new connection to the database. If isTestMode, the
+ * mongoTestPath will be used to connect
+ * @param {*} callback
+ */
 function createNewConnection(callback) {
   let mongoConnectionPath = mongoPath;
+  if (isTestMode) mongoConnectionPath = mongoTestPath;
+
   // For authentication we add the parameter to the mongoPath
   // From http://mongodb.github.io/node-mongodb-native/2.0/tutorials/connecting/
   // Authentication > Indirectly Against Another Database
   if (mongoUser !== '' && mongoUser !== 'DBUSERNAME') {
     mongoConnectionPath = `${mongoUser}:${mongoPass}@${mongoPath}?authSource=${mongoAuthenticateDB}`;
+    if (isTestMode) mongoConnectionPath = `${mongoUser}:${mongoPass}@${mongoTestPath}?authSource=${mongoAuthenticateDB}`;
   }
 
   const options = {
-    server: {
-      socketOptions: {
-        keepAlive: mongoTimeout,
-        connectTimeoutMS: mongoTimeout,
-        socketTimeoutMS: mongoTimeout,
-      },
-    },
-    replset: {
-      socketOptions: {
-        keepAlive: mongoTimeout,
-        connectTimeoutMS: mongoTimeout,
-        socketTimeoutMS: mongoTimeout,
-      },
-    },
+    keepAlive: mongoTimeout,
+    connectTimeoutMS: mongoTimeout,
+    socketTimeoutMS: mongoTimeout,
   };
 
   // Open the connection to the server
@@ -63,6 +61,14 @@ function connectDB(callback) {
   }
 }
 
+/**
+ * Connect to the mongoDB in TEST mode and authenticate (if necessary).
+ * If a connection already exists, return it.
+ */
+function switchToTestMode() {
+  isTestMode = true;
+}
+
 function closeConnection(callback) {
   if (globalDbConnection) {
     globalDbConnection.close();
@@ -79,7 +85,6 @@ function initIndexes(callback) {
     { [eventFields.SID]: 1 },
     { [eventFields.SD]: 1 },
     { [eventFields.EVENT]: 1 },
-    { [eventFields.TIMESTAMP]: 1 },
     { [eventFields.TIMESTAMPMS]: 1 },
     { [eventFields.URL]: 1 },
     { [eventFields.SID]: 1, [eventFields.URL]: 1 },
@@ -178,6 +183,40 @@ function commitJsonListToEvents(jsonDocList, callback) {
   });
 }
 
+/**
+ * returns the list of all documents in the database
+ * @param {Object} options for the search
+ * @param {*} callback
+ */
+function findEvents(options, callback) {
+  connectDB((connectErr, db) => {
+    if (connectErr) callback(connectErr);
+    else {
+      db.collection(eventCollName).find(options).toArray((findErr, docList) => {
+        if (findErr) callback(findErr);
+        else callback(null, docList);
+      });
+    }
+  });
+}
+
+// TODO: write a function that deletes all "test" events
+
+/**
+ * Deletes all "test events". Returns the number of deleted events
+ * @param {*} callback
+ */
+function purgeTestEvents(callback) {
+  connectDB((connectErr, db) => {
+    if (connectErr) callback(connectErr);
+    else {
+      db.collection(eventCollName).deleteMany({ test: true }, (deleteErr, deleteObj) => {
+        if (deleteErr) callback(deleteErr);
+        else callback(null, deleteObj.result.n);
+      });
+    }
+  });
+}
 
 /**
  * Returns the timestamp (long ms) of the last event recorded for that user
@@ -195,8 +234,11 @@ function getLastEventTimestampForUser(sid, callback) {
 }
 
 module.exports.connectDB = connectDB;
+module.exports.switchToTestMode = switchToTestMode;
 module.exports.closeConnection = closeConnection;
 module.exports.initIndexes = initIndexes;
 module.exports.getIndexList = getIndexList;
 module.exports.commitJsonListToEvents = commitJsonListToEvents;
+module.exports.findEvents = findEvents;
+module.exports.purgeTestEvents = purgeTestEvents;
 module.exports.getLastEventTimestampForUser = getLastEventTimestampForUser;

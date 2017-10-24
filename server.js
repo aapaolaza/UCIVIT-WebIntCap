@@ -46,7 +46,7 @@ app.all('/log', (req, res) => {
   }
 });
 
-app.listen(ucivitOptions.port, ucivitOptions.bindIP, () => {
+const server = app.listen(ucivitOptions.port, ucivitOptions.bindIP, () => {
   console.log(`UCIVIT Server running on ${ucivitOptions.port} and address ${ucivitOptions.bindIP} ...`);
 });
 
@@ -77,3 +77,5 @@ process.on('SIGINT', exitHandler.bind(null, { adminInitiated: true, exit: true }
 // catches uncaught exceptions
 // Do we want to close the server if there is an uncaught exception?
 process.on('uncaughtException', exitHandler.bind(null, { exit: false }));
+
+module.exports = server;
