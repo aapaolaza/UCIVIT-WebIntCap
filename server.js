@@ -12,12 +12,12 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Returns the current timestamp of the server
 app.all('/ucivitTime', (req, res) => {
-  console.log('request: time');
+  // console.log('request: time');
   res.jsonp({ serverTime: `${new Date().getTime()}` });
 });
 
 app.all('/ucivit.js', (req, res) => {
-  console.log('request: client script');
+  // console.log('request: client script');
   res.sendFile(`${__dirname}/public/ucivit.js`);
 });
 
@@ -26,12 +26,12 @@ app.all('/test', (req, res) => {
 });
 
 app.all('/log', (req, res) => {
-  console.log('Store event request received');
+  // console.log('Store event request received');
   // console.log(req.query);
   // console.log(req.body);
   // console.log(JSON.parse(req.body.jsonLogString));
   const { userID, lastEventTS, jsonLogString } = req.body;
-  console.log(`Logging ${JSON.parse(jsonLogString).length} the following json object:`);
+  // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
   if (JSON.parse(jsonLogString).length === 0) {
     console.log('invalid data');
     res.sendStatus(500);

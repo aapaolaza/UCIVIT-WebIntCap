@@ -143,4 +143,88 @@ describe('Event server', () => {
       });
     });
   });
+
+  describe.only('stress log event', () => {
+    it('should store the events from all requests', (done) => {
+      async.waterfall([
+        (asyncCallback) => {
+          // Delete previously existing test events
+          mongoDAO.purgeTestEvents((purgeErr, deletedCount) => {
+            if (purgeErr) throw purgeErr;
+            else {
+              console.log(`${deletedCount} documents were deleted`);
+              asyncCallback(null);
+            }
+          });
+        },
+        (asyncCallback) => {
+          const requestList = [];
+          const numberOfRequests = 100;
+          const numberOfDocs = 100;
+          for (let reqIndex = 0; reqIndex < numberOfRequests; reqIndex += 1) {
+            requestList[reqIndex] = {};
+            requestList[reqIndex].jsonList = [];
+            requestList[reqIndex].userID = `testUser${reqIndex}`;
+            requestList[reqIndex].lastEventTS = (numberOfDocs * 1000) + reqIndex;
+            // Create some json events
+            for (let i = 0; i < numberOfDocs; i += 1) {
+              requestList[reqIndex].jsonList.push({
+                event: 'testevent',
+                sid: `testUser${reqIndex}`,
+                sd: 'testPage',
+                url: 'testpage.com',
+                timestampms: i * 1000,
+                sessionstartms: Math.round(i) * 1000,
+                episodeCount: Math.round(i),
+                test: true,
+                random: Math.random() * 100,
+              });
+            }
+          }
+          asyncCallback(null, requestList);
+        },
+        (requestList, asyncCallback) => {
+          async.each(requestList, (request, asyncEachCallback) => {
+            chai.request(server)
+              .post('/log')
+              .send({
+                userID: request.userID,
+                lastEventTS: request.lastEventTS,
+                jsonLogString: JSON.stringify(request.jsonList),
+              })
+              .end((reqParseErr, res) => {
+                if (reqParseErr) throw reqParseErr;
+                res.should.have.status(200);
+                asyncEachCallback(null);
+              });
+          }, (err) => {
+            if (err) throw err;
+            else asyncCallback(null, requestList);
+          });
+        },
+        (requestList, asyncCallback) => {
+          async.each(requestList, (request, asyncEachCallback) => {
+            mongoDAO.findEvents({ test: true, sid: request.userID }, (queryErr, eventList) => {
+              if (queryErr) throw queryErr;
+              let i = 0;
+              eventList.forEach((eventDoc) => {
+                // remove the database id field before comparison
+                delete eventDoc._id;
+                assert.deepEqual(request.jsonList[i], eventDoc, 'An inserted document was different');
+                if (JSON.stringify(request.jsonList[i]) !== JSON.stringify(eventDoc)) console.log('ERROR');
+                i += 1;
+              });
+              asyncEachCallback(null);
+            });
+          }, (err) => {
+            if (err) throw err;
+            else asyncCallback(null);
+          });
+        },
+      ], (waterfallErr) => {
+        if (waterfallErr) console.log(waterfallErr);
+        done();
+      });
+    }).timeout(10000);// In case it takes longer than 2 secs
+  });
 });
