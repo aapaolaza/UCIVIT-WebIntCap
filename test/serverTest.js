@@ -1,5 +1,6 @@
 const fs = require('fs');
 const assert = require('assert');
+const async = require('async');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const md5 = require('md5');
@@ -78,52 +79,67 @@ describe('Event server', () => {
         });
     });
   });
+
   describe('log event', () => {
     it('should store the provided list of json events', (done) => {
-      // TODO: create a request to store hundreds of events
-      const jsonList = [];
-      const numberOfDocs = 100;
-      // Create some json events
-      for (let i = 0; i < numberOfDocs; i += 1) {
-        jsonList.push({
-          event: 'testevent',
-          sid: 'testUser',
-          sd: 'testPage',
-          url: 'testpage.com',
-          timestampms: i * 1000,
-          sessionstartms: Math.round(i) * 1000,
-          episodeCount: Math.round(i),
-          test: true,
-        });
-      }
-      const userID = 'testUser';
-      const lastEventTS = numberOfDocs * 1000;
-
-      mongoDAO.purgeTestEvents((purgeErr, deletedCount) => {
-        if (purgeErr) throw purgeErr;
-        else {
-          console.log(`${deletedCount} documents were deleted`);
-
+      async.waterfall([
+        (asyncCallback) => {
+          // Delete previously existing test events
+          mongoDAO.purgeTestEvents((purgeErr, deletedCount) => {
+            if (purgeErr) throw purgeErr;
+            else {
+              console.log(`${deletedCount} documents were deleted`);
+              asyncCallback(null);
+            }
+          });
+        },
+        (asyncCallback) => {
+          const jsonList = [];
+          const numberOfDocs = 100;
+          // Create some json events
+          for (let i = 0; i < numberOfDocs; i += 1) {
+            jsonList.push({
+              event: 'testevent',
+              sid: 'testUser',
+              sd: 'testPage',
+              url: 'testpage.com',
+              timestampms: i * 1000,
+              sessionstartms: Math.round(i) * 1000,
+              episodeCount: Math.round(i),
+              test: true,
+            });
+          }
+          const userID = 'testUser';
+          const lastEventTS = numberOfDocs * 1000;
+          asyncCallback(null, jsonList, userID, lastEventTS);
+        },
+        (jsonList, userID, lastEventTS, asyncCallback) => {
           chai.request(server)
             .post('/log')
             .send({ userID, lastEventTS, jsonLogString: JSON.stringify(jsonList) })
             .end((reqParseErr, res) => {
               if (reqParseErr) throw reqParseErr;
               res.should.have.status(200);
-
-              mongoDAO.findEvents({ test: true }, (queryErr, eventList) => {
-                if (queryErr) throw queryErr;
-                let i = 0;
-                eventList.array.forEach((eventDoc) => {
-                  // remove the database id field before comparison
-                  delete eventDoc._id;
-                  assert.deepEqual(jsonList[i], eventDoc);
-                  i += 1;
-                });
-                done();
-              });
+              asyncCallback(null, jsonList);
             });
-        }
+        },
+
+        (jsonList, asyncCallback) => {
+          mongoDAO.findEvents({ test: true }, (queryErr, eventList) => {
+            if (queryErr) throw queryErr;
+            let i = 0;
+            eventList.forEach((eventDoc) => {
+              // remove the database id field before comparison
+              delete eventDoc._id;
+              assert.deepEqual(jsonList[i], eventDoc, 'An inserted document was different');
+              i += 1;
+            });
+            asyncCallback(null);
+          });
+        },
+      ], (err) => {
+        if (err) console.log(err);
+        done();
       });
     });
   });

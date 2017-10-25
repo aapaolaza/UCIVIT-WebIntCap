@@ -131,6 +131,24 @@ function initIndexes(callback) {
   });
 }
 
+/**
+ * Removes all the indexes from the collection
+ * @param {*} callback 
+ */
+function dropIndexes(callback) {
+  connectDB((connectErr, db) => {
+    if (connectErr) callback(connectErr);
+    db.collection(eventCollName)
+      .dropIndexes((indexErr) => {
+        callback(indexErr);
+      });
+  });
+}
+
+/**
+ * Calls back with the list of indexes
+ * @param {*} callback 
+ */
 function getIndexList(callback) {
   connectDB((connectErr, db) => {
     if (connectErr) callback(connectErr);
@@ -178,7 +196,6 @@ function commitJsonListToEvents(jsonDocList, callback) {
       });
     },
   ], (err) => {
-    if (err) console.log(err);
     callback(err);
   });
 }
@@ -237,6 +254,7 @@ module.exports.connectDB = connectDB;
 module.exports.switchToTestMode = switchToTestMode;
 module.exports.closeConnection = closeConnection;
 module.exports.initIndexes = initIndexes;
+module.exports.dropIndexes = dropIndexes;
 module.exports.getIndexList = getIndexList;
 module.exports.commitJsonListToEvents = commitJsonListToEvents;
 module.exports.findEvents = findEvents;
