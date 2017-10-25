@@ -229,14 +229,38 @@
   // //////////////////////////Session ID////////////////////
   const userIdCookie = 'ucivitUserId';
 
+  /**
+   * User ID Support function: translates an integer into a string
+   * @param {*} dec 
+   */
+  // dec2hex :: Integer -> String
+  function dec2hex(dec) {
+    return (`0${dec.toString(16)}`).substr(-2);
+  }
+
+  /**
+   * User ID Support function: creates a unique ID of the given length
+   * @param {*} len
+   */
+  // generateId :: Integer -> String
+  function generateId(len) {
+    const arr = new Uint8Array((len || 40) / 2);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr, dec2hex).join('');
+  }
+
   let userId = null;
   // ucivituserId is provided by the script loading UCIVIT
   if (typeof ucivitOptions.userId !== 'undefined') {
     ({ userId } = ucivitOptions);
-  } else {
+  } else if (getCookie(userIdCookie)) {
     // If no sid has been provided, check the cookie
     userId = getCookie(userIdCookie);
+  } else {
+    // if the cookie is empty, then generate a new userID
+    userId = generateId(16);
   }
+
   setCookie(userIdCookie, userId, cookieLife);
 
 
