@@ -5,6 +5,9 @@ npm-debug.log*
 #SVN data from external libraries
 .svn
 
+#TEMP folder
+/temp
+
 # Runtime data
 pids
 *.pid

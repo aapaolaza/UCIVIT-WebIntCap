@@ -1,17 +1,18 @@
 <!-- ucivit script start -->
 <script type="text/javascript">
-  //The webpageindex will be specific to each site
   const ucivitOptions = {};
+
+  //  Options to be modified
   ucivitOptions.webpageIndex = 'WEBSITEID';
   ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727';
+  ucivitOptions.isDOMrecorded = false;
+
   var PROTOCOL = {
     HTTPS: 'https://',
     HTTP: 'http://'
   };
   ucivitOptions.protocol = PROTOCOL.HTTP;
-
-  ucivitOptions.userId = getCookie('proxyUserID');
-
+  ucivitOptions.userId = getCookie('ucivitUserId');
   ucivitOptions.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`
 
   //we add the script dinamically

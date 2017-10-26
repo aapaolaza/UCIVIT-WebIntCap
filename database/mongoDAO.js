@@ -2,7 +2,7 @@ const mongodb = require('mongodb');
 const async = require('async');
 const dateFormat = require('dateformat');
 
-const { eventFields } = require('./constants');
+const { eventCollName, domCollName, eventFields } = require('./constants');
 
 const mongoClient = mongodb.MongoClient;
 
@@ -10,7 +10,6 @@ const {
   mongoPath, mongoTestPath, mongoAuthenticateDB, mongoUser, mongoPass,
 } = require('./dbAccessData');
 
-const eventCollName = 'events';
 let globalDbConnection = null;
 const mongoTimeout = 0;
 let isTestMode = false;
@@ -125,7 +124,8 @@ function initIndexes(callback) {
             } else {
               callback(null);
             }
-          });
+          }
+        );
       }
     });
   });
@@ -133,7 +133,7 @@ function initIndexes(callback) {
 
 /**
  * Removes all the indexes from the collection
- * @param {*} callback 
+ * @param {*} callback
  */
 function dropIndexes(callback) {
   connectDB((connectErr, db) => {
@@ -147,7 +147,7 @@ function dropIndexes(callback) {
 
 /**
  * Calls back with the list of indexes
- * @param {*} callback 
+ * @param {*} callback
  */
 function getIndexList(callback) {
   connectDB((connectErr, db) => {
@@ -160,12 +160,20 @@ function getIndexList(callback) {
 }
 
 /**
- * Tests if the json to be inserted is valid
+ * Tests if the json to be inserted is valid. SO far, the event name will be checked
  * @param {*} jsonDocList
  * @param {*} callback
  */
 function validateJsonList(jsonDocList, callback) {
-  callback(null, true);
+  let isJsonValid = true;
+  for (let i = 0; i < jsonDocList.length && isJsonValid; i += 1) {
+    const jsonDoc = jsonDocList[i];
+    if (eventFields.EVENTLIST.includes(jsonDoc[eventFields.EVENT]) === -1) {
+      callback(null, false);
+      isJsonValid = false;
+    }
+  }
+  if (isJsonValid) callback(null, true);
 }
 
 /**
@@ -250,6 +258,48 @@ function getLastEventTimestampForUser(sid, callback) {
     });
 }
 
+/**
+ * Tests if the DOM json to be inserted is valid.
+ * @param {*} domChangeList
+ * @param {*} callback
+ */
+function validateDomObject(domObject, callback) {
+  if (domObject[eventFields.EVENT] === eventFields.DOMEVENT) callback(null, true);
+  else callback(null, false);
+}
+
+/**
+ * Given a single DOM object, it stores it into the database
+ * @param {*} domChangeList
+ * @param {*} callback
+ */
+function commitDomContent(domObject, callback) {
+  async.waterfall([
+    (asyncCallback) => {
+      // validate json before inserting it to the database
+      validateDomObject(domObject, (err, isJsonValid) => {
+        if (err || !isJsonValid) {
+          asyncCallback('ERROR Json could not be validated');
+        } else {
+          asyncCallback(null);
+        }
+      });
+    },
+    (asyncCallback) => {
+      // The waterfall will only get here if the json is valid
+      connectDB((connectErr, db) => {
+        if (connectErr) asyncCallback(connectErr);
+        db.collection(domCollName).insertOne(domObject, (insertErr, insertResults) => {
+          // console.log(`inserted ${insertResults.insertedCount} results`);
+          asyncCallback(insertErr);
+        });
+      });
+    },
+  ], (err) => {
+    callback(err);
+  });
+}
+
 module.exports.connectDB = connectDB;
 module.exports.switchToTestMode = switchToTestMode;
 module.exports.closeConnection = closeConnection;
@@ -260,3 +310,4 @@ module.exports.commitJsonListToEvents = commitJsonListToEvents;
 module.exports.findEvents = findEvents;
 module.exports.purgeTestEvents = purgeTestEvents;
 module.exports.getLastEventTimestampForUser = getLastEventTimestampForUser;
+module.exports.commitDomContent = commitDomContent;

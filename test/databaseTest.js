@@ -8,7 +8,7 @@ mongoDAO.switchToTestMode();
 
 
 describe('Database', () => {
-  describe('connectDB()', () => {
+  describe('#connectDB()', () => {
     it('should return a valid database connection', (done) => {
       mongoDAO.connectDB((connectErr, db) => {
         if (connectErr) throw connectErr;
@@ -18,7 +18,7 @@ describe('Database', () => {
     });
   });
 
-  describe('initIndexes()', () => {
+  describe('#initIndexes()', () => {
     it('should return 12, the number of existing or created indexes', (done) => {
       async.waterfall([
         (asyncCallback) => {
@@ -54,7 +54,7 @@ describe('Database', () => {
     });
   });
 
-  describe('commitJsonListToEvents(): insert 100', () => {
+  describe('#commitJsonListToEvents(): insert 100', () => {
     it('The retrieved elements should be the same as the inserted ones', (done) => {
       async.waterfall([
         (asyncCallback) => {
@@ -118,7 +118,7 @@ describe('Database', () => {
     });
 
     // This test depends on the existence of indexes
-    describe('commitJsonListToEvents(): 2 same events', () => {
+    describe('#commitJsonListToEvents(): 2 same events', () => {
       it('It should return an error, and commit only 1 of them', (done) => {
         async.waterfall([
           (asyncCallback) => {
@@ -172,7 +172,7 @@ describe('Database', () => {
     });
   });
 
-  describe('closeConnection()', () => {
+  describe('#closeConnection()', () => {
     it('closes the connection', (done) => {
       mongoDAO.closeConnection((closeErr, isConnected) => {
         assert.equal(false, isConnected);

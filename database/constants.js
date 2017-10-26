@@ -1,3 +1,8 @@
+
+
+const eventCollName = 'events';
+const domCollName = 'domchange';
+
 // eventFields file will contain a mapping of all the fields available for the events
 
 // i.e. instead of using event.timestampms, we will use the mapping to timestampms
@@ -116,48 +121,11 @@ const eventFields = {
   FORMINPUTS: 'formInputs',
 
   // //////////////////////////////////EVENTNAMES/////////////////////////////////////////////////
-  BLUR: 'blur',
-  CHANGE: 'change',
-  CONTEXTMENU: 'contextmenu',
-  COPY: 'copy',
-  CUT: 'cut',
-  DBLCLICK: 'dblclick',
-  DOMCHANGE: 'domchange',
-  FOCUS: 'focus',
-  KEYDOWN: 'keydown',
-  KEYPRESS: 'keypress',
-  KEYUP: 'keyup',
-  LOAD: 'load',
-  MOUSEDOWN: 'mousedown',
-  MOUSEMOVE: 'mousemove',
-  MOUSEOUT: 'mouseout',
-  MOUSEOVER: 'mouseover',
-  MOUSEUP: 'mouseup',
-  MOUSEWHEEL: 'mousewheel',
-  PASTE: 'paste',
-  RESIZE: 'resize',
-  SCROLL: 'scroll',
-  SELECT_EXTRA: 'select_Extra',
-  SELECT: 'select',
-  SELECTEXTRA: 'selectextra',
-  UNLOAD: 'unload',
-  WINDOWFOCUS: 'windowfocus',
-  WINDOWBLUR: 'windowblur',
-  MOBILETOUCHSTART: 'mobileTouchStart',
-  MOBILETOUCHEND: 'mobileTouchEnd',
-  MOBILEORIENTATIONCHANGE: 'mobileOrientationChange',
-  MOBILEGYROSCOPE: 'mobileGyroscope',
-  MOBILEMOTION: 'mobileMotion',
-  COOKIEDISCLAIMERSHOWN: 'cookiedisclaimershown',
-  COOKIEDISCLAIMERACCEPTED: 'cookiedisclaimeraccepted',
-  COOKIEDISCLAIMERREJECTED: 'cookiedisclaimerrejected',
-  WINDOWQUERYFOCUS: 'windowqueryfocus',
-  WINDOWQUERYBLUR: 'windowqueryblur',
-  ANDYBBCTITLE: 'title',
-  ANDYBBC: 'andyBBC',
-  SURVEYSHOWN: 'surveyShown',
-  SURVEYSTATE: 'surveyState',
-  SUBMIT: 'submit',
+  EVENTLIST: ['blur', 'change', 'contextmenu', 'copy', 'cut', 'dblclick', 'domchange', 'focus', 'keydown', 'keypress', 'keyup', 'load', 'mousedown', 'mousemove', 'mouseout', 'mouseover', 'mouseup', 'mousewheel', 'paste', 'resize', 'scroll', 'select_Extra', 'select', 'selectextra', 'unload', 'windowfocus', 'windowblur', 'mobileTouchStart', 'mobileTouchEnd', 'mobileOrientationChange', 'mobileGyroscope', 'mobileMotion', 'cookiedisclaimershown', 'cookiedisclaimeraccepted', 'cookiedisclaimerrejected', 'windowqueryfocus', 'windowqueryblur', 'title', 'andyBBC', 'surveyShown', 'surveyState', 'submit'],
+
+  DOMEVENT: 'domData',
 };
 
+module.exports.eventCollName = eventCollName;
+module.exports.domCollName = domCollName;
 module.exports.eventFields = eventFields;

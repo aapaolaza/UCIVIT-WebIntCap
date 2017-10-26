@@ -9,37 +9,42 @@
 
   <!-- ucivit script start -->
   <script type="text/javascript">
-    //The ucivitWebpageIndex will be specific to each site
-    window.ucivitucivitWebpageIndex = 'WEBSITEID';
-    window.ucivitServerIP = 'CAPTURESERVERADDRESS:2727';
+    const ucivitOptions = {};
+
+    //  Options to be modified
+    ucivitOptions.webpageIndex = 'WEBSITEID';
+    ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727';
+    ucivitOptions.isDOMrecorded = false;
+
     var PROTOCOL = {
       HTTPS: 'https://',
       HTTP: 'http://'
     };
-    window.ucivitProtocol = PROTOCOL.HTTP;
+    ucivitOptions.protocol = PROTOCOL.HTTP;
 
     function setParameters() {
-      window.ucivitWebpageIndex = document.getElementById("ucivitWebpageIndexInput").value;
-      window.ucivitServerIP = document.getElementById("ucivitServerIPInput").value;
-      window.ucivitProtocol = $('input[name="protocol"]:checked').val();
+      ucivitOptions.webpageIndex = document.getElementById("ucivitWebpageIndexInput").value;
+      ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value;
+      ucivitOptions.protocol = $('input[name="protocol"]:checked').val();
+      ucivitOptions.isDOMrecorded = $('input[name="storeDom"]').is(':checked');
       console.log("The following parameters were set:");
-      console.log(window.ucivitWebpageIndex);
-      console.log(window.ucivitServerIP);
-      console.log(window.ucivitProtocol);
+      console.log(ucivitOptions.webpageIndex);
+      console.log(ucivitOptions.serverIP);
+      console.log(ucivitOptions.protocol);
       loadScript();
     }
 
     function loadScript() {
       console.log("Starting tracking script");
-      window.ucivitSessionID = getCookie('proxyUserID');
+      ucivitOptions.userId = getCookie('proxyUserID');
 
-      window.ucivitSrc = `${window.ucivitProtocol}${window.ucivitServerIP}/ucivit.js`
+      ucivitOptions.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`
 
       //we add the script dinamically
       var ucivitScriptNode = document.createElement('script');
       ucivitScriptNode.id = 'ucivitScript';
       ucivitScriptNode.type = 'text/javascript';
-      ucivitScriptNode.src = window.ucivitSrc;
+      ucivitScriptNode.src = ucivitOptions.src;
 
       document.getElementsByTagName('head')[0].appendChild(ucivitScriptNode);
 
@@ -88,6 +93,8 @@
   <br>
   <input type="text" id="ucivitServerIPInput" value="localhost:2929">
   <br>
+  <br> <input type="checkbox" name="storeDom" value="http://"> Store DOM content?
+  
   <br> window.protocol:
   <form id="protocolInput">
     <input type="radio" name="protocol" value="http://" checked> HTTP

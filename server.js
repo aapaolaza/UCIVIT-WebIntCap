@@ -25,12 +25,12 @@ app.all('/test', (req, res) => {
   res.sendFile(`${__dirname}/public/webpage_example.html`);
 });
 
-app.all('/log', (req, res) => {
+app.all('/log/event', (req, res) => {
   // console.log('Store event request received');
   // console.log(req.query);
   // console.log(req.body);
   // console.log(JSON.parse(req.body.jsonLogString));
-  const { userID, lastEventTS, jsonLogString } = req.body;
+  const { jsonLogString } = req.body;
   // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
   if (JSON.parse(jsonLogString).length === 0) {
     console.log('invalid data');
@@ -45,6 +45,28 @@ app.all('/log', (req, res) => {
     });
   }
 });
+
+/**
+ * log/dom request can only contain a single json document with full DOM data
+ */
+app.all('/log/dom', (req, res) => {
+  const { jsonDomData } = req.body;
+  // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
+  if (JSON.parse(jsonDomData).length === 0) {
+    console.log('invalid data');
+    res.sendStatus(500);
+  } else {
+    mongoDAO.commitDomContent(JSON.parse(jsonDomData), (commitErr) => {
+      if (commitErr) {
+        console.log(commitErr);
+        res.sendStatus(500);
+      } else {
+        res.sendStatus(200);
+      }
+    });
+  }
+});
+
 
 const server = app.listen(ucivitOptions.port, ucivitOptions.bindIP, () => {
   console.log(`UCIVIT Server running on ${ucivitOptions.port} and address ${ucivitOptions.bindIP} ...`);

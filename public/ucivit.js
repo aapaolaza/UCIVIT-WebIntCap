@@ -11,7 +11,8 @@
  */
 (() => {
   // ///// URLS ////
-  const eventLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log`;
+  const eventLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log/event`;
+  const domLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log/dom`;
   const timeQueryURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/ucivitTime`;
   const jQueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
 
@@ -231,7 +232,7 @@
 
   /**
    * User ID Support function: translates an integer into a string
-   * @param {*} dec 
+   * @param {*} dec
    */
   // dec2hex :: Integer -> String
   function dec2hex(dec) {
@@ -596,11 +597,11 @@
    * Ajax request to store data
    */
 
-  function sendJsonData(userID, lastEventTS, jsonLogData) {
+  function sendJsonData(jsonLogData) {
     $.ajax({
       type: 'POST',
       url: eventLogURL,
-      data: { userID, lastEventTS, jsonLogString: JSON.stringify(jsonLogData) },
+      data: { jsonLogString: JSON.stringify(jsonLogData) },
       dataType: 'jsonp',
     }).done((response) => {
       console.log(response);
@@ -611,12 +612,54 @@
   function saveLog() {
     if (logEntry.length > 0) {
       // Add the sid to the get request
-      sendJsonData(userId, getCookie(lastEventTSCookieName), logEntry);
+      sendJsonData(logEntry);
       // we record current time as the last event recorded
       setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
       logEntry = []; // reset log data
       updateEpisodeInformation();// updates the stored episode count information}
     }
+  }
+
+  /**
+   * DOM RECORDING FUNCTIONS
+   * When called, records the entire DOM as an event
+   */
+  function recordCurrentDOM() {
+    console.log('logging DOM');
+    const eventTS = datestampInMillisec();
+
+    const logObj = { event: 'domData', domContent: encodeURIComponent(document.getElementsByTagName('body')[0].innerHTML) };
+
+    // console.log("Recording: " + text);
+    // We add the browser version
+    Object.assign(logObj, getClientContextInformation());
+    // if function is already being executed, defer writeLog for 50ms
+    // Add current episode information
+    Object.assign(logObj, getEpisodeInfo());
+
+    // Adds additional parameters
+    let url = window.location.href;
+    url = url.replace('#', '');
+
+    // we will also store users' timezone
+    const timezoneOffset = new Date().getTimezoneOffset();
+
+    logObj.timestampms = eventTS;
+    logObj.sessionstartms = ucivitServerTS;
+    logObj.timezoneOffset = timezoneOffset;
+    logObj.sd = websiteID;
+    logObj.sid = userId;
+    logObj.url = encodeURIComponent(url);
+    if (isLogDataEncoded) logObj.needsEncoding = isLogDataEncoded;
+
+    $.ajax({
+      type: 'POST',
+      url: domLogURL,
+      data: { jsonDomData: JSON.stringify(logObj) },
+      dataType: 'jsonp',
+    }).done((response) => {
+      console.log(response);
+    });
   }
 
   // ///////////////////////////////// Element location functions ////////////////
@@ -831,16 +874,6 @@
     }
   }
 
-  /**
-   * DOM RECORDING FUNCTIONS
-   * When called, records the entire DOM as an event
-   */
-  function recordCurrentDOM() {
-    const eventTS = datestampInMillisec();
-    writeLog(eventTS, { event: 'domchange', domContent: encodeURIComponent(document.getElementsByTagName('body')[0].innerHTML) });
-  }
-
-
   // ////////////////////////////// EVENT HANDLERS /////////////////////////////////
 
   /** Event logging functionality */
@@ -909,9 +942,8 @@
     const eventTS = datestampInMillisec();
     // if the time since last mousemove event is greater than threshold, save event.
     // otherwise, ignore
-    if ((eventTS - mousemoveLastTS) <= mousemoveThreshold) {
-      return true;
-    }
+    if ((eventTS - mousemoveLastTS) <= mousemoveThreshold) return;
+
 
     // update this as "last stored" mousevent before moving on
     mousemoveLastTS = eventTS;
@@ -925,7 +957,7 @@
     const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
     // if target event is private, do nothing
-    if (privacyCheck(ev)) return true;
+    if (privacyCheck(ev)) return;
 
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
@@ -945,8 +977,6 @@
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
-
-    return true;
   }
 
   /** Processes mouseover event.
@@ -971,7 +1001,7 @@
     const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
     // if target event is private, do nothing
-    if (privacyCheck(ev)) return true;
+    if (privacyCheck(ev)) return;
 
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
@@ -995,7 +1025,6 @@
     mouseoverLastContent = JSON.stringify(eventObj);
 
     writeLog(eventTS, eventObj);
-    return true;
   }
 
   /**
@@ -1150,8 +1179,6 @@
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
-
-    if (recordDOM) recordCurrentDOM();
   }
 
   /**

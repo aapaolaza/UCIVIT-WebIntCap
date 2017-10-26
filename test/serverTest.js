@@ -27,7 +27,7 @@ const binaryParser = (res, cb) => {
 };
 
 describe('Event server', () => {
-  describe('GET ucivitTime()', () => {
+  describe('#ucivitTime()', () => {
     it('should return a EPOCH timestamp in ms corresponding to today', (done) => {
       chai.request(server)
         .get('/ucivitTime')
@@ -43,7 +43,7 @@ describe('Event server', () => {
     });
   });
 
-  describe('ucivit.js', () => {
+  describe('#ucivitScript()', () => {
     it('should return the exact same file ucivit.js as located in the public folder', (done) => {
       chai.request(server)
         .get('/ucivit.js')
@@ -61,7 +61,7 @@ describe('Event server', () => {
         });
     });
   });
-  describe('test', () => {
+  describe('#test()', () => {
     it('should return the exact same file webpage_example.html as located in the public folder', (done) => {
       chai.request(server)
         .get('/test')
@@ -80,7 +80,7 @@ describe('Event server', () => {
     });
   });
 
-  describe('log event', () => {
+  describe('#logEvent()', () => {
     it('should store the provided list of json events', (done) => {
       async.waterfall([
         (asyncCallback) => {
@@ -115,7 +115,7 @@ describe('Event server', () => {
         },
         (jsonList, userID, lastEventTS, asyncCallback) => {
           chai.request(server)
-            .post('/log')
+            .post('/log/event')
             .send({ userID, lastEventTS, jsonLogString: JSON.stringify(jsonList) })
             .end((reqParseErr, res) => {
               if (reqParseErr) throw reqParseErr;
@@ -144,7 +144,7 @@ describe('Event server', () => {
     });
   });
 
-  describe.only('stress log event', () => {
+  describe('#stressLogEvent()', () => {
     it('should store the events from all requests', (done) => {
       async.waterfall([
         (asyncCallback) => {
@@ -186,10 +186,8 @@ describe('Event server', () => {
         (requestList, asyncCallback) => {
           async.each(requestList, (request, asyncEachCallback) => {
             chai.request(server)
-              .post('/log')
+              .post('/log/event')
               .send({
-                userID: request.userID,
-                lastEventTS: request.lastEventTS,
                 jsonLogString: JSON.stringify(request.jsonList),
               })
               .end((reqParseErr, res) => {
@@ -224,6 +222,8 @@ describe('Event server', () => {
       ], (waterfallErr) => {
         if (waterfallErr) console.log(waterfallErr);
         done();
+        // TODO: For some reason the testing hangs after running if all tests passed. Force exit
+        process.exit();
       });
     }).timeout(10000);// In case it takes longer than 2 secs
   });
