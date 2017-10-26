@@ -39,8 +39,8 @@
       const y = cookieArray[i].substr(cookieArray[i].indexOf('=') + 1);
       x = x.replace(/^\s+|\s+$/g, '');
       if (x === cookieName) {
-        // console.log("Cookie value at getCookie()" + decodeURIComponent(y));
-        return decodeURIComponent(y);
+        // console.log("Cookie value at getCookie()" + y);
+        return y;
       }
     }
 
@@ -57,7 +57,7 @@
   function setCookie(cookieName, value, exdays) {
     const exdate = new Date();
     exdate.setDate(exdate.getDate() + exdays);
-    let cookieValue = encodeURIComponent(value) + ((exdays == null) ? '' : `; expires = ${exdate.toUTCString()} `);
+    let cookieValue = value + ((exdays == null) ? '' : `; expires = ${exdate.toUTCString()} `);
 
     // remove the www from the start so the cookie is available to all pages in the domain
     let { domain } = document;
@@ -581,7 +581,7 @@
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = userId;
-    logObj.url = encodeURIComponent(url);
+    logObj.url = url;
     if (isLogDataEncoded) logObj.needsEncoding = isLogDataEncoded;
 
     // set synchronization flag (block function)
@@ -628,7 +628,7 @@
     console.log('logging DOM');
     const eventTS = datestampInMillisec();
 
-    const logObj = { event: 'domData', domContent: encodeURIComponent(document.getElementsByTagName('body')[0].innerHTML) };
+    const logObj = { event: 'domData', domContent: document.getElementsByTagName('body')[0].innerHTML };
 
     // console.log("Recording: " + text);
     // We add the browser version
@@ -649,7 +649,7 @@
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = userId;
-    logObj.url = encodeURIComponent(url);
+    logObj.url = url;
     if (isLogDataEncoded) logObj.needsEncoding = isLogDataEncoded;
 
     $.ajax({
@@ -769,10 +769,10 @@
         // IE: innertext property contains link text
         if (node.innerText) {
           // TODO: check if the encoding is necessary anymore
-          nodeInfo.text = encodeURIComponent(node.innerText);
+          nodeInfo.text = node.innerText;
           // NS: text property contains link text
         } else {
-          nodeInfo.text = encodeURIComponent(node.text);
+          nodeInfo.text = node.text;
         }
       }
     } else if (node.src) {
@@ -794,8 +794,8 @@
     }
 
     nodeInfo.nodeType = node.tagName;
-    nodeInfo.textContent = encodeURIComponent(textContent);
-    nodeInfo.textValue = encodeURIComponent(node.value);
+    nodeInfo.textContent = textContent;
+    nodeInfo.textValue = node.value;
 
     return { nodeInfo };
   }
@@ -837,7 +837,7 @@
       const eventObj = {
         event: 'selectextra',
         selectionTool,
-        selectedContent: encodeURIComponent(selectedContent),
+        selectedContent,
       };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
@@ -862,7 +862,7 @@
     if (currentSelection !== '' && lastSelection !== currentSelection) {
       const eventObj = {
         event: 'select',
-        selectedContent: encodeURIComponent(currentSelection),
+        selectedContent: currentSelection,
       };
       Object.assign(eventObj, getNodeInfo(target));
 
@@ -1221,11 +1221,11 @@
             value += target.options[i].value;
           }
         }
-        eventObj.value = encodeURIComponent(value);
+        eventObj.value = value;
         break;
 
       case 'select-one':
-        eventObj.value = encodeURIComponent(target.options[target.selectedIndex].value);
+        eventObj.value = target.options[target.selectedIndex].value;
         eventObj.selected = target.selectedIndex;
         break;
 
@@ -1240,14 +1240,14 @@
           if (value === '') value = 'none';
         } else { value = target.checked; }
 
-        eventObj.value = encodeURIComponent(target.options[target.selectedIndex].value);
+        eventObj.value = target.options[target.selectedIndex].value;
         eventObj.checked = target.checked;
         break;
 
       case 'text':
       case 'textarea':
       case 'file':
-        eventObj.value = encodeURIComponent(target.value);
+        eventObj.value = target.value;
 
         break;
 
@@ -1444,7 +1444,7 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'cut', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
+      const eventObj = { event: 'cut', content: target.value.substring(target.selectionStart, target.selectionEnd) };
       Object.assign(eventObj, getNodeInfo(target));
 
       writeLog(eventTS, eventObj);
@@ -1467,7 +1467,7 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'copy', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
+      const eventObj = { event: 'copy', content: target.value.substring(target.selectionStart, target.selectionEnd) };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1489,7 +1489,7 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'paste', content: encodeURIComponent(target.value.substring(target.selectionStart, target.selectionEnd)) };
+      const eventObj = { event: 'paste', content: target.value.substring(target.selectionStart, target.selectionEnd) };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1768,8 +1768,8 @@
     if (target.selectionStart !== target.selectionEnd) {
       const eventObj = {
         event: 'select_Extra',
-        selectedContent: encodeURIComponent(target.value
-          .substring(target.selectionStart, target.selectionEnd)),
+        selectedContent: target.value
+          .substring(target.selectionStart, target.selectionEnd),
       };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
@@ -1832,7 +1832,7 @@
     // $('input').css('background-color','')
 
     $('input,select,textarea').each((index, element) => {
-      formInputs += `${encodeURIComponent($(element).attr('id'))}:${encodeURIComponent($(element).val())};`;
+      formInputs += `${$(element).attr('id')}:${$(element).val()};`;
     });
     return (formInputs);
   }
