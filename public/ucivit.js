@@ -16,6 +16,22 @@
   const timeQueryURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/ucivitTime`;
   const jQueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
 
+  /** Will determine the lifespan of the cookie, in days */
+  const cookieLife = 10000;
+
+  /** Cookie variables */
+  const userIdCookie = 'ucivitUserId';
+  const episodeCountCookie = 'ucivitEpisodeCount';
+  const lastLogTSCookie = 'ucivitLastLogTS';
+
+  const episodeTimeout = 40 * 60 * 1000;
+
+  /**
+   * Log save frequency.
+   * Specifies the frequency of log save requests to the server
+   */
+  const logSaveFrequency = 3000;
+
   /**
    * Date: Initialised by query to the UCIVIT server.
    * Load completion timestamp is calculated relative to this timestamp.
@@ -26,11 +42,6 @@
   // //////////////////////COOKIE HANDLER////////////////////////////////////
   // ////////////////////////////////////////////////////////////////////////
 
-  /** Cookie variables */
-  const lastEventTSCookieName = 'ucivitLastEventTS';
-
-  /** Will determine the lifespan of the cookie, in days */
-  const cookieLife = 10000;
 
   function getCookie(cookieName) {
     const cookieArray = document.cookie.split(';');
@@ -52,12 +63,11 @@
   * Stores the given value in the cookie whose name is given
   * @param cookieName label of the cookie
   * @param value value to store
-  * @param exdays expiration date (cookieLife variable, defined above, can be used)
   */
-  function setCookie(cookieName, value, exdays) {
+  function setCookie(cookieName, value) {
     const exdate = new Date();
-    exdate.setDate(exdate.getDate() + exdays);
-    let cookieValue = value + ((exdays == null) ? '' : `; expires = ${exdate.toUTCString()} `);
+    exdate.setDate(exdate.getDate() + cookieLife);
+    let cookieValue = value + ((cookieLife == null) ? '' : `; expires = ${exdate.toUTCString()} `);
 
     // remove the www from the start so the cookie is available to all pages in the domain
     let { domain } = document;
@@ -70,66 +80,101 @@
     document.cookie = `${cookieName}=${cookieValue}`;
   }
 
-  /*
-  function printCookiesOnConsole() {
-    const cookieArray = document.cookie.split(';');
-    for (let i = 0; i < cookieArray.length; i += 1) {
-      let x = cookieArray[i].substr(0, cookieArray[i].indexOf('='));
-      const y = cookieArray[i].substr(cookieArray[i].indexOf('=') + 1);
-      x = x.replace(/^\s+|\s+$/g, '');
-      console.log(`${x}:${y}`);
-    }
+  // /// Random userId generator
+
+  /**
+   * User ID Support function: translates an integer into a string
+   * @param {*} dec
+   */
+  // dec2hex :: Integer -> String
+  function dec2hex(dec) {
+    return (`0${dec.toString(16)}`).substr(-2);
   }
-*/
+
+  /**
+   * User ID Support function: creates a unique ID of the given length
+   * @param {*} len
+   */
+  // generateId :: Integer -> String
+  function generateId(len) {
+    const arr = new Uint8Array((len || 40) / 2);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr, dec2hex).join('');
+  }
+
 
   // ///// CONSTANTS AND RETRIEVING VALUES FROM GLOBAL VARIABLES //////////
+  // Retrieve any variables set by the host
+  const { websiteID } = ucivitOptions;
 
-  const episodeCountCookie = 'ucivitEpisodeCount';
-  const lastLogTSCookie = 'ucivitLastLogTS';
-  let customMovingRequest = false;
-  if (typeof ucivitOptions.movingRequest !== 'undefined' && ucivitOptions.movingRequest) customMovingRequest = true;
+  let {
+    userId, episodeCount, lastLogTS, isDOMrecorded,
+    movingRequest, encodeLogData, protectedIds,
+  } = ucivitOptions;
 
-  let recordDOM = false;
-
-  const episodeTimeout = 40 * 60 * 1000;
-
+  // retrieve missing variables using cookies or generating them
+  if (typeof userId === 'undefined') {
+    if (getCookie(userIdCookie)) {
+      // If no sid has been provided, check the cookie
+      userId = getCookie(userIdCookie);
+    } else {
+      // if the cookie is empty, then generate a new userID
+      userId = generateId(16);
+    }
+  }
+  setCookie(userIdCookie, userId);
 
   // If episode count or user has not been preset, get it from the cookie
-  if (ucivitOptions.episodeCount == null) {
+  if (typeof episodeCount === 'undefined') {
     if (getCookie(episodeCountCookie)) {
-      ucivitOptions.episodeCount = getCookie(episodeCountCookie);
+      episodeCount = parseInt(getCookie(episodeCountCookie), 10);
     } else {
       // set it to 1 if it's the first time
-      ucivitOptions.episodeCount = 1;
+      episodeCount = 1;
     }
   }
+  setCookie(episodeCountCookie, episodeCount);
 
-  if (ucivitOptions.trackedUser == null) {
-    if (getCookie(episodeCountCookie)) {
-      ucivitOptions.trackedUser = getCookie(episodeCountCookie);
+  if (typeof lastLogTS === 'undefined') {
+    if (getCookie(lastLogTSCookie)) {
+      lastLogTS = parseInt(getCookie(lastLogTSCookie), 10);
+    } else {
+      // set it to 1 if it's the first time
+      lastLogTS = new Date().getTime();
     }
   }
+  setCookie(lastLogTSCookie, lastLogTS);
 
   /**
    * By default, the DOM won't be captured, to capture it,the deployment script needs to
    * set `ucivitOptions.isDOMrecorded` to true
    */
-  if (ucivitOptions.isDOMrecorded) recordDOM = true;
+  if (typeof isDOMrecorded === 'undefined') {
+    isDOMrecorded = false;
+  }
 
-  const websiteID = ucivitOptions.webpageIndex;
+  /**
+   * Variable given as parameter indicating if the log data for this Web site should be encoded
+   */
+  if (typeof encodeLogData === 'undefined') {
+    encodeLogData = false;
+  }
+
+  /**
+   * Do we have to use a custom request for the episode tracking?
+   */
+  if (typeof movingRequest === 'undefined') {
+    movingRequest = false;
+  }
 
   /**
    * List of node IDs containing sensitive information (such as password entry fields).
    * No interaction will be captured from them.
    */
-  let protectedIds = [];
-  if (ucivitOptions.protectedIds) {
-    ({ protectedIds } = window);
+  if (typeof protectedIds === 'undefined') {
+    protectedIds = [];
   }
 
-  console.log(`ucivitOptions.trackedUser: ${ucivitOptions.trackedUser}`);
-  console.log(`ucivitOptions.lastLogTS: ${ucivitOptions.lastLogTS}`);
-  console.log(`ucivitOptions.episodeCount: ${ucivitOptions.episodeCount}`);
 
   let logEntry = []; // Array: Initialised when page loads. Contains current event json log entries
   let logValLocked = false; // Boolean: if flag set, writing log entry to logEntry not possible
@@ -211,12 +256,6 @@
   let lastResizeDate = 0;
 
   /**
-   * Log save frequency.
-   * Specifies the frequency of log save requests to the server
-   */
-  const logSaveFrequency = 3000;
-
-  /**
    * This variable will be used to discern if the browser is IE or not
    */
   let isNotOldIE;
@@ -225,53 +264,6 @@
     isNotOldIE = false;
   } else {
     isNotOldIE = true;
-  }
-
-  // //////////////////////////Session ID////////////////////
-  const userIdCookie = 'ucivitUserId';
-
-  /**
-   * User ID Support function: translates an integer into a string
-   * @param {*} dec
-   */
-  // dec2hex :: Integer -> String
-  function dec2hex(dec) {
-    return (`0${dec.toString(16)}`).substr(-2);
-  }
-
-  /**
-   * User ID Support function: creates a unique ID of the given length
-   * @param {*} len
-   */
-  // generateId :: Integer -> String
-  function generateId(len) {
-    const arr = new Uint8Array((len || 40) / 2);
-    window.crypto.getRandomValues(arr);
-    return Array.from(arr, dec2hex).join('');
-  }
-
-  let userId = null;
-  // ucivituserId is provided by the script loading UCIVIT
-  if (typeof ucivitOptions.userId !== 'undefined') {
-    ({ userId } = ucivitOptions);
-  } else if (getCookie(userIdCookie)) {
-    // If no sid has been provided, check the cookie
-    userId = getCookie(userIdCookie);
-  } else {
-    // if the cookie is empty, then generate a new userID
-    userId = generateId(16);
-  }
-
-  setCookie(userIdCookie, userId, cookieLife);
-
-
-  /**
-   * Variable given as parameter indicating if the log data for this Web site should be encoded
-   */
-  let isLogDataEncoded = false;
-
-  if (typeof ucivitOptions.encodeLogData !== 'undefined') {
-    isLogDataEncoded = ucivitOptions.encodeLogData;
   }
 
 
@@ -392,7 +384,7 @@
   */
 
   function encodeInput(inputString) {
-    if (isLogDataEncoded) {
+    if (encodeLogData) {
       return hex_md5(inputString);
     }
     return inputString;
@@ -480,8 +472,8 @@
    * Updates the client cookie with the corresponding episode information value
    */
   function updateEpisodeInformationCookie() {
-    setCookie(episodeCountCookie, ucivitOptions.episodeCount, cookieLife);
-    setCookie(lastLogTSCookie, ucivitOptions.lastLogTS, cookieLife);
+    setCookie(episodeCountCookie, episodeCount);
+    setCookie(lastLogTSCookie, lastLogTS);
   }
 
   /**
@@ -491,12 +483,13 @@
    * It's called at every episode count change, and every request to store the captured data.
    */
   function updateEpisodeInformation() {
-    if (customMovingRequest) {
+    if (movingRequest) {
       $.ajax({
-        url: `/capture/trackingUpdate/${ucivitOptions.episodeCount}/${ucivitOptions.lastLogTS}`,
+        url: `/capture/trackingUpdate/${episodeCount}/${lastLogTS}`,
         error: (XMLHttpRequest, textStatus, errorThrown) => {
           console.log(errorThrown);
-          customMovingRequest = true;
+          // TODO: why are we setting moving request true again?
+          movingRequest = true;
           updateEpisodeInformationCookie();
         },
       });
@@ -513,13 +506,13 @@
    */
   function calculateEpisode() {
     // The first time, just record current TS
-    if ((ucivitOptions.lastLogTS !== -1) &&
-      ((new Date().getTime() - ucivitOptions.lastLogTS) > episodeTimeout)) {
-      ucivitOptions.episodeCount += 1;
+    if ((lastLogTS !== -1) &&
+      ((new Date().getTime() - lastLogTS) > episodeTimeout)) {
+      episodeCount += 1;
       updateEpisodeInformation();
     }
 
-    ucivitOptions.lastLogTS = new Date().getTime();
+    lastLogTS = new Date().getTime();
   }
 
   /**
@@ -527,7 +520,7 @@
    */
   function getEpisodeInfo() {
     calculateEpisode();
-    return { episodeCount: ucivitOptions.episodeCount };
+    return { episodeCount };
   }
 
   /**
@@ -582,7 +575,7 @@
     logObj.sd = websiteID;
     logObj.sid = userId;
     logObj.url = url;
-    if (isLogDataEncoded) logObj.needsEncoding = isLogDataEncoded;
+    if (encodeLogData) logObj.needsEncoding = encodeLogData;
 
     // set synchronization flag (block function)
     logValLocked = true;
@@ -613,8 +606,8 @@
     if (logEntry.length > 0) {
       // Add the sid to the get request
       sendJsonData(logEntry);
-      // we record current time as the last event recorded
-      setCookie(lastEventTSCookieName, datestampInMillisec(), cookieLife);
+      // we record current time as the last log recorded
+      setCookie(lastLogTSCookie, datestampInMillisec());
       logEntry = []; // reset log data
       updateEpisodeInformation();// updates the stored episode count information}
     }
@@ -625,7 +618,7 @@
    * When called, records the entire DOM as an event
    */
   function recordCurrentDOM() {
-    console.log('logging DOM');
+    // console.log('logging DOM');
     const eventTS = datestampInMillisec();
 
     const logObj = { event: 'domData', domContent: document.getElementsByTagName('body')[0].innerHTML };
@@ -650,7 +643,7 @@
     logObj.sd = websiteID;
     logObj.sid = userId;
     logObj.url = url;
-    if (isLogDataEncoded) logObj.needsEncoding = isLogDataEncoded;
+    if (encodeLogData) logObj.needsEncoding = encodeLogData;
 
     $.ajax({
       type: 'POST',
@@ -898,7 +891,7 @@
     };
     writeLog(eventTS, eventObj);
 
-    if (recordDOM) recordCurrentDOM();
+    if (isDOMrecorded) recordCurrentDOM();
   }
 
   /** Processes window resize event (logs resize event together with the page size) */
@@ -2057,6 +2050,13 @@
 
   function initUcivit() {
     console.log('UCIVIT starts');
+
+    updateEpisodeInformation();
+
+    console.log(`userId: ${userId}`);
+    console.log(`lastLogTS: ${lastLogTS}`);
+    console.log(`episodeCount: ${episodeCount}`);
+
     logValLocked = false;
 
     mousemoveLastPosX = 0;
