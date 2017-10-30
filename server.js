@@ -26,21 +26,27 @@ app.all('/test', (req, res) => {
 });
 
 app.all('/log/event', (req, res) => {
-  // console.log('Store event request received');
-  // console.log(req.query);
-  // console.log(req.body);
-  // console.log(JSON.parse(req.body.jsonLogString));
-  const { jsonLogString } = req.body;
+  /**
+   * Depending on the domain where the server is located
+   * the received data will be sent via GET or POST
+   * (req.query for GET, req.body for POST)
+   */
+  let { jsonLogString } = req.body;
+  if (typeof jsonLogString === 'undefined') {
+    ({ jsonLogString } = req.query);
+  }
+
   // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
-  if (JSON.parse(jsonLogString).length === 0) {
+  if (typeof jsonLogString === 'undefined'
+    || JSON.parse(jsonLogString).length === 0) {
     console.log('invalid data');
-    res.sendStatus(500);
+    res.status(500).jsonp({ err: 'invalid data' });
   } else {
     mongoDAO.commitJsonListToEvents(JSON.parse(jsonLogString), (commitErr) => {
       if (commitErr) {
-        res.sendStatus(500);
+        res.status(500).jsonp({ err: commitErr });
       } else {
-        res.sendStatus(200);
+        res.status(200).jsonp({ success: true });// return a valid JSON or null for success
       }
     });
   }
@@ -50,18 +56,22 @@ app.all('/log/event', (req, res) => {
  * log/dom request can only contain a single json document with full DOM data
  */
 app.all('/log/dom', (req, res) => {
-  const { jsonDomData } = req.body;
+  let { jsonDomData } = req.body;
+  if (typeof jsonDomData === 'undefined') {
+    ({ jsonDomData } = req.query);
+  }
   // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
-  if (JSON.parse(jsonDomData).length === 0) {
+  if (typeof jsonDomData === 'undefined'
+    || JSON.parse(jsonDomData).length === 0) {
     console.log('invalid data');
-    res.sendStatus(500);
+    res.status(500).jsonp({ err: 'invalid data' });
   } else {
     mongoDAO.commitDomContent(JSON.parse(jsonDomData), (commitErr) => {
       if (commitErr) {
         console.log(commitErr);
-        res.sendStatus(500);
+        res.status(500).jsonp({ err: commitErr });
       } else {
-        res.sendStatus(200);
+        res.status(200).jsonp({ success: true });// return a valid JSON or null for success
       }
     });
   }

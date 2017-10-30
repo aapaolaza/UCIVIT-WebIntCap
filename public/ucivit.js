@@ -597,7 +597,9 @@
       data: { jsonLogString: JSON.stringify(jsonLogData) },
       dataType: 'jsonp',
     }).done((response) => {
-      console.log(response);
+      // console.log(response);
+    }).fail((jqXHR, textStatus) => {
+      console.log(`request failed ${textStatus}`);
     });
   }
 
@@ -651,7 +653,7 @@
       data: { jsonDomData: JSON.stringify(logObj) },
       dataType: 'jsonp',
     }).done((response) => {
-      console.log(response);
+      // console.log(response);
     });
   }
 
