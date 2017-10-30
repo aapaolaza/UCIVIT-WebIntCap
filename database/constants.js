@@ -1,7 +1,7 @@
 
 
 const eventCollName = 'events';
-const domCollName = 'domchange';
+const domCollName = 'domchanges';
 
 // eventFields file will contain a mapping of all the fields available for the events
 
