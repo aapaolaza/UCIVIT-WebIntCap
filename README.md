@@ -83,7 +83,7 @@ npm start
 
 ## Test page
 
-The following page allows you to check that the server is working correctly. Just download it from [here](https://github.com/aapaolaza/UCIVIT-WebIntCap/blob/master/webpage_example.html) and run it locally, or access it remotely from [here](http://rawgit.com/aapaolaza/UCIVIT-WebIntCap/master/webpage_example.html), change the IP address (localhost by default), and press "Set parameters and start tracking" to test the capture script.
+The following page allows you to check that the server is working correctly. Just download it from [here](https://github.com/aapaolaza/UCIVIT-WebIntCap/blob/master/public/webpage_example.html) and run it locally, or access it remotely from [here](http://rawgit.com/aapaolaza/UCIVIT-WebIntCap/master/public/webpage_example.html), change the IP address (localhost by default), and press "Set parameters and start tracking" to test the capture script.
 
 
 ## Contact
