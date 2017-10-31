@@ -4,7 +4,7 @@ const async = require('async');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const md5 = require('md5');
-const server = require('../server');
+const server = require('../ucivitServer');
 const mongoDAO = require('../database/mongoDAO.js');
 
 // Always use the test mode for testing

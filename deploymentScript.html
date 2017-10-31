@@ -13,13 +13,12 @@
   };
   ucivitOptions.protocol = PROTOCOL.HTTP;
   ucivitOptions.userId = getCookie('ucivitUserId');
-  ucivitOptions.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`
 
   //we add the script dinamically
   let ucivitScriptNode = document.createElement('script');
   ucivitScriptNode.id = 'ucivitScript';
   ucivitScriptNode.type = 'text/javascript';
-  ucivitScriptNode.src = ucivitOptions.src;
+  ucivitScriptNode.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`;
 
   document.getElementsByTagName('head')[0].appendChild(ucivitScriptNode);
 

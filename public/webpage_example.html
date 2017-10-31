@@ -38,13 +38,11 @@
       console.log("Starting tracking script");
       ucivitOptions.userId = getCookie('proxyUserID');
 
-      ucivitOptions.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`
-
       //we add the script dinamically
       var ucivitScriptNode = document.createElement('script');
       ucivitScriptNode.id = 'ucivitScript';
       ucivitScriptNode.type = 'text/javascript';
-      ucivitScriptNode.src = ucivitOptions.src;
+      ucivitScriptNode.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`;
 
       document.getElementsByTagName('head')[0].appendChild(ucivitScriptNode);
 

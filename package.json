@@ -1,8 +1,8 @@
 {
-  "name": "ucivit2",
-  "version": "1.0.0",
+  "name": "ucivit",
+  "version": "1.2.0",
   "description": "New version of UCIVIT",
-  "main": "index.js",
+  "main": "ucivitServer.js",
   "dependencies": {
     "async": "^2.5.0",
     "body-parser": "^1.18.2",
@@ -21,8 +21,8 @@
     "nyc": "^11.2.1"
   },
   "scripts": {
-    "test": "nyc mocha",
-    "preinstall": "start cmd.exe /k mongod --rest --bind_ip 127.0.0.1"
+    "start": "node --use_strict --harmony-destructuring ucivitServer.js",
+    "test": "nyc mocha"
   },
   "author": "",
   "license": "ISC"
