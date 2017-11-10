@@ -788,6 +788,8 @@
       // Do nothing, as we just want to avoid looking into null elements
     }
 
+    // TODO: Add the class items as an array to the nodeInfo Object
+
     nodeInfo.nodeType = node.tagName;
     nodeInfo.textContent = textContent;
     nodeInfo.textValue = node.value;

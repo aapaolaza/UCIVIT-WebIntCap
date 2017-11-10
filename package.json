@@ -21,7 +21,7 @@
     "nyc": "^11.2.1"
   },
   "scripts": {
-    "start": "node --use_strict --harmony-destructuring ucivitServer.js",
+    "start": "node",
     "test": "nyc mocha"
   },
   "author": "",
