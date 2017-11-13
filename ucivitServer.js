@@ -21,6 +21,10 @@ app.all('/ucivit.js', (req, res) => {
   res.sendFile(`${__dirname}/public/ucivit.js`);
 });
 
+/**
+ * Using the testing page simulates deploying the tool in the same domain as the Web server.
+ * If both the capture and the Web server are in the same domain, POST requests will be used.
+ */
 app.all('/test', (req, res) => {
   res.sendFile(`${__dirname}/public/webpage_example.html`);
 });

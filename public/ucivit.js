@@ -508,7 +508,7 @@
     // The first time, just record current TS
     if ((lastLogTS !== -1) &&
       ((new Date().getTime() - lastLogTS) > episodeTimeout)) {
-      episodeCount += 1;
+      episodeCount = parseInt(episodeCount, 10) + 1;
       updateEpisodeInformation();
     }
 
