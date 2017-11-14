@@ -324,7 +324,7 @@
     if (!clientInfo) {
       clientInfo = Object.assign(inferClientBrowserInfo(), inferClientOSInfo());
     }
-    return { clientInfo };
+    return { client: clientInfo };
   }
 
 
@@ -572,8 +572,8 @@
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = userId;
-    logObj.url = window.location.href;
-    [logObj.trimmedUrl] = window.location.href.split('?');
+    [logObj.url] = window.location.href.split('?');
+    logObj.urlFull = window.location.href;
     if (encodeLogData) logObj.needsEncoding = encodeLogData;
 
     // set synchronization flag (block function)
@@ -746,7 +746,8 @@
       usableSizeWidth: $(window).width(),
       usableSizeHeight: $(window).height(),
     };
-    return { screenInfo };
+    // store as screen. DO NOT USE 'screen' as variable, there is a global variable with that name
+    return { screen: screenInfo };
   }
 
   /**
@@ -754,75 +755,76 @@
    * @param DOM node element
    */
 
-  function getNodeInfo(node) {
+  function getNodeInfo(targetNode) {
     const nodeInfo = {};
-    nodeInfo.dom = getDOMPath(node); // append DOM path
+    nodeInfo.dom = getDOMPath(targetNode); // append DOM path
 
     // if target has an id property
-    if (node.id) {
-      nodeInfo.id = node.id;
+    if (targetNode.id) {
+      nodeInfo.id = targetNode.id;
     }
     /* This code would look for the id of the closest element
     might cause issues if ONLY the ID element is used for queries,
     as there might be various items with the same ID
     */
-    /* else if (node.closest('[id]')){
-      eventString = eventString + "&id=" + node.closest('[id]').id;
+    /* else if (targetNode.closest('[id]')){
+      eventString = eventString + "&id=" + targetNode.closest('[id]').id;
     } */
 
     // if target has a name property
-    if (node.name) {
-      nodeInfo.name = node.name;
+    if (targetNode.name) {
+      nodeInfo.name = targetNode.name;
     }
 
     // if target has a href property
-    if (node.href) {
+    if (targetNode.href) {
       /* image detection IE: IE doesn't register any src property
       * instead href contains the file path */
-      if (node.nodeName === 'img' || node.nodeName === 'IMG') {
-        nodeInfo.img = getFileName(node.href);
+      if (targetNode.nodeName === 'img' || targetNode.nodeName === 'IMG') {
+        nodeInfo.img = getFileName(targetNode.href);
         // if linked image (parent node is an <a>-element)
-        if (node.parentNode.href) {
-          nodeInfo.link = node.parentNode.href;
+        if (targetNode.parentNode.href) {
+          nodeInfo.link = targetNode.parentNode.href;
         }
         // NS+IE: link detection
-      } else if (node.nodeName === 'a' || node.nodeName === 'A') { // if anchor tag
-        nodeInfo.link = node.href;
+      } else if (targetNode.nodeName === 'a' || targetNode.nodeName === 'A') { // if anchor tag
+        nodeInfo.link = targetNode.href;
 
         // IE: innertext property contains link text
-        if (node.innerText) {
+        if (targetNode.innerText) {
           // TODO: check if the encoding is necessary anymore
-          nodeInfo.text = node.innerText;
+          nodeInfo.text = targetNode.innerText;
           // NS: text property contains link text
         } else {
-          nodeInfo.text = node.text;
+          nodeInfo.text = targetNode.text;
         }
       }
-    } else if (node.src) {
+    } else if (targetNode.src) {
       // image detection NS
-      nodeInfo.img = getFileName(node.src);
-      if (node.parentNode.href) {
-        nodeInfo.link = node.parentNode.href;
+      nodeInfo.img = getFileName(targetNode.src);
+      if (targetNode.parentNode.href) {
+        nodeInfo.link = targetNode.parentNode.href;
       }
     }
 
     // Get textContent of the variable
     let textContent = 'null';
     try {
-      if (node.firstChild.nodeValue != null) {
-        textContent = node.firstChild.nodeValue.substring(0, 100);
+      if (targetNode.firstChild.nodeValue != null) {
+        textContent = targetNode.firstChild.nodeValue.substring(0, 100);
       }
     } catch (err) {
       // Do nothing, as we just want to avoid looking into null elements
     }
 
-    nodeInfo.class = node.className.split(/\s+/);
+    nodeInfo.class = targetNode.className.split(/\s+/);
 
-    nodeInfo.nodeType = node.tagName;
+    nodeInfo.nodeType = targetNode.tagName;
     nodeInfo.textContent = textContent;
-    nodeInfo.textValue = node.value;
+    nodeInfo.textValue = targetNode.value;
 
-    return { nodeInfo };
+    // in the database it will be stored as 'node', not 'nodeInfo'
+    return { node: nodeInfo };
   }
 
   /**
@@ -978,7 +980,7 @@
       // TODO: put all mouse coordinates into their own object.
       const eventObj = { event: 'mousemove' };
 
-      eventObj.mouseInfo = {
+      eventObj.mouse = {
         coordX: x,
         coordY: y,
         offsetX: xOffset,
@@ -1019,7 +1021,7 @@
 
     // log mouseover coordinates and all available target attributes
     const eventObj = { event: 'mouseover' };
-    eventObj.mouseInfo = {
+    eventObj.mouse = {
       coordX: x,
       coordY: y,
       offsetX: xOffset,
@@ -1065,7 +1067,7 @@
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
     const eventObj = { event: 'mouseout' };
-    eventObj.mouseInfo = {
+    eventObj.mouse = {
       coordX: x,
       coordY: y,
       offsetX: xOffset,
@@ -1123,7 +1125,7 @@
     }
 
     const eventObj = { event: 'mouseup' };
-    eventObj.mouseInfo = {
+    eventObj.mouse = {
       coordX: x,
       coordY: y,
       offsetX: xOffset,
@@ -1187,7 +1189,7 @@
     }
 
     const eventObj = { event: 'mousedown' };
-    eventObj.mouseInfo = {
+    eventObj.mouse = {
       coordX: x,
       coordY: y,
       offsetX: xOffset,
@@ -1886,14 +1888,15 @@
 
     const eventObj = { event: 'mobileTouchStart' };
 
-    eventObj.numberOfTouches = e.touches.length;
-    eventObj.isCtrlKey = e.ctrlKey;
-    eventObj.isShiftKey = e.shiftKey;
-    eventObj.isAltKey = e.altKey;
-    eventObj.isMetaKey = e.metaKey;
-
-    // Retrieve the list of all touch points
-    eventObj.touchList = e.touches;
+    eventObj.mobileTouch = {
+      numberOfTouches: e.touches.length,
+      isCtrlKey: e.ctrlKey,
+      isShiftKey: e.shiftKey,
+      isAltKey: e.altKey,
+      isMetaKey: e.metaKey,
+      // Retrieve the list of all touch points
+      touchList: e.touches,
+    };
 
     Object.assign(eventObj, getNodeInfo(e.target));
     writeLog(eventTS, eventObj);
@@ -1907,14 +1910,15 @@
 
     const eventObj = { event: 'mobileTouchEnd' };
 
-    eventObj.numberOfTouches = e.touches.length;
-    eventObj.isCtrlKey = e.ctrlKey;
-    eventObj.isShiftKey = e.shiftKey;
-    eventObj.isAltKey = e.altKey;
-    eventObj.isMetaKey = e.metaKey;
-
-    // Retrieve the list of all touch points
-    eventObj.touchList = e.touches;
+    eventObj.mobileTouch = {
+      numberOfTouches: e.touches.length,
+      isCtrlKey: e.ctrlKey,
+      isShiftKey: e.shiftKey,
+      isAltKey: e.altKey,
+      isMetaKey: e.metaKey,
+      // Retrieve the list of all touch points
+      touchList: e.touches,
+    };
 
     Object.assign(eventObj, getNodeInfo(e.target));
     writeLog(eventTS, eventObj);
@@ -1965,9 +1969,11 @@
       gyroBetaOld = gyroBeta;
       gyroGammaOld = gyroGamma;
 
-      eventObj.alpha = gyroAlpha;
-      eventObj.beta = gyroBeta;
-      eventObj.gamma = gyroGamma;
+      eventObj.mobileGyro = {
+        alpha: gyroAlpha,
+        beta: gyroBeta,
+        gamma: gyroGamma,
+      };
 
       writeLog(eventTS, eventObj);
     }
@@ -1989,8 +1995,10 @@
 
     const eventObj = { event: 'mobileOrientationChange' };
 
-    eventObj.orientation = orientation;
-    eventObj.orientationRaw = window.orientation;
+    eventObj.mobileOrientation = {
+      orientation,
+      orientationRaw: window.orientation,
+    };
 
     writeLog(eventTS, eventObj);
   }
@@ -2048,11 +2056,14 @@
 
       const eventObj = { event: 'mobileMotion' };
 
-      eventObj.accX = accX;
-      eventObj.accY = accY;
-      eventObj.accZ = accZ;
-      eventObj.maxAcc = maxAcc;
-      eventObj.maxAccWithGrav = maxAccGrav;
+
+      eventObj.mobileAcceleration = {
+        accX,
+        accY,
+        accZ,
+        maxAcc,
+        maxAccGrav,
+      };
 
       writeLog(eventTS, eventObj);
 

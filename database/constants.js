@@ -19,6 +19,7 @@ const eventFields = {
   PLATFORM: 'platform',
   BROWSER: 'browser',
   URL: 'url',
+  URLFULL: 'urlFull',
 
   // /Particular to NodeInfo
   NODEID: 'id',
