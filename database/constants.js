@@ -126,6 +126,26 @@ const eventFields = {
   DOMEVENT: 'domData',
 };
 
+const visEventFields = {
+
+  IPADDRESS: 'ip',
+  TIMESTAMPMS: 'timestampms',
+  EPISODECOUNT: 'episodeCount',
+  SD: 'sd',
+  SID: 'sid',
+  EVENT: 'event',
+  PLATFORM: 'platform',
+  BROWSER: 'browser',
+  URL: 'url',
+
+  // TODO: Add the event information from the visualisations
+
+  // //////////////////////////////////EVENTNAMES/////////////////////////////////////////////////
+  // TODO: add to the list the events to be recovered from the visualisations.
+  EVENTLIST: ['visEvent'],
+};
+
 module.exports.eventCollName = eventCollName;
 module.exports.domCollName = domCollName;
 module.exports.eventFields = eventFields;
+module.exports.visEventFields = visEventFields;

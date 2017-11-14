@@ -12,7 +12,7 @@
     const ucivitOptions = {};
 
     //  Options to be modified
-    ucivitOptions.webpageIndex = 'WEBSITEID';
+    ucivitOptions.websiteID = 'WEBSITEID';
     ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727';
     ucivitOptions.isDOMrecorded = false;
 
@@ -23,12 +23,12 @@
     ucivitOptions.protocol = PROTOCOL.HTTP;
 
     function setParameters() {
-      ucivitOptions.webpageIndex = document.getElementById("ucivitWebpageIndexInput").value;
+      ucivitOptions.websiteID = document.getElementById("ucivitWebpageIndexInput").value;
       ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value;
       ucivitOptions.protocol = $('input[name="protocol"]:checked').val();
       ucivitOptions.isDOMrecorded = $('input[name="storeDom"]').is(':checked');
       console.log("The following parameters were set:");
-      console.log(ucivitOptions.webpageIndex);
+      console.log(ucivitOptions.websiteID);
       console.log(ucivitOptions.serverIP);
       console.log(ucivitOptions.protocol);
       loadScript();

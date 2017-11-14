@@ -208,6 +208,48 @@ function commitJsonListToEvents(jsonDocList, callback) {
   });
 }
 
+
+/**
+ * Tests if the json to be inserted is valid. SO far, the event name will be checked
+ * @param {*} jsonDocList
+ * @param {*} callback
+ */
+function validateVisJsonList(jsonDocList, callback) {
+  callback(null, true);
+}
+
+/**
+ * Given a json document, it introduces its content to the database
+ * @param {JSON} jsonDocList list
+ * @param {*} callback
+ */
+function commitVisJsonListToEvents(jsonDocList, callback) {
+  async.waterfall([
+    (asyncCallback) => {
+      // validate json before inserting it to the database
+      validateJsonList(jsonDocList, (err, isJsonValid) => {
+        if (err || !isJsonValid) {
+          asyncCallback('ERROR Json could not be validated');
+        } else {
+          asyncCallback(null);
+        }
+      });
+    },
+    (asyncCallback) => {
+      // The waterfall will only get here if the json is valid
+      connectDB((connectErr, db) => {
+        if (connectErr) asyncCallback(connectErr);
+        db.collection(eventCollName).insertMany(jsonDocList, (insertErr, insertResults) => {
+          // console.log(`inserted ${insertResults.insertedCount} results`);
+          asyncCallback(insertErr);
+        });
+      });
+    },
+  ], (err) => {
+    callback(err);
+  });
+}
+
 /**
  * returns the list of all documents in the database
  * @param {Object} options for the search
@@ -307,6 +349,8 @@ module.exports.initIndexes = initIndexes;
 module.exports.dropIndexes = dropIndexes;
 module.exports.getIndexList = getIndexList;
 module.exports.commitJsonListToEvents = commitJsonListToEvents;
+module.exports.validateVisJsonList = validateVisJsonList;
+module.exports.commitVisJsonListToEvents = commitVisJsonListToEvents;
 module.exports.findEvents = findEvents;
 module.exports.purgeTestEvents = purgeTestEvents;
 module.exports.getLastEventTimestampForUser = getLastEventTimestampForUser;

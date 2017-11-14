@@ -474,6 +474,8 @@
   function updateEpisodeInformationCookie() {
     setCookie(episodeCountCookie, episodeCount);
     setCookie(lastLogTSCookie, lastLogTS);
+    // update global variable
+    ucivitOptions.episodeCount = episodeCount;
   }
 
   /**
@@ -557,14 +559,10 @@
 
     // console.log("Recording: " + text);
     // We add the browser version
-    Object.assign(logObj, getClientContextInformation());
+    // Object.assign(logObj, getClientContextInformation());
     // if function is already being executed, defer writeLog for 50ms
     // Add current episode information
     Object.assign(logObj, getEpisodeInfo());
-
-    // Adds additional parameters
-    let url = window.location.href;
-    url = url.replace('#', '');
 
     // we will also store users' timezone
     const timezoneOffset = new Date().getTimezoneOffset();
@@ -574,7 +572,8 @@
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = userId;
-    logObj.url = url;
+    logObj.url = window.location.href;
+    [logObj.trimmedUrl] = window.location.href.split('?');
     if (encodeLogData) logObj.needsEncoding = encodeLogData;
 
     // set synchronization flag (block function)
@@ -654,6 +653,8 @@
       dataType: 'jsonp',
     }).done((response) => {
       // console.log(response);
+    }).fail((jqXHR, textStatus) => {
+      console.log(`request failed ${textStatus}`);
     });
   }
 
@@ -719,6 +720,33 @@
       return path.substring(path.lastIndexOf('/') + 1);
     }
     return path;
+  }
+
+  /**
+   * Returns the viewport options
+   */
+  function getScreenSize() {
+    /* get size
+    * NS: first case (window.innerWidth/innerHeight available); IE: second case */
+    // innerWidth=NS
+    const loadWidth = (window.innerWidth) ? window.innerWidth : document.body.offsetWidth;
+    // innerHeight=NS
+    const loadHeight = (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;
+
+    const screenInfo = {
+      sizeWidth: loadWidth,
+      sizeHeight: loadHeight,
+      // TODO: Why is this es-lint triggering a global variable error?
+      // eslint-disable-next-line
+      resolutionWidth: screen.width,
+      // eslint-disable-next-line
+      resolutionHeight: screen.height,
+      htmlSizeWidth: $(document).width(),
+      htmlSizeHeight: $(document).height(),
+      usableSizeWidth: $(window).width(),
+      usableSizeHeight: $(window).height(),
+    };
+    return { screenInfo };
   }
 
   /**
@@ -788,7 +816,7 @@
       // Do nothing, as we just want to avoid looking into null elements
     }
 
-    // TODO: Add the class items as an array to the nodeInfo Object
+    nodeInfo.class = node.className.split(/\s+/);
 
     nodeInfo.nodeType = node.tagName;
     nodeInfo.textContent = textContent;
@@ -877,22 +905,10 @@
   /** Processes load event (logs load event together with the page size) */
   function processLoad() {
     const eventTS = datestampInMillisec();
-    /* get size
-    * NS: first case (window.innerWidth/innerHeight available); IE: second case */
-    // innerWidth=NS
-    const loadWidth = (window.innerWidth) ? window.innerWidth : document.body.offsetWidth;
-    // innerHeight=NS
-    const loadHeight = (window.innerHeight) ? window.innerHeight : document.body.offsetHeight;
 
-    const eventObj = {
-      event: 'load',
-      size: `${loadWidth}x${loadHeight}`,
-      // TODO: Why is this triggering a global variable error?
-      // eslint-disable-next-line
-      resolution: `${screen.width}x${screen.height}`,
-      htmlSize: `${$(document).width()}x${$(document).height()}`,
-      usableSize: `${$(window).width()} x${$(window).height()}`,
-    };
+    const eventObj = { event: 'load' };
+    Object.assign(eventObj, getScreenSize());
+    Object.assign(eventObj, getClientContextInformation());
     writeLog(eventTS, eventObj);
 
     if (isDOMrecorded) recordCurrentDOM();
@@ -916,15 +932,8 @@
       lastResizeHeigth = newHeight;
       lastResizeDate = new Date().getTime();
 
-      const eventObj = {
-        event: 'resize',
-        size: `${newWidth}x${newHeight}`,
-        // TODO: Why is this triggering a global variable error?
-        // eslint-disable-next-line
-        resolution: `${screen.width}x${screen.height}`,
-        htmlSize: `${$(document).width()}x${$(document).height()}`,
-        usableSize: `${$(window).width()} x${$(window).height()}`,
-      };
+      const eventObj = { event: 'resize' };
+      Object.assign(eventObj, getScreenSize());
       writeLog(eventTS, eventObj);
     }
   }
@@ -966,11 +975,16 @@
       mousemoveLastPosX = x;
       mousemoveLastPosY = y;
 
-      const eventObj = {
-        event: 'mousemove',
-        coord: `${x},${y}`,
-        offset: `${xOffset},${yOffset}`,
+      // TODO: put all mouse coordinates into their own object.
+      const eventObj = { event: 'mousemove' };
+
+      eventObj.mouseInfo = {
+        coordX: x,
+        coordY: y,
+        offsetX: xOffset,
+        offsetY: yOffset,
       };
+
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1004,12 +1018,14 @@
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
     // log mouseover coordinates and all available target attributes
-
-    const eventObj = {
-      event: 'mouseover',
-      coord: `${x},${y}`,
-      offset: `${xOffset},${yOffset}`,
+    const eventObj = { event: 'mouseover' };
+    eventObj.mouseInfo = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
     };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     // Work around to handle multiple mouseover events queuing one after anohter,
@@ -1048,11 +1064,14 @@
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    const eventObj = {
-      event: 'mouseout',
-      coord: `${x},${y}`,
-      offset: `${xOffset},${yOffset}`,
+    const eventObj = { event: 'mouseout' };
+    eventObj.mouseInfo = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
     };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     // Work around to handle multiple mouseover events queuing one after another,
@@ -1103,12 +1122,15 @@
       }
     }
 
-    const eventObj = {
-      event: 'mouseup',
-      coord: `${x},${y}`,
-      offset: `${xOffset},${yOffset}`,
+    const eventObj = { event: 'mouseup' };
+    eventObj.mouseInfo = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
       but: mbutton,
     };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -1124,9 +1146,6 @@
     the mouse pointer position is recorded relative to the hovered-over area/element. */
 
   function processMousedown(e) {
-    // ensures the function is only called on the target of the interaction, preventing bubble up
-    if (e.target !== e.currentTarget) return;
-
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
@@ -1167,12 +1186,15 @@
       }
     }
 
-    const eventObj = {
-      event: 'mousedown',
-      coord: `${x},${y}`,
-      offset: `${xOffset},${yOffset}`,
+    const eventObj = { event: 'mousedown' };
+    eventObj.mouseInfo = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
       but: mbutton,
     };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -2188,6 +2210,7 @@
         dataType: 'jsonp',
       }).done((response) => {
         ucivitServerTS = parseInt(response.serverTime, 10);
+        ucivitOptions.sessionstartms = ucivitServerTS;
         console.log(ucivitServerTS);
         initUcivit();
       }).fail((jqXHR, textStatus) => {

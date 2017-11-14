@@ -57,6 +57,37 @@ app.all('/log/event', (req, res) => {
 });
 
 /**
+ * Custom router to capture events from visualisations using iframes
+ * 
+ */
+app.all('/log/vis', (req, res) => {
+  /**
+   * Depending on the domain where the server is located
+   * the received data will be sent via GET or POST
+   * (req.query for GET, req.body for POST)
+   */
+  let { jsonLogString } = req.body;
+  if (typeof jsonLogString === 'undefined') {
+    ({ jsonLogString } = req.query);
+  }
+
+  // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
+  if (typeof jsonLogString === 'undefined'
+    || JSON.parse(jsonLogString).length === 0) {
+    console.log('invalid data');
+    res.status(500).jsonp({ err: 'invalid data' });
+  } else {
+    mongoDAO.commitVisJsonListToEvents(JSON.parse(jsonLogString), (commitErr) => {
+      if (commitErr) {
+        res.status(500).jsonp({ err: commitErr });
+      } else {
+        res.status(200).jsonp({ success: true });// return a valid JSON or null for success
+      }
+    });
+  }
+});
+
+/**
  * log/dom request can only contain a single json document with full DOM data
  */
 app.all('/log/dom', (req, res) => {
