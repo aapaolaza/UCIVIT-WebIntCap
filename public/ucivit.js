@@ -819,7 +819,7 @@
 
     nodeInfo.class = targetNode.className.split(/\s+/);
 
-    nodeInfo.nodeType = targetNode.tagName;
+    nodeInfo.type = targetNode.tagName;
     nodeInfo.textContent = textContent;
     nodeInfo.textValue = targetNode.value;
 
