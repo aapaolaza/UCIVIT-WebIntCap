@@ -22,15 +22,17 @@ const eventFields = {
   URLFULL: 'urlFull',
 
   // /Particular to NodeInfo
-  NODEID: 'id',
-  NODENAME: 'name',
-  NODEDOM: 'dom',
-  NODEIMG: 'img',
-  NODELINK: 'link',
-  NODETEXT: 'text',
-  NODETYPE: 'nodeType',
-  NODETEXTVALUE: 'textValue',
-  NODETEXTCONTENT: 'textContent',
+  NODE: 'node',
+  NODEID: 'node.id',
+  NODENAME: 'node.name',
+  NODEDOM: 'node.dom',
+  NODEIMG: 'node.img',
+  NODELINK: 'node.link',
+  NODETEXT: 'node.text',
+  NODETYPE: 'node.nodeType',
+  NODETEXTVALUE: 'node.textValue',
+  NODETEXTCONTENT: 'node.textContent',
+  NODECLASS: 'node.class',
 
   // Particular to MouseCoordinates
   MOUSECOORD: 'coord',

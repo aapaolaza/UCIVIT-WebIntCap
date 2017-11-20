@@ -19,7 +19,8 @@ describe('Database', () => {
   });
 
   describe('#initIndexes()', () => {
-    it('should return 12, the number of existing or created indexes', (done) => {
+    it('should return 13, the number of existing or created indexes', (done) => {
+      const indexNumber = 13;
       async.waterfall([
         (asyncCallback) => {
           mongoDAO.dropIndexes((err) => {
@@ -42,7 +43,7 @@ describe('Database', () => {
             if (indexErr) throw indexErr;
             else {
               // Test for 12 indexes: 11 indexes created by UCIVIT plus the default _id
-              assert.equal(12, Object.keys(indexInfo).length, 'The number of resulting indexes was different');
+              assert.equal(indexNumber, Object.keys(indexInfo).length, 'The number of resulting indexes was different');
               asyncCallback(null);
             }
           });

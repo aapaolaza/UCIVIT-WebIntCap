@@ -87,6 +87,7 @@ function initIndexes(callback) {
     { [eventFields.TIMESTAMPMS]: 1 },
     { [eventFields.URL]: 1 },
     { [eventFields.SID]: 1, [eventFields.URL]: 1 },
+    { [eventFields.EVENT]: 1, [eventFields.NODECLASS]: 1 },
     { [eventFields.SID]: 1, [eventFields.SD]: 1 },
     { [eventFields.SID]: 1, [eventFields.EPISODECOUNT]: 1 },
     { [eventFields.SID]: 1, [eventFields.URL]: 1, [eventFields.TIMESTAMPMS]: 1 },
