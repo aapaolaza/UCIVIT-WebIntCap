@@ -43,11 +43,12 @@ app.all('/log/event', (req, res) => {
   // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
   if (typeof jsonLogString === 'undefined'
     || JSON.parse(jsonLogString).length === 0) {
-    console.log('invalid data');
+    mongoDAO.logMessage('ERROR', '/log/event:JSON.parse', '', jsonLogString, new Date().getTime(), new Date().getTime());
     res.status(500).jsonp({ err: 'invalid data' });
   } else {
     mongoDAO.commitJsonListToEvents(JSON.parse(jsonLogString), (commitErr) => {
       if (commitErr) {
+        mongoDAO.logMessage('ERROR', '/log/event:commitDomContent', commitErr, jsonLogString, new Date().getTime(), new Date().getTime());
         res.status(500).jsonp({ err: commitErr });
       } else {
         res.status(200).jsonp({ success: true });// return a valid JSON or null for success
@@ -58,7 +59,7 @@ app.all('/log/event', (req, res) => {
 
 /**
  * Custom router to capture events from visualisations using iframes
- * 
+ *
  */
 app.all('/log/vis', (req, res) => {
   /**
@@ -74,11 +75,12 @@ app.all('/log/vis', (req, res) => {
   // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
   if (typeof jsonLogString === 'undefined'
     || JSON.parse(jsonLogString).length === 0) {
-    console.log('invalid data');
+    mongoDAO.logMessage('ERROR', '/log/vis:JSON.parse', '', jsonLogString, new Date().getTime(), new Date().getTime());
     res.status(500).jsonp({ err: 'invalid data' });
   } else {
     mongoDAO.commitVisJsonListToEvents(JSON.parse(jsonLogString), (commitErr) => {
       if (commitErr) {
+        mongoDAO.logMessage('ERROR', '/log/vis:commitDomContent', commitErr, jsonLogString, new Date().getTime(), new Date().getTime());
         res.status(500).jsonp({ err: commitErr });
       } else {
         res.status(200).jsonp({ success: true });// return a valid JSON or null for success
@@ -98,12 +100,12 @@ app.all('/log/dom', (req, res) => {
   // console.log(`Logging ${JSON.parse(jsonLogString).length} events`);
   if (typeof jsonDomData === 'undefined'
     || JSON.parse(jsonDomData).length === 0) {
-    console.log('invalid data');
+    mongoDAO.logMessage('ERROR', '/log/dom:JSON.parse', '', jsonDomData, new Date().getTime(), new Date().getTime());
     res.status(500).jsonp({ err: 'invalid data' });
   } else {
     mongoDAO.commitDomContent(JSON.parse(jsonDomData), (commitErr) => {
       if (commitErr) {
-        console.log(commitErr);
+        mongoDAO.logMessage('ERROR', '/log/dom:commitDomContent', commitErr, jsonDomData, new Date().getTime(), new Date().getTime());
         res.status(500).jsonp({ err: commitErr });
       } else {
         res.status(200).jsonp({ success: true });// return a valid JSON or null for success
@@ -114,7 +116,11 @@ app.all('/log/dom', (req, res) => {
 
 
 const server = app.listen(ucivitOptions.port, ucivitOptions.bindIP, () => {
-  console.log(`UCIVIT Server running on ${ucivitOptions.port} and address ${ucivitOptions.bindIP} ...`);
+  console.log('Creating indexes for the database');
+  mongoDAO.initIndexes((indexErr) => {
+    if (indexErr) mongoDAO.logMessage('ERROR', 'app.listen:initIndexes', indexErr, '', new Date().getTime(), new Date().getTime());
+    console.log(`UCIVIT Server running on ${ucivitOptions.port} and address ${ucivitOptions.bindIP} ...`);
+  });
 });
 
 

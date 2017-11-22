@@ -2,7 +2,12 @@ const mongodb = require('mongodb');
 const async = require('async');
 const dateFormat = require('dateformat');
 
-const { eventCollName, domCollName, eventFields } = require('./constants');
+const {
+  eventCollName,
+  domCollName,
+  logCollName,
+  eventFields,
+} = require('./constants');
 
 const mongoClient = mongodb.MongoClient;
 
@@ -343,6 +348,39 @@ function commitDomContent(domObject, callback) {
   });
 }
 
+/**
+ *  * Given a message and a timestamp, it logs the operation,
+ * or error to the db.
+ * @param {string} type can be either error,message, or optime
+ * @param {*} operation that called this function
+ * @param {*} error message (if any)
+ * @param {*} message to store
+ * @param {*} startTimems if given, the start of the operation to store
+ * @param {*} endTimems  if given, the end of the operation to store
+ */
+function logMessage(type, operation, error, message, startTimems, endTimems) {
+  connectDB((connectErr, db) => {
+    if (connectErr) { console.error(connectErr); return; }
+
+    const logDocument = {
+      application: 'UCIVIT',
+      type,
+      operation,
+      error,
+      message,
+      duration: (endTimems - startTimems),
+      startTimems,
+      startTime: new Date(startTimems).toString(),
+      endTimems,
+      endTime: new Date(endTimems).toString(),
+    };
+
+    db.collection(logCollName).insert(logDocument, (insertErr) => {
+      if (insertErr) console.error(`logMessage() ERROR INSERTING LOG DOCUMENT ${insertErr}`);
+    });
+  });
+}
+
 module.exports.connectDB = connectDB;
 module.exports.switchToTestMode = switchToTestMode;
 module.exports.closeConnection = closeConnection;
@@ -356,3 +394,4 @@ module.exports.findEvents = findEvents;
 module.exports.purgeTestEvents = purgeTestEvents;
 module.exports.getLastEventTimestampForUser = getLastEventTimestampForUser;
 module.exports.commitDomContent = commitDomContent;
+module.exports.logMessage = logMessage;

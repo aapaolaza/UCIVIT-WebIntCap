@@ -3,6 +3,8 @@
 const eventCollName = 'events';
 const domCollName = 'domchanges';
 
+const logCollName = 'log';
+
 // eventFields file will contain a mapping of all the fields available for the events
 
 // i.e. instead of using event.timestampms, we will use the mapping to timestampms
@@ -150,5 +152,6 @@ const visEventFields = {
 
 module.exports.eventCollName = eventCollName;
 module.exports.domCollName = domCollName;
+module.exports.logCollName = logCollName;
 module.exports.eventFields = eventFields;
 module.exports.visEventFields = visEventFields;
