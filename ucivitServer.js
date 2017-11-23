@@ -30,6 +30,7 @@ app.all('/test', (req, res) => {
 });
 
 app.all('/log/event', (req, res) => {
+
   /**
    * Depending on the domain where the server is located
    * the received data will be sent via GET or POST
@@ -48,7 +49,7 @@ app.all('/log/event', (req, res) => {
   } else {
     mongoDAO.commitJsonListToEvents(JSON.parse(jsonLogString), (commitErr) => {
       if (commitErr) {
-        mongoDAO.logMessage('ERROR', '/log/event:commitDomContent', commitErr, jsonLogString, new Date().getTime(), new Date().getTime());
+        mongoDAO.logMessage('ERROR', '/log/event:commitJsonListToEvents', commitErr, jsonLogString, new Date().getTime(), new Date().getTime());
         res.status(500).jsonp({ err: commitErr });
       } else {
         res.status(200).jsonp({ success: true });// return a valid JSON or null for success
@@ -80,7 +81,7 @@ app.all('/log/vis', (req, res) => {
   } else {
     mongoDAO.commitVisJsonListToEvents(JSON.parse(jsonLogString), (commitErr) => {
       if (commitErr) {
-        mongoDAO.logMessage('ERROR', '/log/vis:commitDomContent', commitErr, jsonLogString, new Date().getTime(), new Date().getTime());
+        mongoDAO.logMessage('ERROR', '/log/vis:commitVisJsonListToEvents', commitErr, jsonLogString, new Date().getTime(), new Date().getTime());
         res.status(500).jsonp({ err: commitErr });
       } else {
         res.status(200).jsonp({ success: true });// return a valid JSON or null for success
@@ -133,6 +134,7 @@ function exitHandler(options, err) {
   if (options.adminInitiated) {
     console.log(500, 'ADMINISTRATOR STOPPED THE SERVER');
   } else {
+    mongoDAO.logMessage('ERROR', 'exitHandler:fatal error', err, '', new Date().getTime(), new Date().getTime());
     console.log(500, 'FATAL ERROR, CONTACT ADMINISTRATOR');
   }
   if (options.cleanup) console.log('clean');

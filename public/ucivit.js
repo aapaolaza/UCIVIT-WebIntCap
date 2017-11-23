@@ -30,7 +30,7 @@
    * Log save frequency.
    * Specifies the frequency of log save requests to the server
    */
-  const logSaveFrequency = 3000;
+  const logSaveFrequency = 1000;
 
   /**
    * Date: Initialised by query to the UCIVIT server.
@@ -586,20 +586,61 @@
   }
 
   /**
+   * Some events might contain the same event tag, and the same timestampms,
+   * due to the way JS queues the events to be processed.
+   *
+   * This code takes the list of events to be sent, and if it finds more than one event with the
+   * same tag, and the same timestamp, it increases the count by one, thus maintaining the order
+   * in which they took place.
+   * @param {*} jsonLogData
+   */
+  function fixTimeOrder(jsonLogData) {
+    const eventTSHistory = [];
+    for (let index = 0; index < jsonLogData.length; index += 1) {
+      const jsonObj = jsonLogData[index];
+      if (eventTSHistory[jsonObj.event]) {
+        if (eventTSHistory[jsonObj.event].timestampms === jsonObj.timestampms) {
+          // If the event is the same, beyond only the timestampms, drop the event
+          if (JSON.stringify(eventTSHistory[jsonObj.event]) === JSON.stringify(jsonObj)) {
+            jsonLogData.splice(index, 1);
+            index -= 1;// otherwise we skip the next element
+            console.log(`Removed duplicate event ${jsonObj.event}`);
+          } else {
+            // If it's only the timestampms, then increase the count.
+            jsonLogData[index].timestampms += 1;
+            eventTSHistory[jsonObj.event] = jsonObj;
+            console.log(`Fixed timestamp for event ${jsonObj.event}`);
+          }
+        } else {
+          // console.log(`${eventTSHistory[jsonObj.event].timestampms} and ${jsonObj.timestampms} were different`);
+        }
+      } else {
+        eventTSHistory[jsonObj.event] = jsonObj;
+      }
+    }
+    // console.log(eventTSHistory);
+    return jsonLogData;
+  }
+  /**
    * Ajax request to store data
    */
 
   function sendJsonData(jsonLogData) {
+    const reqID = new Date().getTime();
+    console.log(`Request ID:${reqID}`);
     $.ajax({
       type: 'POST',
       url: eventLogURL,
       data: { jsonLogString: JSON.stringify(jsonLogData) },
       dataType: 'jsonp',
-    }).done((response) => {
-      // console.log(response);
     }).fail((jqXHR, textStatus) => {
-      console.log(`request failed ${textStatus}`);
+      console.log(`${reqID} request failed`); console.log(textStatus);
     });
+    /* .always((response) => {
+      console.log(`${reqID} always response was`); console.log(response);
+    }).done((response) => {
+      console.log(`${reqID} done response was`); console.log(response);
+    }); */
   }
 
   /** Called periodically to send tracked usage data (if any) to the server */
@@ -2145,8 +2186,10 @@
     listenersArray.push({ target: document, event: 'keyup', function: processKeyUp });
     listenersArray.push({ target: document, event: 'keypress', function: processKeypress });
 
-    listenersArray.push({ target: document, event: 'focusin', function: processFocus });
-    listenersArray.push({ target: document, event: 'focusout', function: processBlur });
+    // TODO: These events get triggered twice when active.
+    // Only activate them if the problem is identified and fixed.
+    // listenersArray.push({ target: document, event: 'focusin', function: processFocus });
+    // listenersArray.push({ target: document, event: 'focusout', function: processBlur });
 
     /**
      * Replace the previous approach that looked for all form elements to attach an event.

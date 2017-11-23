@@ -79,7 +79,7 @@ const eventFields = {
   DOMCONTENT: 'domContent',
 
   // Server provided timestamp
-  SESSIONSTARTMS: 'sessionStartTime',
+  SESSIONSTARTMS: 'sessionstartms',
 
   // User's timezone
   USERTIMEZONEOFFSET: 'timezoneOffset',
