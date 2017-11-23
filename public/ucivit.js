@@ -627,7 +627,7 @@
 
   function sendJsonData(jsonLogData) {
     const reqID = new Date().getTime();
-    console.log(`Request ID:${reqID}`);
+    // console.log(`Request ID:${reqID}`);
     $.ajax({
       type: 'POST',
       url: eventLogURL,
