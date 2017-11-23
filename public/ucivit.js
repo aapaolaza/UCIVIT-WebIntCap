@@ -612,6 +612,7 @@
             console.log(`Fixed timestamp for event ${jsonObj.event}`);
           }
         } else {
+          eventTSHistory[jsonObj.event] = jsonObj;
           // console.log(`${eventTSHistory[jsonObj.event].timestampms} and ${jsonObj.timestampms} were different`);
         }
       } else {
@@ -619,22 +620,22 @@
       }
     }
     // console.log(eventTSHistory);
-    return jsonLogData;
   }
   /**
    * Ajax request to store data
    */
 
   function sendJsonData(jsonLogData) {
-    const reqID = new Date().getTime();
+    // const reqID = new Date().getTime();
     // console.log(`Request ID:${reqID}`);
+    fixTimeOrder(jsonLogData);
     $.ajax({
       type: 'POST',
       url: eventLogURL,
       data: { jsonLogString: JSON.stringify(jsonLogData) },
       dataType: 'jsonp',
     }).fail((jqXHR, textStatus) => {
-      console.log(`${reqID} request failed`); console.log(textStatus);
+      console.log('request failed'); console.log(textStatus);
     });
     /* .always((response) => {
       console.log(`${reqID} always response was`); console.log(response);
