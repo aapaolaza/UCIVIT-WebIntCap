@@ -1,0 +1,39 @@
+<!-- ucivit script start -->
+<script type="text/javascript">
+  const ucivitOptions = {};
+
+  //  Options to be modified
+  ucivitOptions.webpageIndex = 'WEBSITEID';
+  ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727';
+  ucivitOptions.isDOMrecorded = false;
+
+  var PROTOCOL = {
+    HTTPS: 'https://',
+    HTTP: 'http://'
+  };
+  ucivitOptions.protocol = PROTOCOL.HTTP;
+  ucivitOptions.userId = getCookie('ucivitUserId');
+
+  //we add the script dinamically
+  let ucivitScriptNode = document.createElement('script');
+  ucivitScriptNode.id = 'ucivitScript';
+  ucivitScriptNode.type = 'text/javascript';
+  ucivitScriptNode.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ucivit.js`;
+
+  document.getElementsByTagName('head')[0].appendChild(ucivitScriptNode);
+
+  function getCookie(c_name) {
+    var i, x, y, ARRcookies = document.cookie.split(";");
+    for (i = 0; i < ARRcookies.length; i++) {
+      x = ARRcookies[i].substr(0, ARRcookies[i].indexOf("="));
+      y = ARRcookies[i].substr(ARRcookies[i].indexOf("=") + 1);
+      x = x.replace(/^\s+|\s+$/g, "");
+      if (x == c_name) {
+        return unescape(y);
+      }
+    }
+    //we didn't find the cookie, so we return null
+    return "null";
+  }
+</script>
+<!-- ucivit script end -->
