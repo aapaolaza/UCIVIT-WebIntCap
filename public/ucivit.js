@@ -801,17 +801,17 @@
     const nodeInfo = {};
     nodeInfo.dom = getDOMPath(targetNode); // append DOM path
 
-    // if target has an id property
+    // if target does not have an id property, look for parent
     if (targetNode.id) {
       nodeInfo.id = targetNode.id;
+      nodeInfo.inheritedId = false;
+    } else {
+      const parentId = $(targetNode).closest('[id]').prop('id');
+      if (parentId) {
+        nodeInfo.id = parentId;
+        nodeInfo.inheritedId = true;
+      }
     }
-    /* This code would look for the id of the closest element
-    might cause issues if ONLY the ID element is used for queries,
-    as there might be various items with the same ID
-    */
-    /* else if (targetNode.closest('[id]')){
-      eventString = eventString + "&id=" + targetNode.closest('[id]').id;
-    } */
 
     // if target has a name property
     if (targetNode.name) {
