@@ -1890,14 +1890,14 @@
     * Extracts and encodes form inputs in the page. Content from text areas are also extracted
     */
   function getFormInputs() {
-    let formInputs = '';
+    const formInputs = {};
     // $('input').css('background-color','blue')
     // $('input').css('background-color','')
 
     $('input,select,textarea').each((index, element) => {
-      formInputs += `${$(element).attr('id')}:${$(element).val()};`;
+      formInputs[$(element).attr('id')] = $(element).val();
     });
-    return (formInputs);
+    return { formInputs };
   }
 
   /**
@@ -1910,10 +1910,9 @@
 
     const eventTS = datestampInMillisec();
     const { target } = e;
-    const eventObj = {
-      event: 'submit',
-      formInputs: getFormInputs(),
-    };
+    const eventObj = { event: 'submit' };
+
+    Object.assign(eventObj, getFormInputs());
     Object.assign(eventObj, getNodeInfo(target));
     writeLog(eventTS, eventObj);
     saveLog();
@@ -2211,7 +2210,7 @@
     listenersArray.push({ target: window, event: 'blur', function: processWindowBlurEvent });
 
     // Specific targets
-    listenersArray.push({ target: 'form,form-control', event: 'submit', function: processSubmitEvent });
+    listenersArray.push({ target: document, event: 'submit', function: processSubmitEvent });
 
     // Mobile events
     listenersArray.push({ target: document, event: 'touchstart', function: processMobileTouchStart });
