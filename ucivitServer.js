@@ -31,7 +31,7 @@ app.all(`${serverPath}/test`, (req, res) => {
   res.sendFile(`${__dirname}/public/webpage_example.html`);
 });
 
-app.all('/log/event', (req, res) => {
+app.all(`${serverPath}/log/event`, (req, res) => {
   /**
    * Depending on the domain where the server is located
    * the received data will be sent via GET or POST
