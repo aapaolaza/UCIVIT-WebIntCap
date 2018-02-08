@@ -24,7 +24,7 @@
 
     function setParameters() {
       ucivitOptions.websiteID = document.getElementById("ucivitWebpageIndexInput").value;
-      ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value;
+      ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value+'/ucivit';
       ucivitOptions.protocol = $('input[name="protocol"]:checked').val();
       ucivitOptions.isDOMrecorded = $('input[name="storeDom"]').is(':checked');
       console.log("The following parameters were set:");

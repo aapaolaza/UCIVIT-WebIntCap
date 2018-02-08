@@ -1930,13 +1930,13 @@
     const eventObj = { event: 'mobileTouchStart' };
 
     eventObj.mobileTouch = {
-      numberOfTouches: e.touches.length,
+      numberOfTouches: e.originalEvent.touches.length,
       isCtrlKey: e.ctrlKey,
       isShiftKey: e.shiftKey,
       isAltKey: e.altKey,
       isMetaKey: e.metaKey,
       // Retrieve the list of all touch points
-      touchList: e.touches,
+      touchList: e.originalEvent.touches,
     };
 
     Object.assign(eventObj, getNodeInfo(e.target));
@@ -1952,13 +1952,13 @@
     const eventObj = { event: 'mobileTouchEnd' };
 
     eventObj.mobileTouch = {
-      numberOfTouches: e.touches.length,
+      numberOfTouches: e.originalEvent.touches.length,
       isCtrlKey: e.ctrlKey,
       isShiftKey: e.shiftKey,
       isAltKey: e.altKey,
       isMetaKey: e.metaKey,
       // Retrieve the list of all touch points
-      touchList: e.touches,
+      touchList: e.originalEvent.touches,
     };
 
     Object.assign(eventObj, getNodeInfo(e.target));
