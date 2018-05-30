@@ -203,8 +203,7 @@ function commitJsonListToEvents(jsonDocList, callback) {
       // The waterfall will only get here if the json is valid
       connectDB((connectErr, db) => {
         if (connectErr) asyncCallback(connectErr);
-        db.collection(eventCollName).insertMany(jsonDocList, (insertErr, insertResults) => {
-          // console.log(`inserted ${insertResults.insertedCount} results`);
+        db.collection(eventCollName).insertMany(jsonDocList, (insertErr) => {
           asyncCallback(insertErr);
         });
       });
@@ -245,8 +244,7 @@ function commitVisJsonListToEvents(jsonDocList, callback) {
       // The waterfall will only get here if the json is valid
       connectDB((connectErr, db) => {
         if (connectErr) asyncCallback(connectErr);
-        db.collection(eventCollName).insertMany(jsonDocList, (insertErr, insertResults) => {
-          // console.log(`inserted ${insertResults.insertedCount} results`);
+        db.collection(eventCollName).insertMany(jsonDocList, (insertErr) => {
           asyncCallback(insertErr);
         });
       });
@@ -337,8 +335,7 @@ function commitDomContent(domObject, callback) {
       // The waterfall will only get here if the json is valid
       connectDB((connectErr, db) => {
         if (connectErr) asyncCallback(connectErr);
-        db.collection(domCollName).insertOne(domObject, (insertErr, insertResults) => {
-          // console.log(`inserted ${insertResults.insertedCount} results`);
+        db.collection(domCollName).insertOne(domObject, (insertErr) => {
           asyncCallback(insertErr);
         });
       });

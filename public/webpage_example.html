@@ -23,7 +23,7 @@
     ucivitOptions.protocol = PROTOCOL.HTTP;
 
     function setParameters() {
-      ucivitOptions.websiteID = document.getElementById("ucivitWebpageIndexInput").value;
+      ucivitOptions.websiteID = document.getElementById("ucivitWebsiteIDInput").value;
       ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value+'/ucivit';
       ucivitOptions.protocol = $('input[name="protocol"]:checked').val();
       ucivitOptions.isDOMrecorded = $('input[name="storeDom"]').is(':checked');
@@ -57,7 +57,7 @@
           }
         }
         //we didn't find the cookie, so we return null
-        return "null";
+        return null;
       }
     }
 
@@ -84,9 +84,9 @@
   <h2>
     Configuration
   </h2>
-  ucivitWebpageIndex:
+  ucivitWebsiteID:
   <br>
-  <input type="text" id="ucivitWebpageIndexInput" value="10001">
+  <input type="text" id="ucivitWebsiteIDInput" value="10001">
   <br> ucivitServerIP:PORT
   <br>
   <input type="text" id="ucivitServerIPInput" value="localhost:2727">

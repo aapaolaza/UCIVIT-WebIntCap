@@ -24,6 +24,8 @@
   const episodeCountCookie = 'ucivitEpisodeCount';
   const lastLogTSCookie = 'ucivitLastLogTS';
 
+  const adBlockAlertCookie = 'ucivitAdBlockAlert';
+
   const episodeTimeout = 40 * 60 * 1000;
 
   /**
@@ -37,6 +39,33 @@
    * Load completion timestamp is calculated relative to this timestamp.
    */
   let ucivitServerTS;
+
+  // ////////////////////////////////////////////////////////////////////////
+  // //////////////////////AD DETECTION//////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////
+
+  // This variable determines if the user is to be notified of errors
+  if (ucivitOptions.detectAdBlock && !getCookie(adBlockAlertCookie)) {
+    const adBlockNode = document.createElement('script');
+    adBlockNode.type = 'text/javascript';
+    adBlockNode.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ads.js`;
+    // The following request would actually go through ad blockers without problems
+    // document.getElementsByTagName('head')[0].appendChild(adBlockNode);
+    $.ajax({
+      url: adBlockNode.src,
+      dataType: 'script',
+    });
+
+    window.setTimeout(() => {
+      if (!document.getElementById(ucivitOptions.detectAdBlockNodeID)) {
+        if (confirm('An ad blocker was detected which can cause problems with the interaction capture, please disable any adblockers you may have\n Press false not to be reminded again. \n WARNING: functionalities based on your interaction data might misbehave.')) {
+          // Do not do anything
+        } else {
+          setCookie(adBlockAlertCookie, true, 1);
+        }
+      }
+    }, 1000);
+  }
 
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////COOKIE HANDLER////////////////////////////////////
@@ -63,10 +92,15 @@
   * Stores the given value in the cookie whose name is given
   * @param cookieName label of the cookie
   * @param value value to store
+  * @param expiration optional value to specify how long the cookie will last
   */
-  function setCookie(cookieName, value) {
+  function setCookie(cookieName, value, expiration) {
     const exdate = new Date();
-    exdate.setDate(exdate.getDate() + cookieLife);
+    if (typeof expiration === 'undefined') {
+      exdate.setDate(exdate.getDate() + cookieLife);
+    } else {
+      exdate.setDate(exdate.getDate() + expiration);
+    }
     let cookieValue = value + ((cookieLife == null) ? '' : `; expires = ${exdate.toUTCString()} `);
 
     // remove the www from the start so the cookie is available to all pages in the domain
@@ -557,9 +591,6 @@
 
     const logObj = eventObj;
 
-    // console.log("Recording: " + text);
-    // We add the browser version
-    // Object.assign(logObj, getClientContextInformation());
     // if function is already being executed, defer writeLog for 50ms
     // Add current episode information
     Object.assign(logObj, getEpisodeInfo());
@@ -613,7 +644,6 @@
           }
         } else {
           eventTSHistory[jsonObj.event] = jsonObj;
-          // console.log(`${eventTSHistory[jsonObj.event].timestampms} and ${jsonObj.timestampms} were different`);
         }
       } else {
         eventTSHistory[jsonObj.event] = jsonObj;
@@ -666,9 +696,6 @@
 
     const logObj = { event: 'domData', domContent: document.getElementsByTagName('body')[0].innerHTML };
 
-    // console.log("Recording: " + text);
-    // We add the browser version
-    Object.assign(logObj, getClientContextInformation());
     // if function is already being executed, defer writeLog for 50ms
     // Add current episode information
     Object.assign(logObj, getEpisodeInfo());
@@ -693,8 +720,6 @@
       url: domLogURL,
       data: { jsonDomData: JSON.stringify(logObj) },
       dataType: 'jsonp',
-    }).done((response) => {
-      // console.log(response);
     }).fail((jqXHR, textStatus) => {
       console.log(`request failed ${textStatus}`);
     });
@@ -952,7 +977,9 @@
 
     const eventObj = { event: 'load' };
     Object.assign(eventObj, getScreenSize());
-    Object.assign(eventObj, getClientContextInformation());
+    if (ucivitOptions.isClientContextRecorded) {
+      Object.assign(eventObj, getClientContextInformation());
+    }
     writeLog(eventTS, eventObj);
 
     if (isDOMrecorded) recordCurrentDOM();

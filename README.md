@@ -41,7 +41,7 @@ db.events.find().sort({"timestamp":-1}).limit(1).pretty()
 First, open the *deploymentScript.html* file in any text editor. The following lines need to be modified:
 
 ```
-ucivitOptions.webpageIndex = 'WEBSITEID';
+ucivitOptions.websiteID = 'WEBSITEID';
 ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727';
 ucivitOptions.isDOMrecorded = false;
 ucivitOptions.protocol = PROTOCOL.HTTP;

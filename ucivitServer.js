@@ -23,6 +23,11 @@ app.all(`${serverPath}/ucivit.js`, (req, res) => {
   res.sendFile(`${__dirname}/public/ucivit.js`);
 });
 
+app.all(`${serverPath}/ads.js`, (req, res) => {
+  // console.log('request: client script');
+  res.sendFile(`${__dirname}/public/ads.js`);
+});
+
 /**
  * Using the testing page simulates deploying the tool in the same domain as the Web server.
  * If both the capture and the Web server are in the same domain, POST requests will be used.
