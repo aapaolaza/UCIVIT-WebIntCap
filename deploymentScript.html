@@ -6,6 +6,9 @@
   ucivitOptions.websiteID = 'WEBSITEID';
   ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727/ucivit';
   ucivitOptions.isDOMrecorded = false;
+
+  // Capture mousemovements? It records movements every 100ms so it might be a huge overhead
+  ucivitOptions.recordMouseMovement = false;
   // if true, context information (OS and browser type) is recorded in the 'load' event
   // see getClientContextInformation() function
   ucivitOptions.isClientContextRecorded = true;

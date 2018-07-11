@@ -231,7 +231,7 @@
    * Mouse move query time threshold in ms. If the time between mousemove recordings
    * is bigger than this,the event will be recorded.
    */
-  const mousemoveThreshold = 1;
+  const mousemoveThreshold = 100;
 
   /**
    * scroll periodic query
@@ -1039,14 +1039,12 @@
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    /** if log mousemove flag is false, set it true and
-     * log a mousemove event if mouse pointer actually moved
+    /** log a mousemove event if mouse pointer actually moved
      */
-    if (x === mousemoveLastPosX && y === mousemoveLastPosY) {
+    if (x !== mousemoveLastPosX || y !== mousemoveLastPosY) {
       mousemoveLastPosX = x;
       mousemoveLastPosY = y;
 
-      // TODO: put all mouse coordinates into their own object.
       const eventObj = { event: 'mousemove' };
 
       eventObj.mouse = {
@@ -2194,7 +2192,10 @@
 
     // entire document as target
     listenersArray.push({ target: document, event: 'mousedown', function: processMousedown });
-    listenersArray.push({ target: document, event: 'mousemove', function: processMousemove });
+    if (typeof ucivitOptions.recordMouseMovement !== 'undefined' && ucivitOptions.recordMouseMovement) {
+      listenersArray.push({ target: document, event: 'mousemove', function: processMousemove });
+    }
+
     listenersArray.push({ target: document, event: 'mouseover', function: processMouseover });
     listenersArray.push({ target: document, event: 'mouseout', function: processMouseout });
     listenersArray.push({ target: document, event: 'mouseup', function: processMouseup });

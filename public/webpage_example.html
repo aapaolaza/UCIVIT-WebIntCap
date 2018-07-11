@@ -16,6 +16,15 @@
     ucivitOptions.serverIP = 'CAPTURESERVERADDRESS:2727/ucivit';
     ucivitOptions.isDOMrecorded = false;
 
+    // Capture mousemovements? It records movements every 100ms so it might be a huge overhead
+    ucivitOptions.recordMouseMovement = false;
+    // if true, context information (OS and browser type) is recorded in the 'load' event
+    // see getClientContextInformation() function
+    ucivitOptions.isClientContextRecorded = true;
+    // if true, a warning will be shown in browsers using ad blockers
+    ucivitOptions.detectAdBlock = true;
+    ucivitOptions.detectAdBlockNodeID = '15f30ADqw1Z';
+
     var PROTOCOL = {
       HTTPS: 'https://',
       HTTP: 'http://'
@@ -24,7 +33,7 @@
 
     function setParameters() {
       ucivitOptions.websiteID = document.getElementById("ucivitWebsiteIDInput").value;
-      ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value+'/ucivit';
+      ucivitOptions.serverIP = document.getElementById("ucivitServerIPInput").value + '/ucivit';
       ucivitOptions.protocol = $('input[name="protocol"]:checked').val();
       ucivitOptions.isDOMrecorded = $('input[name="storeDom"]').is(':checked');
       console.log("The following parameters were set:");
@@ -91,8 +100,9 @@
   <br>
   <input type="text" id="ucivitServerIPInput" value="localhost:2727">
   <br>
-  <br> <input type="checkbox" name="storeDom" value="http://"> Store DOM content?
-  
+  <br>
+  <input type="checkbox" name="storeDom" value="http://"> Store DOM content?
+
   <br> window.protocol:
   <form id="protocolInput">
     <input type="radio" name="protocol" value="http://" checked> HTTP
