@@ -1832,7 +1832,9 @@
     let delta = 0;
 
     if (event.wheelDelta) delta = event.wheelDelta / 120; // IE/Opera.
-    else if (event.detail) delta = -event.detail / 3; // Mozilla case. */
+    else if (event.detail) delta = event.detail / 3; // Mozilla case. */
+    else if (event.originalEvent) delta = event.originalEvent.wheelDelta / 120; // Newer browsers */
+
     /** In Mozilla, sign of delta is different than in IE.
     * Also, delta is multiple of 3.
     */
@@ -2207,7 +2209,7 @@
     listenersArray.push({ target: document, event: 'dblclick', function: processDblClick });
     listenersArray.push({ target: document, event: 'error', function: processError });
     listenersArray.push({ target: document, event: 'hashchange', function: processhashChange });
-    listenersArray.push({ target: document, event: 'mousewheel', function: processMousewheel });
+    listenersArray.push({ target: document, event: 'wheel', function: processMousewheel });
     listenersArray.push({ target: document, event: 'select', function: processSelectText });
 
     listenersArray.push({ target: document, event: 'keydown', function: processKeydown });
