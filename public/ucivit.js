@@ -32,7 +32,15 @@
    * Log save frequency.
    * Specifies the frequency of log save requests to the server
    */
-  const logSaveFrequency = 1000;
+  const logSaveFrequency = 500;
+
+  /**
+   * Log buffer size threshold
+   * When the log buffer size exceeds this value, is sent directly to the server
+   * In the cases when POST requests are not possible, sending large requests
+   * trigger the 414 Request-URI too large error
+   */
+  const logBufferSize = 1000;// The limit is specified in number of characters, not number of events
 
   /**
    * Date: Initialised by query to the UCIVIT server.
@@ -612,6 +620,11 @@
     logEntry.push(logObj); // Add logLine to interaction log
     // reset synchronization flag (release function)
     logValLocked = false;
+
+    // If logEntry reaches a critical size, send it directly to the server
+    if (JSON.stringify(logEntry) >= logBufferSize) {
+      saveLog();
+    }
 
     return true;
   }
