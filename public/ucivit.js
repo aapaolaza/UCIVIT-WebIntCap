@@ -250,9 +250,6 @@
   let lastScrollPosX;
   const scrollQueryFrequency = 200;
 
-  // String: last selected text
-  let lastSelection;
-
   /**
    * Mousewheel variables
    * These variables are needed globally to record the amount of "delta"
@@ -260,7 +257,7 @@
    */
 
   /**
-   * wheelGranularity will determine how close the wheel events should be
+   * wheelGranularity will determine how close (in time) the wheel events should be
    * to be considered part of the same event
    * The smaller this value, the finer the recording will be.
    * eg. instead of recording one wheel movement of 14, it may record 2 of 7
@@ -897,7 +894,10 @@
       // Do nothing, as we just want to avoid looking into null elements
     }
 
-    nodeInfo.class = targetNode.className.split(/\s+/);
+    nodeInfo.class = [''];
+    if (targetNode.getAttribute('class')) {
+      nodeInfo.class = targetNode.getAttribute('class').split(/\s+/);
+    }
 
     nodeInfo.type = targetNode.tagName;
     nodeInfo.textContent = textContent;
@@ -941,43 +941,13 @@
 
     const selectedContent = getSelectionHtml();
     if (selectedContent !== '') {
-      const eventObj = {
-        event: 'selectextra',
-        selectionTool,
-        selectedContent,
+      const eventObj = { event: 'select' };
+      eventObj.select = {
+        tool: selectionTool,
+        content: selectedContent,
       };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
-    }
-  }
-
-  /** Processes the selection of text within the web page's content.
-  * Function is invoked on mousedown */
-
-  function processMousedownSelection(target) {
-    const eventTS = datestampInMillisec();
-
-    let currentSelection;
-    // NS
-    if (window.getSelection) currentSelection = window.getSelection();
-    // safari, konqueror
-    else if (document.getSelection) currentSelection = document.getSelection();
-    // IE
-    else if (document.selection) currentSelection = document.selection.createRange().text;
-
-    // if selection is not empty and new text was selected, log select event
-    if (currentSelection !== '' && lastSelection !== currentSelection) {
-      const eventObj = {
-        event: 'select',
-        selectedContent: currentSelection,
-      };
-      Object.assign(eventObj, getNodeInfo(target));
-
-      writeLog(eventTS, eventObj);
-
-      // set last selected text
-      lastSelection = currentSelection;
-      saveLog();
     }
   }
 
@@ -1241,11 +1211,6 @@
     const x = (isNotOldIE) ? ev.pageX : ev.clientX;
     const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    /* check if text was selected, if true, discontinue,
-      since this is handled by processMousedownSelection */
-
-    if (processMousedownSelection(target)) return;
-
     if (privacyCheck(ev)) return;
 
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
@@ -1305,10 +1270,9 @@
     if (privacyCheck(ev)) return;
 
     // basic 'change' event
-    const eventObj = {
-      event: 'change',
-      type: target.type,
-    };
+    const eventObj = { event: 'change' };
+    eventObj.change = { type: target.type };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     // depending on the target, we'll add more information
@@ -1322,12 +1286,12 @@
             value += target.options[i].value;
           }
         }
-        eventObj.value = value;
+        eventObj.change.value = value;
         break;
 
       case 'select-one':
-        eventObj.value = target.options[target.selectedIndex].value;
-        eventObj.selected = target.selectedIndex;
+        eventObj.change.value = target.options[target.selectedIndex].value;
+        eventObj.change.selected = target.selectedIndex;
         break;
 
       case 'checkbox':
@@ -1341,14 +1305,14 @@
           if (value === '') value = 'none';
         } else { value = target.checked; }
 
-        eventObj.value = target.options[target.selectedIndex].value;
-        eventObj.checked = target.checked;
+        eventObj.change.value = target.options[target.selectedIndex].value;
+        eventObj.change.checked = target.checked;
         break;
 
       case 'text':
       case 'textarea':
       case 'file':
-        eventObj.value = target.value;
+        eventObj.change.value = target.value;
 
         break;
 
@@ -1378,33 +1342,35 @@
 
     let scrollHeight;
     let scrollWidth;
+    let clientHeight;
+    let clientWidth;
+
 
     if (document.documentElement && document.documentElement.scrollHeight) {
       // Explorer 6 Strict
-      ({ scrollHeight, scrollWidth } = document.documentElement);
+      ({ scrollHeight, scrollWidth, clientHeight, clientWidth } = document.documentElement);
     } else if (document.body) {
       // all other Explorers
-      ({ scrollHeight, scrollWidth } = document.document.body);
+      ({ scrollHeight, scrollWidth, clientHeight, clientWidth } = document.document.body);
     }
 
-
-    let currentScrollPosX;
-    let currentScrollPosY;
+    let scrollX;
+    let scrollY;
 
     // TODO: "self" is a global, but is still giving eslint errors
     /* get current offset */
     if (self.pageYOffset) {
       // all except Explorer
-      currentScrollPosX = self.pageXOffset;
-      currentScrollPosY = self.pageYOffset;
+      scrollX = self.pageXOffset;
+      scrollY = self.pageYOffset;
     } else if (document.documentElement && document.documentElement.scrollTop) {
       // Explorer 6 Strict
-      currentScrollPosX = document.documentElement.scrollLeft;
-      currentScrollPosY = document.documentElement.scrollTop;
+      scrollX = document.documentElement.scrollLeft;
+      scrollY = document.documentElement.scrollTop;
     } else if (document.body) {
       // all other Explorers
-      currentScrollPosX = document.body.scrollLeft;
-      currentScrollPosY = document.body.scrollTop;
+      scrollX = document.body.scrollLeft;
+      scrollY = document.body.scrollTop;
     }
 
     // basic 'scroll' event
@@ -1413,34 +1379,30 @@
     };
 
     // if vertical scrollbar was moved new scrollbar position is logged
-    if (lastScrollPosY !== currentScrollPosY) {
-      /** e.g. 100, 80, 6, 0 */
-      let percentOfHeight = `${Math.round((currentScrollPosY / scrollHeight) * 100)} `;
-      /** shift */
-      if (percentOfHeight.length === 0) percentOfHeight = '000';
-      if (percentOfHeight.length === 1) percentOfHeight = `00${percentOfHeight} `;
-      if (percentOfHeight.length === 2) percentOfHeight = `0${percentOfHeight} `;
-      percentOfHeight = `${percentOfHeight.substring(0, 1)}.${percentOfHeight.substring(1)} `;
-
-      eventObj.scrolly = percentOfHeight;
-
+    if (lastScrollPosY !== scrollY) {
+      eventObj.scroll = {
+        clientHeight,
+        scrollHeight,
+        scrollY,
+      };
+      const visibleScroll = clientHeight + scrollY;
+      eventObj.scroll.scrollYPercentage = Math.round((visibleScroll / scrollHeight) * 100);
       // set last scrollbar position
-      lastScrollPosY = currentScrollPosY;
+      lastScrollPosY = scrollY;
     }
 
     // if horizontal scrollbar was moved new scrollbar position is logged
-    if (lastScrollPosX !== currentScrollPosX) {
-      let percentOfWidth = `${Math.round((currentScrollPosX / scrollWidth) * 100)} `;
-      /** shift */
-      if (percentOfWidth.length === 0) percentOfWidth = '000';
-      if (percentOfWidth.length === 1) percentOfWidth = `00${percentOfWidth} `;
-      if (percentOfWidth.length === 2) percentOfWidth = `0${percentOfWidth} `;
-      percentOfWidth = `${percentOfWidth.substring(0, 1)}.${percentOfWidth.substring(1)} `;
-
-      eventObj.scrollx = percentOfWidth;
+    if (lastScrollPosX !== scrollX) {
+      eventObj.scroll = {
+        clientWidth,
+        scrollWidth,
+        scrollX,
+      };
+      const visibleScroll = clientWidth + scrollX;
+      eventObj.scroll.scrollXPercentage = Math.round((visibleScroll / scrollWidth) * 100);
 
       // set last scrollbar position
-      lastScrollPosX = currentScrollPosX;
+      lastScrollPosX = scrollX;
     }
 
     // only store the event if any change in scroll was detected.
@@ -1523,7 +1485,13 @@
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    const eventObj = { event: 'contextmenu', coord: `${x},${y}`, offset: `${xOffset},${yOffset}` };
+    const eventObj = { event: 'contextmenu' };
+    eventObj.mouse = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
+    };
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -1545,9 +1513,12 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'cut', content: target.value.substring(target.selectionStart, target.selectionEnd) };
-      Object.assign(eventObj, getNodeInfo(target));
+      const eventObj = { event: 'cut' };
+      eventObj.select = {
+        content: target.value.substring(target.selectionStart, target.selectionEnd),
+      };
 
+      Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
   }
@@ -1568,7 +1539,11 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'copy', content: target.value.substring(target.selectionStart, target.selectionEnd) };
+      const eventObj = { event: 'copy' };
+      eventObj.select = {
+        content: target.value.substring(target.selectionStart, target.selectionEnd),
+      };
+
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1590,7 +1565,10 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'paste', content: target.value.substring(target.selectionStart, target.selectionEnd) };
+      const eventObj = { event: 'paste' };
+      eventObj.select = {
+        content: target.value.substring(target.selectionStart, target.selectionEnd),
+      };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1633,12 +1611,16 @@
       }
     }
 
-    const eventObj = {
-      event: 'dblclick',
-      coord: `${x},${y}`,
-      offset: `${xOffset},${yOffset}`,
+
+    const eventObj = { event: 'dblclick' };
+    eventObj.mouse = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
       but: mbutton,
     };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -1869,11 +1851,13 @@
     if (privacyCheck(ev)) return;
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = {
-        event: 'select_Extra',
-        selectedContent: target.value
+      const eventObj = { event: 'select' };
+      eventObj.select = {
+        tool: 'event',
+        content: target.value
           .substring(target.selectionStart, target.selectionEnd),
       };
+
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -2183,8 +2167,6 @@
     /* initialize lastScrollPos_UsaProxy with current top/left offset */
     lastScrollPosY = (isNotOldIE) ? window.pageYOffset : document.body.scrollTop;
     lastScrollPosX = (isNotOldIE) ? window.pageXOffset : document.body.scrollLeft;
-
-    lastSelection = '';
 
     /* log load event */
     processLoad();
