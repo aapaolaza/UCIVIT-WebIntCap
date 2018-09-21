@@ -1,5 +1,19 @@
 {
   "extends": "airbnb-base",
+  "rules": {
+    "no-use-before-define": [
+      1,
+      "nofunc"
+    ],
+    "comma-dangle": [
+      "error",
+      "always-multiline"
+    ],
+    "no-param-reassign": "warn",
+    "no-underscore-dangle": "warn",
+    "new-cap": "warn",
+    "no-console": "off"
+  },
   //Commands to be ignored by the "not-defined" rule
   "globals": {
     // true to allow the variable to be overwritten or false to disallow overwriting
@@ -16,7 +30,8 @@
     "navigator": false,
     "screen": false,
     "self": false,
+    "confirm": false,
     // global ucivit variables
-    "ucivitOptions":false
+    "ucivitOptions": false
   }
 }

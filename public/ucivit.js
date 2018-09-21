@@ -24,19 +24,56 @@
   const episodeCountCookie = 'ucivitEpisodeCount';
   const lastLogTSCookie = 'ucivitLastLogTS';
 
+  const adBlockAlertCookie = 'ucivitAdBlockAlert';
+
   const episodeTimeout = 40 * 60 * 1000;
 
   /**
    * Log save frequency.
    * Specifies the frequency of log save requests to the server
    */
-  const logSaveFrequency = 1000;
+  const logSaveFrequency = 500;
+
+  /**
+   * Log buffer size threshold
+   * When the log buffer size exceeds this value, is sent directly to the server
+   * In the cases when POST requests are not possible, sending large requests
+   * trigger the 414 Request-URI too large error
+   */
+  const logBufferSize = 1000;// The limit is specified in number of characters, not number of events
 
   /**
    * Date: Initialised by query to the UCIVIT server.
    * Load completion timestamp is calculated relative to this timestamp.
    */
   let ucivitServerTS;
+
+  // ////////////////////////////////////////////////////////////////////////
+  // //////////////////////AD DETECTION//////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////////
+
+  // This variable determines if the user is to be notified of errors
+  if (ucivitOptions.detectAdBlock && !getCookie(adBlockAlertCookie)) {
+    const adBlockNode = document.createElement('script');
+    adBlockNode.type = 'text/javascript';
+    adBlockNode.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ads.js`;
+    // The following request would actually go through ad blockers without problems
+    // document.getElementsByTagName('head')[0].appendChild(adBlockNode);
+    $.ajax({
+      url: adBlockNode.src,
+      dataType: 'script',
+    });
+
+    window.setTimeout(() => {
+      if (!document.getElementById(ucivitOptions.detectAdBlockNodeID)) {
+        if (confirm('An ad blocker was detected which can cause problems with the interaction capture, please disable any adblockers you may have\n Press false not to be reminded again. \n WARNING: functionalities based on your interaction data might misbehave.')) {
+          // Do not do anything
+        } else {
+          setCookie(adBlockAlertCookie, true, 1);
+        }
+      }
+    }, 1000);
+  }
 
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////COOKIE HANDLER////////////////////////////////////
@@ -63,10 +100,15 @@
   * Stores the given value in the cookie whose name is given
   * @param cookieName label of the cookie
   * @param value value to store
+  * @param expiration optional value to specify how long the cookie will last
   */
-  function setCookie(cookieName, value) {
+  function setCookie(cookieName, value, expiration) {
     const exdate = new Date();
-    exdate.setDate(exdate.getDate() + cookieLife);
+    if (typeof expiration === 'undefined') {
+      exdate.setDate(exdate.getDate() + cookieLife);
+    } else {
+      exdate.setDate(exdate.getDate() + expiration);
+    }
     let cookieValue = value + ((cookieLife == null) ? '' : `; expires = ${exdate.toUTCString()} `);
 
     // remove the www from the start so the cookie is available to all pages in the domain
@@ -197,7 +239,7 @@
    * Mouse move query time threshold in ms. If the time between mousemove recordings
    * is bigger than this,the event will be recorded.
    */
-  const mousemoveThreshold = 1;
+  const mousemoveThreshold = 100;
 
   /**
    * scroll periodic query
@@ -208,9 +250,6 @@
   let lastScrollPosX;
   const scrollQueryFrequency = 200;
 
-  // String: last selected text
-  let lastSelection;
-
   /**
    * Mousewheel variables
    * These variables are needed globally to record the amount of "delta"
@@ -218,7 +257,7 @@
    */
 
   /**
-   * wheelGranularity will determine how close the wheel events should be
+   * wheelGranularity will determine how close (in time) the wheel events should be
    * to be considered part of the same event
    * The smaller this value, the finer the recording will be.
    * eg. instead of recording one wheel movement of 14, it may record 2 of 7
@@ -557,9 +596,6 @@
 
     const logObj = eventObj;
 
-    // console.log("Recording: " + text);
-    // We add the browser version
-    // Object.assign(logObj, getClientContextInformation());
     // if function is already being executed, defer writeLog for 50ms
     // Add current episode information
     Object.assign(logObj, getEpisodeInfo());
@@ -581,6 +617,11 @@
     logEntry.push(logObj); // Add logLine to interaction log
     // reset synchronization flag (release function)
     logValLocked = false;
+
+    // If logEntry reaches a critical size, send it directly to the server
+    if (JSON.stringify(logEntry) >= logBufferSize) {
+      saveLog();
+    }
 
     return true;
   }
@@ -613,7 +654,6 @@
           }
         } else {
           eventTSHistory[jsonObj.event] = jsonObj;
-          // console.log(`${eventTSHistory[jsonObj.event].timestampms} and ${jsonObj.timestampms} were different`);
         }
       } else {
         eventTSHistory[jsonObj.event] = jsonObj;
@@ -666,9 +706,6 @@
 
     const logObj = { event: 'domData', domContent: document.getElementsByTagName('body')[0].innerHTML };
 
-    // console.log("Recording: " + text);
-    // We add the browser version
-    Object.assign(logObj, getClientContextInformation());
     // if function is already being executed, defer writeLog for 50ms
     // Add current episode information
     Object.assign(logObj, getEpisodeInfo());
@@ -693,8 +730,6 @@
       url: domLogURL,
       data: { jsonDomData: JSON.stringify(logObj) },
       dataType: 'jsonp',
-    }).done((response) => {
-      // console.log(response);
     }).fail((jqXHR, textStatus) => {
       console.log(`request failed ${textStatus}`);
     });
@@ -859,7 +894,10 @@
       // Do nothing, as we just want to avoid looking into null elements
     }
 
-    nodeInfo.class = targetNode.className.split(/\s+/);
+    nodeInfo.class = [''];
+    if (targetNode.getAttribute('class')) {
+      nodeInfo.class = targetNode.getAttribute('class').split(/\s+/);
+    }
 
     nodeInfo.type = targetNode.tagName;
     nodeInfo.textContent = textContent;
@@ -903,43 +941,13 @@
 
     const selectedContent = getSelectionHtml();
     if (selectedContent !== '') {
-      const eventObj = {
-        event: 'selectextra',
-        selectionTool,
-        selectedContent,
+      const eventObj = { event: 'select' };
+      eventObj.select = {
+        tool: selectionTool,
+        content: selectedContent,
       };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
-    }
-  }
-
-  /** Processes the selection of text within the web page's content.
-  * Function is invoked on mousedown */
-
-  function processMousedownSelection(target) {
-    const eventTS = datestampInMillisec();
-
-    let currentSelection;
-    // NS
-    if (window.getSelection) currentSelection = window.getSelection();
-    // safari, konqueror
-    else if (document.getSelection) currentSelection = document.getSelection();
-    // IE
-    else if (document.selection) currentSelection = document.selection.createRange().text;
-
-    // if selection is not empty and new text was selected, log select event
-    if (currentSelection !== '' && lastSelection !== currentSelection) {
-      const eventObj = {
-        event: 'select',
-        selectedContent: currentSelection,
-      };
-      Object.assign(eventObj, getNodeInfo(target));
-
-      writeLog(eventTS, eventObj);
-
-      // set last selected text
-      lastSelection = currentSelection;
-      saveLog();
     }
   }
 
@@ -952,7 +960,9 @@
 
     const eventObj = { event: 'load' };
     Object.assign(eventObj, getScreenSize());
-    Object.assign(eventObj, getClientContextInformation());
+    if (ucivitOptions.isClientContextRecorded) {
+      Object.assign(eventObj, getClientContextInformation());
+    }
     writeLog(eventTS, eventObj);
 
     if (isDOMrecorded) recordCurrentDOM();
@@ -1012,14 +1022,12 @@
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    /** if log mousemove flag is false, set it true and
-     * log a mousemove event if mouse pointer actually moved
+    /** log a mousemove event if mouse pointer actually moved
      */
-    if (x === mousemoveLastPosX && y === mousemoveLastPosY) {
+    if (x !== mousemoveLastPosX || y !== mousemoveLastPosY) {
       mousemoveLastPosX = x;
       mousemoveLastPosY = y;
 
-      // TODO: put all mouse coordinates into their own object.
       const eventObj = { event: 'mousemove' };
 
       eventObj.mouse = {
@@ -1203,11 +1211,6 @@
     const x = (isNotOldIE) ? ev.pageX : ev.clientX;
     const y = (isNotOldIE) ? ev.pageY : ev.clientY;
 
-    /* check if text was selected, if true, discontinue,
-      since this is handled by processMousedownSelection */
-
-    if (processMousedownSelection(target)) return;
-
     if (privacyCheck(ev)) return;
 
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
@@ -1267,10 +1270,9 @@
     if (privacyCheck(ev)) return;
 
     // basic 'change' event
-    const eventObj = {
-      event: 'change',
-      type: target.type,
-    };
+    const eventObj = { event: 'change' };
+    eventObj.change = { type: target.type };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     // depending on the target, we'll add more information
@@ -1284,12 +1286,12 @@
             value += target.options[i].value;
           }
         }
-        eventObj.value = value;
+        eventObj.change.value = value;
         break;
 
       case 'select-one':
-        eventObj.value = target.options[target.selectedIndex].value;
-        eventObj.selected = target.selectedIndex;
+        eventObj.change.value = target.options[target.selectedIndex].value;
+        eventObj.change.selected = target.selectedIndex;
         break;
 
       case 'checkbox':
@@ -1303,14 +1305,14 @@
           if (value === '') value = 'none';
         } else { value = target.checked; }
 
-        eventObj.value = target.options[target.selectedIndex].value;
-        eventObj.checked = target.checked;
+        eventObj.change.value = target.options[target.selectedIndex].value;
+        eventObj.change.checked = target.checked;
         break;
 
       case 'text':
       case 'textarea':
       case 'file':
-        eventObj.value = target.value;
+        eventObj.change.value = target.value;
 
         break;
 
@@ -1340,33 +1342,35 @@
 
     let scrollHeight;
     let scrollWidth;
+    let clientHeight;
+    let clientWidth;
+
 
     if (document.documentElement && document.documentElement.scrollHeight) {
       // Explorer 6 Strict
-      ({ scrollHeight, scrollWidth } = document.documentElement);
+      ({ scrollHeight, scrollWidth, clientHeight, clientWidth } = document.documentElement);
     } else if (document.body) {
       // all other Explorers
-      ({ scrollHeight, scrollWidth } = document.document.body);
+      ({ scrollHeight, scrollWidth, clientHeight, clientWidth } = document.document.body);
     }
 
-
-    let currentScrollPosX;
-    let currentScrollPosY;
+    let scrollX;
+    let scrollY;
 
     // TODO: "self" is a global, but is still giving eslint errors
     /* get current offset */
     if (self.pageYOffset) {
       // all except Explorer
-      currentScrollPosX = self.pageXOffset;
-      currentScrollPosY = self.pageYOffset;
+      scrollX = self.pageXOffset;
+      scrollY = self.pageYOffset;
     } else if (document.documentElement && document.documentElement.scrollTop) {
       // Explorer 6 Strict
-      currentScrollPosX = document.documentElement.scrollLeft;
-      currentScrollPosY = document.documentElement.scrollTop;
+      scrollX = document.documentElement.scrollLeft;
+      scrollY = document.documentElement.scrollTop;
     } else if (document.body) {
       // all other Explorers
-      currentScrollPosX = document.body.scrollLeft;
-      currentScrollPosY = document.body.scrollTop;
+      scrollX = document.body.scrollLeft;
+      scrollY = document.body.scrollTop;
     }
 
     // basic 'scroll' event
@@ -1375,34 +1379,30 @@
     };
 
     // if vertical scrollbar was moved new scrollbar position is logged
-    if (lastScrollPosY !== currentScrollPosY) {
-      /** e.g. 100, 80, 6, 0 */
-      let percentOfHeight = `${Math.round((currentScrollPosY / scrollHeight) * 100)} `;
-      /** shift */
-      if (percentOfHeight.length === 0) percentOfHeight = '000';
-      if (percentOfHeight.length === 1) percentOfHeight = `00${percentOfHeight} `;
-      if (percentOfHeight.length === 2) percentOfHeight = `0${percentOfHeight} `;
-      percentOfHeight = `${percentOfHeight.substring(0, 1)}.${percentOfHeight.substring(1)} `;
-
-      eventObj.scrolly = percentOfHeight;
-
+    if (lastScrollPosY !== scrollY) {
+      eventObj.scroll = {
+        clientHeight,
+        scrollHeight,
+        scrollY,
+      };
+      const visibleScroll = clientHeight + scrollY;
+      eventObj.scroll.scrollYPercentage = Math.round((visibleScroll / scrollHeight) * 100);
       // set last scrollbar position
-      lastScrollPosY = currentScrollPosY;
+      lastScrollPosY = scrollY;
     }
 
     // if horizontal scrollbar was moved new scrollbar position is logged
-    if (lastScrollPosX !== currentScrollPosX) {
-      let percentOfWidth = `${Math.round((currentScrollPosX / scrollWidth) * 100)} `;
-      /** shift */
-      if (percentOfWidth.length === 0) percentOfWidth = '000';
-      if (percentOfWidth.length === 1) percentOfWidth = `00${percentOfWidth} `;
-      if (percentOfWidth.length === 2) percentOfWidth = `0${percentOfWidth} `;
-      percentOfWidth = `${percentOfWidth.substring(0, 1)}.${percentOfWidth.substring(1)} `;
-
-      eventObj.scrollx = percentOfWidth;
+    if (lastScrollPosX !== scrollX) {
+      eventObj.scroll = {
+        clientWidth,
+        scrollWidth,
+        scrollX,
+      };
+      const visibleScroll = clientWidth + scrollX;
+      eventObj.scroll.scrollXPercentage = Math.round((visibleScroll / scrollWidth) * 100);
 
       // set last scrollbar position
-      lastScrollPosX = currentScrollPosX;
+      lastScrollPosX = scrollX;
     }
 
     // only store the event if any change in scroll was detected.
@@ -1485,7 +1485,13 @@
     const xOffset = x - absLeft(target); // compute x offset relative to the hovered-over element
     const yOffset = y - absTop(target); // compute y offset relative to the hovered-over element
 
-    const eventObj = { event: 'contextmenu', coord: `${x},${y}`, offset: `${xOffset},${yOffset}` };
+    const eventObj = { event: 'contextmenu' };
+    eventObj.mouse = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
+    };
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -1507,9 +1513,12 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'cut', content: target.value.substring(target.selectionStart, target.selectionEnd) };
-      Object.assign(eventObj, getNodeInfo(target));
+      const eventObj = { event: 'cut' };
+      eventObj.select = {
+        content: target.value.substring(target.selectionStart, target.selectionEnd),
+      };
 
+      Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
   }
@@ -1530,7 +1539,11 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'copy', content: target.value.substring(target.selectionStart, target.selectionEnd) };
+      const eventObj = { event: 'copy' };
+      eventObj.select = {
+        content: target.value.substring(target.selectionStart, target.selectionEnd),
+      };
+
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1552,7 +1565,10 @@
 
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = { event: 'paste', content: target.value.substring(target.selectionStart, target.selectionEnd) };
+      const eventObj = { event: 'paste' };
+      eventObj.select = {
+        content: target.value.substring(target.selectionStart, target.selectionEnd),
+      };
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1595,12 +1611,16 @@
       }
     }
 
-    const eventObj = {
-      event: 'dblclick',
-      coord: `${x},${y}`,
-      offset: `${xOffset},${yOffset}`,
+
+    const eventObj = { event: 'dblclick' };
+    eventObj.mouse = {
+      coordX: x,
+      coordY: y,
+      offsetX: xOffset,
+      offsetY: yOffset,
       but: mbutton,
     };
+
     Object.assign(eventObj, getNodeInfo(target));
 
     writeLog(eventTS, eventObj);
@@ -1807,7 +1827,9 @@
     let delta = 0;
 
     if (event.wheelDelta) delta = event.wheelDelta / 120; // IE/Opera.
-    else if (event.detail) delta = -event.detail / 3; // Mozilla case. */
+    else if (event.detail) delta = event.detail / 3; // Mozilla case. */
+    else if (event.originalEvent) delta = event.originalEvent.wheelDelta / 120; // Newer browsers */
+
     /** In Mozilla, sign of delta is different than in IE.
     * Also, delta is multiple of 3.
     */
@@ -1829,11 +1851,13 @@
     if (privacyCheck(ev)) return;
     // if selection is not empty, log select event with the selected text
     if (target.selectionStart !== target.selectionEnd) {
-      const eventObj = {
-        event: 'select_Extra',
-        selectedContent: target.value
+      const eventObj = { event: 'select' };
+      eventObj.select = {
+        tool: 'event',
+        content: target.value
           .substring(target.selectionStart, target.selectionEnd),
       };
+
       Object.assign(eventObj, getNodeInfo(target));
       writeLog(eventTS, eventObj);
     }
@@ -1890,14 +1914,14 @@
     * Extracts and encodes form inputs in the page. Content from text areas are also extracted
     */
   function getFormInputs() {
-    let formInputs = '';
+    const formInputs = {};
     // $('input').css('background-color','blue')
     // $('input').css('background-color','')
 
     $('input,select,textarea').each((index, element) => {
-      formInputs += `${$(element).attr('id')}:${$(element).val()};`;
+      formInputs[$(element).attr('id')] = $(element).val();
     });
-    return (formInputs);
+    return { formInputs };
   }
 
   /**
@@ -1910,10 +1934,9 @@
 
     const eventTS = datestampInMillisec();
     const { target } = e;
-    const eventObj = {
-      event: 'submit',
-      formInputs: getFormInputs(),
-    };
+    const eventObj = { event: 'submit' };
+
+    Object.assign(eventObj, getFormInputs());
     Object.assign(eventObj, getNodeInfo(target));
     writeLog(eventTS, eventObj);
     saveLog();
@@ -1931,13 +1954,13 @@
     const eventObj = { event: 'mobileTouchStart' };
 
     eventObj.mobileTouch = {
-      numberOfTouches: e.touches.length,
+      numberOfTouches: e.originalEvent.touches.length,
       isCtrlKey: e.ctrlKey,
       isShiftKey: e.shiftKey,
       isAltKey: e.altKey,
       isMetaKey: e.metaKey,
       // Retrieve the list of all touch points
-      touchList: e.touches,
+      touchList: e.originalEvent.touches,
     };
 
     Object.assign(eventObj, getNodeInfo(e.target));
@@ -1953,13 +1976,13 @@
     const eventObj = { event: 'mobileTouchEnd' };
 
     eventObj.mobileTouch = {
-      numberOfTouches: e.touches.length,
+      numberOfTouches: e.originalEvent.touches.length,
       isCtrlKey: e.ctrlKey,
       isShiftKey: e.shiftKey,
       isAltKey: e.altKey,
       isMetaKey: e.metaKey,
       // Retrieve the list of all touch points
-      touchList: e.touches,
+      touchList: e.originalEvent.touches,
     };
 
     Object.assign(eventObj, getNodeInfo(e.target));
@@ -2145,8 +2168,6 @@
     lastScrollPosY = (isNotOldIE) ? window.pageYOffset : document.body.scrollTop;
     lastScrollPosX = (isNotOldIE) ? window.pageXOffset : document.body.scrollLeft;
 
-    lastSelection = '';
-
     /* log load event */
     processLoad();
 
@@ -2168,7 +2189,10 @@
 
     // entire document as target
     listenersArray.push({ target: document, event: 'mousedown', function: processMousedown });
-    listenersArray.push({ target: document, event: 'mousemove', function: processMousemove });
+    if (typeof ucivitOptions.recordMouseMovement !== 'undefined' && ucivitOptions.recordMouseMovement) {
+      listenersArray.push({ target: document, event: 'mousemove', function: processMousemove });
+    }
+
     listenersArray.push({ target: document, event: 'mouseover', function: processMouseover });
     listenersArray.push({ target: document, event: 'mouseout', function: processMouseout });
     listenersArray.push({ target: document, event: 'mouseup', function: processMouseup });
@@ -2180,7 +2204,7 @@
     listenersArray.push({ target: document, event: 'dblclick', function: processDblClick });
     listenersArray.push({ target: document, event: 'error', function: processError });
     listenersArray.push({ target: document, event: 'hashchange', function: processhashChange });
-    listenersArray.push({ target: document, event: 'mousewheel', function: processMousewheel });
+    listenersArray.push({ target: document, event: 'wheel', function: processMousewheel });
     listenersArray.push({ target: document, event: 'select', function: processSelectText });
 
     listenersArray.push({ target: document, event: 'keydown', function: processKeydown });
@@ -2211,7 +2235,7 @@
     listenersArray.push({ target: window, event: 'blur', function: processWindowBlurEvent });
 
     // Specific targets
-    listenersArray.push({ target: 'form,form-control', event: 'submit', function: processSubmitEvent });
+    listenersArray.push({ target: document, event: 'submit', function: processSubmitEvent });
 
     // Mobile events
     listenersArray.push({ target: document, event: 'touchstart', function: processMobileTouchStart });

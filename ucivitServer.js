@@ -10,27 +10,33 @@ const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
+const serverPath = '/ucivit';
+
 // Returns the current timestamp of the server
-app.all('/ucivitTime', (req, res) => {
+app.all(`${serverPath}/ucivitTime`, (req, res) => {
   // console.log('request: time');
   res.jsonp({ serverTime: `${new Date().getTime()}` });
 });
 
-app.all('/ucivit.js', (req, res) => {
+app.all(`${serverPath}/ucivit.js`, (req, res) => {
   // console.log('request: client script');
   res.sendFile(`${__dirname}/public/ucivit.js`);
+});
+
+app.all(`${serverPath}/ads.js`, (req, res) => {
+  // console.log('request: client script');
+  res.sendFile(`${__dirname}/public/ads.js`);
 });
 
 /**
  * Using the testing page simulates deploying the tool in the same domain as the Web server.
  * If both the capture and the Web server are in the same domain, POST requests will be used.
  */
-app.all('/test', (req, res) => {
+app.all(`${serverPath}/test`, (req, res) => {
   res.sendFile(`${__dirname}/public/webpage_example.html`);
 });
 
-app.all('/log/event', (req, res) => {
-
+app.all(`${serverPath}/log/event`, (req, res) => {
   /**
    * Depending on the domain where the server is located
    * the received data will be sent via GET or POST
@@ -62,7 +68,7 @@ app.all('/log/event', (req, res) => {
  * Custom router to capture events from visualisations using iframes
  *
  */
-app.all('/log/vis', (req, res) => {
+app.all(`${serverPath}/log/vis`, (req, res) => {
   /**
    * Depending on the domain where the server is located
    * the received data will be sent via GET or POST
@@ -93,7 +99,7 @@ app.all('/log/vis', (req, res) => {
 /**
  * log/dom request can only contain a single json document with full DOM data
  */
-app.all('/log/dom', (req, res) => {
+app.all(`${serverPath}/log/dom`, (req, res) => {
   let { jsonDomData } = req.body;
   if (typeof jsonDomData === 'undefined') {
     ({ jsonDomData } = req.query);
