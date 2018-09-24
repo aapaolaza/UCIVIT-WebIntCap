@@ -31,6 +31,7 @@
     "screen": false,
     "self": false,
     "confirm": false,
+    "localStorage": false,
     // global ucivit variables
     "ucivitOptions": false
   }
