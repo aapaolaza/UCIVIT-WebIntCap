@@ -2179,6 +2179,8 @@
     // The last search term is kept to detect if the user started a new search
     const previousSearch = JSON.parse(localStorage.getItem('previousSearch'));
 
+    if (!searchTerm) return false;// if there is no query, do nothing
+
     if (previousSearch && previousSearch.query === searchTerm) {
       // The search is identified with a counter for this session.
       // All consecutive searches with the same search query have the same ID
