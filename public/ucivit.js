@@ -2142,6 +2142,67 @@
     }
   }
 
+
+  // CUSTOM RESULT LOADED EVENT FOR MOVING ////
+  /**
+   * This function creates a custom Result event every time a search is carried out.
+   * As a way to ease the extraction of the unique events, the event contains the search term,
+   * as well as a search identifier for the session.
+   * E.g. if the user searches for "machine","machine", "neural", "machine",
+   * 4 resultLoaded events are stored for that episode:
+   * [{query:"machine",sessionID:1},
+   *  {query:"machine",sessionID:1},
+   *  {query:"neural",sessionID:2},
+   *  {query:"machine",sessionID:3}]
+   * The REST API will then return for each episode the latest (sorting by timestampms) event for each sessionID.
+   * This is necessary as we cannot rely on 'query' on its own. In the example, sessionID 3 is considered as a different query.
+    db.collection.aggregate([
+      { $match: {sid: SIDREQUEST} },
+      { $sort: { "timestampms": -1 } },
+      { $group: {
+        _id: {var1:"$episodeCount",var2:"$result.searchID"},
+        query: { $first: "$result.query" },
+        episodeCount: {$first: "$episodeCount" },
+        url: {$first: "$urlFull" },
+        }
+      }
+    ])
+   */
+  function processSearchResultEvent() {
+    const eventTS = datestampInMillisec();
+    // The result count is available in:
+    // $('#search-tab-results .badge').html();
+
+    const eventObj = { event: 'resultLoaded' };
+
+    const searchTerm = new URL(window.location.href).searchParams.get('q');
+    // The last search term is kept to detect if the user started a new search
+    const previousSearch = JSON.parse(localStorage.getItem('previousSearch'));
+
+    if (!searchTerm) return false;// if there is no query, do nothing
+
+    if (previousSearch && previousSearch.query === searchTerm) {
+      // The search is identified with a counter for this session.
+      // All consecutive searches with the same search query have the same ID
+      eventObj.result = {
+        query: searchTerm,
+        searchID: previousSearch.searchID,
+        docCount: $('#search-tab-results .badge').html(),
+      };
+    } else {
+      // If there is no previous query, or is just different, save the query with a different ID,
+      // which will be previous ID +1, or just 1 (if there is no previous ID)
+      const currentSessionID = previousSearch ? previousSearch.searchID + 1 : 1;
+      eventObj.result = {
+        query: searchTerm,
+        searchID: currentSessionID,
+        docCount: $('#search-tab-results .badge').html(),
+      };
+    }
+    localStorage.setItem('previousSearch', JSON.stringify(eventObj.result));
+
+    writeLog(eventTS, eventObj);
+  }
   // ////////////////// End of event processing ///////////////////////////
 
 
@@ -2260,6 +2321,9 @@
     /* instantiate scroll check and save function being invoked periodically */
     setInterval(processScroll, scrollQueryFrequency);
     setInterval(saveLog, logSaveFrequency);
+
+    // In the case of moving, store the special event "resultLoaded"
+    if (movingRequest) processSearchResultEvent();
   }
 
   /**
