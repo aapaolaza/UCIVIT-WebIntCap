@@ -2175,11 +2175,17 @@
 
     const eventObj = { event: 'resultLoaded' };
 
-    const searchTerm = new URL(window.location.href).searchParams.get('q');
-    // The last search term is kept to detect if the user started a new search
-    const previousSearch = JSON.parse(localStorage.getItem('previousSearch'));
+    // basic 
+    let searchTerm = $('#q').val();
+    // advanced search title
+    if (!searchTerm) searchTerm = $('#advanced_query_title').val();
+    // advanced search fulltext
+    if (!searchTerm) searchTerm = $('#advanced_query_fulltext').val();
 
     if (!searchTerm) return false;// if there is no query, do nothing
+
+    // The last search term is kept to detect if the user started a new search
+    const previousSearch = JSON.parse(localStorage.getItem('previousSearch'));
 
     if (previousSearch && previousSearch.query === searchTerm) {
       // The search is identified with a counter for this session.
