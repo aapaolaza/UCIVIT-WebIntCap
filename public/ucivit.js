@@ -42,12 +42,6 @@
    */
   const logBufferSize = 1000;// The limit is specified in number of characters, not number of events
 
-  /**
-   * Date: Initialised by query to the UCIVIT server.
-   * Load completion timestamp is calculated relative to this timestamp.
-   */
-  let ucivitServerTS;
-
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////AD DETECTION//////////////////////////////////////
   // ////////////////////////////////////////////////////////////////////////
@@ -220,13 +214,6 @@
 
   let logEntry = []; // Array: Initialised when page loads. Contains current event json log entries
   let logValLocked = false; // Boolean: if flag set, writing log entry to logEntry not possible
-
-  /**
-   * Date: Initialised on load. All further timestamps are calculated
-   * by adding the ms passed since page load completion to this
-   * relative timestamp.
-   */
-  let ucivitLoadTime = new Date();
 
   /**
    * Mousemove variables
@@ -567,15 +554,12 @@
   /**
   * Returns the computed datestamp in milliseconds
   */
-
-  function datestampInMillisec() {
-    if (ucivitLoadTime == null) ucivitLoadTime = new Date();
-
-    const currentDate = new Date();
+  ucivitOptions.currentTime = () => {
+    if (ucivitOptions.ucivitLoadTime == null) ucivitOptions.ucivitLoadTime = new Date().getTime();
     // get milliseconds from load time
-    const diffSecs = Math.abs(currentDate.getTime() - ucivitLoadTime.getTime());
+    const diffSecs = Math.abs(new Date().getTime() - ucivitOptions.ucivitLoadTime);
     // return the value in ms of a new Date object according to UsaProxy start time + diffMSecs
-    return (ucivitServerTS + diffSecs);
+    return (ucivitOptions.sessionstartms + diffSecs);
   }
 
 
@@ -604,7 +588,7 @@
     const timezoneOffset = new Date().getTimezoneOffset();
 
     logObj.timestampms = eventTS;
-    logObj.sessionstartms = ucivitServerTS;
+    logObj.sessionstartms = ucivitOptions.sessionstartms;
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = userId;
@@ -690,7 +674,7 @@
       // Add the sid to the get request
       sendJsonData(logEntry);
       // we record current time as the last log recorded
-      setCookie(lastLogTSCookie, datestampInMillisec());
+      setCookie(lastLogTSCookie, ucivitOptions.currentTime());
       logEntry = []; // reset log data
       updateEpisodeInformation();// updates the stored episode count information}
     }
@@ -702,7 +686,7 @@
    */
   function recordCurrentDOM() {
     // console.log('logging DOM');
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const logObj = { event: 'domData', domContent: document.getElementsByTagName('body')[0].innerHTML };
 
@@ -718,7 +702,7 @@
     const timezoneOffset = new Date().getTimezoneOffset();
 
     logObj.timestampms = eventTS;
-    logObj.sessionstartms = ucivitServerTS;
+    logObj.sessionstartms = ucivitOptions.sessionstartms;
     logObj.timezoneOffset = timezoneOffset;
     logObj.sd = websiteID;
     logObj.sid = userId;
@@ -937,7 +921,7 @@
   */
 
   function processIfHtmlIsSelected(selectionTool, target) {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const selectedContent = getSelectionHtml();
     if (selectedContent !== '') {
@@ -956,7 +940,7 @@
   /** Event logging functionality */
   /** Processes load event (logs load event together with the page size) */
   function processLoad() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const eventObj = { event: 'load' };
     Object.assign(eventObj, getScreenSize());
@@ -970,7 +954,7 @@
 
   /** Processes window resize event (logs resize event together with the page size) */
   function processResize() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get size
     * NS: first case (window.innerWidth/innerHeight available); IE: second case */
@@ -999,7 +983,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
     // if the time since last mousemove event is greater than threshold, save event.
     // otherwise, ignore
     if ((eventTS - mousemoveLastTS) <= mousemoveThreshold) return;
@@ -1053,7 +1037,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    let eventTS = datestampInMillisec();
+    let eventTS = ucivitOptions.currentTime();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case
@@ -1101,7 +1085,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    let eventTS = datestampInMillisec();
+    let eventTS = ucivitOptions.currentTime();
 
     /* get event target
       * NS: first case (window.Event available); IE: second case */
@@ -1142,7 +1126,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get event target, x, and y value of mouse position
       * NS: first case (window.Event available); IE: second case */
@@ -1201,7 +1185,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
@@ -1258,7 +1242,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case */
@@ -1335,7 +1319,7 @@
    */
 
   function processScroll() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /** since total HTML height/width may be modified through font size settings
         it must be computed each time a scrolling is performed */
@@ -1415,7 +1399,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     // console.log("blur event");
     /* get event target
@@ -1434,7 +1418,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get event target
     * NS: first case (window.Event available); IE: second case */
@@ -1453,7 +1437,7 @@
     * Function is invoked periodically */
 
   function processWindowFocusQuery() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     if (document.hasFocus() !== isWindowFocusedQuery) {
       // If different, we record the event
@@ -1470,7 +1454,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get event target, x, and y value of mouse position
       * NS: first case (window.Event available); IE: second case */
@@ -1504,7 +1488,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const ev = (isNotOldIE) ? e : window.event;
     const target = (isNotOldIE) ? ev.target : ev.srcElement;
@@ -1530,7 +1514,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const ev = (isNotOldIE) ? e : window.event;
     const target = (isNotOldIE) ? ev.target : ev.srcElement;
@@ -1556,7 +1540,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const ev = (isNotOldIE) ? e : window.event;
     const target = (isNotOldIE) ? ev.target : ev.srcElement;
@@ -1581,7 +1565,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get event target, x, and y value of mouse position
     * NS: first case (window.Event available); IE: second case */
@@ -1630,7 +1614,7 @@
    * Processes the particular event of an "error" event
    */
   function processError() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
     writeLog(eventTS, { event: 'javascripterror' });
   }
 
@@ -1638,7 +1622,7 @@
    * Processes the particular event of an "error" event
    */
   function processhashChange() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
     writeLog(eventTS, { event: 'hashChange' });
   }
 
@@ -1652,7 +1636,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
@@ -1678,7 +1662,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
@@ -1704,7 +1688,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     /* get keycode
     * IE: first case (window.event available); NS: second case */
@@ -1728,7 +1712,7 @@
   * This function will accummulate the mouse wheel movement in order to record it periodically
   */
   function handleWheelEvents(delta, node) {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const currentTime = new Date();
 
@@ -1844,7 +1828,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const ev = (isNotOldIE) ? e : window.event;
     const target = (isNotOldIE) ? ev.target : ev.srcElement;
@@ -1869,7 +1853,7 @@
   * the end of the session instead
   */
   function processUnload() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     writeLog(eventTS, { event: 'unload' });
     // Try to save it as soon as the event takes place, rather than waiting for the periodic save
@@ -1890,7 +1874,7 @@
   function processWindowFocusEvent() {
     if (!windowIsFocused) {
       windowIsFocused = true;
-      const eventTS = datestampInMillisec();
+      const eventTS = ucivitOptions.currentTime();
       writeLog(eventTS, { event: 'windowfocus' });
     }
   }
@@ -1904,7 +1888,7 @@
     if (windowIsFocused) {
       windowIsFocused = false;
 
-      const eventTS = datestampInMillisec();
+      const eventTS = ucivitOptions.currentTime();
       writeLog(eventTS, { event: 'windowblur' });
     }
   }
@@ -1932,7 +1916,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
     const { target } = e;
     const eventObj = { event: 'submit' };
 
@@ -1949,7 +1933,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const eventObj = { event: 'mobileTouchStart' };
 
@@ -1971,7 +1955,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     const eventObj = { event: 'mobileTouchEnd' };
 
@@ -2015,7 +1999,7 @@
     // ensures the function is only called on the target of the interaction, preventing bubble up
     if (e.target !== e.currentTarget) return;
 
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     // alpha: rotation around z-axis
     gyroAlpha = e.alpha;
@@ -2048,7 +2032,7 @@
    * Stores the orientation of the device
    */
   function processMobileOrientationChange() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
 
     // The device is in portrait orientation if the device is held at 0 or 180 degrees
     // The device is in landscape orientation if the device is at 90 or -90 degrees
@@ -2112,7 +2096,7 @@
 
   function processMobileMotionEventAndSave() {
     if (maxAcc > motionThreshold) {
-      const eventTS = datestampInMillisec();
+      const eventTS = ucivitOptions.currentTime();
 
       // Output to the user the greatest current acceleration value in any axis, as
       // well as the greatest value in any axis including the effect of gravity
@@ -2169,7 +2153,7 @@
     ])
    */
   function processSearchResultEvent() {
-    const eventTS = datestampInMillisec();
+    const eventTS = ucivitOptions.currentTime();
     // The result count is available in:
     // $('#search-tab-results .badge').html();
 
@@ -2358,9 +2342,9 @@
         url: timeQueryURL,
         dataType: 'jsonp',
       }).done((response) => {
-        ucivitServerTS = parseInt(response.serverTime, 10);
-        ucivitOptions.sessionstartms = ucivitServerTS;
-        console.log(ucivitServerTS);
+        ucivitOptions.sessionstartms = parseInt(response.serverTime, 10);
+        // Client's local timestamp to compute relative timestamps
+        ucivitOptions.ucivitLoadTime = new Date().getTime();
         initUcivit();
       }).fail((jqXHR, textStatus) => {
         console.log(`request failed ${textStatus}`);
