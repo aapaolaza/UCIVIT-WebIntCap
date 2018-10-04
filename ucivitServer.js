@@ -127,6 +127,7 @@ const server = app.listen(ucivitOptions.port, ucivitOptions.bindIP, () => {
   mongoDAO.initIndexes((indexErr) => {
     if (indexErr) mongoDAO.logMessage('ERROR', 'app.listen:initIndexes', indexErr, '', new Date().getTime(), new Date().getTime());
     console.log(`UCIVIT Server running on ${ucivitOptions.port} and address ${ucivitOptions.bindIP} ...`);
+    console.log(`Open ${(ucivitOptions.bindIP) ? ucivitOptions.bindIP : 'localhost'}:${ucivitOptions.port}/ucivit/test to access the testing website`);
   });
 });
 
