@@ -40,7 +40,7 @@
    * In the cases when POST requests are not possible, sending large requests
    * trigger the 414 Request-URI too large error
    */
-  const logBufferSize = 1000;// The limit is specified in number of characters, not number of events
+  const logBufferSize = 5000;// The limit is specified in number of characters, not number of events
 
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////AD DETECTION//////////////////////////////////////
@@ -603,7 +603,7 @@
     logValLocked = false;
 
     // If logEntry reaches a critical size, send it directly to the server
-    if (JSON.stringify(logEntry) >= logBufferSize) {
+    if (JSON.stringify(logEntry).length >= logBufferSize) {
       saveLog();
     }
 
