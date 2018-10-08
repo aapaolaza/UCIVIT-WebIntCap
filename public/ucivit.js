@@ -40,7 +40,7 @@
    * In the cases when POST requests are not possible, sending large requests
    * trigger the 414 Request-URI too large error
    */
-  const logBufferSize = 5000;// The limit is specified in number of characters, not number of events
+  const logBufferSize = 3500;// The limit is specified in number of characters, not number of events
 
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////AD DETECTION//////////////////////////////////////
