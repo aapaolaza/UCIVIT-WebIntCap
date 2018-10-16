@@ -10,6 +10,12 @@
  *
  */
 (() => {
+
+  // TEMPORARY CODE TO FIX TESTING ENVIRONMENT
+  // Retrieve the domain, removing the starting 'https://' and anything after the next '/'
+  ucivitOptions.serverIP = window.location.href.split('://')[1].split('/')[0];
+  ucivitOptions.serverIP = `${ucivitOptions.serverIP}/ucivit` // add the path to ucivit server
+
   // ///// URLS ////
   const eventLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log/event`;
   const domLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log/dom`;
