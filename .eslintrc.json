@@ -33,6 +33,8 @@
     "confirm": false,
     "localStorage": false,
     // global ucivit variables
-    "ucivitOptions": false
+    "ucivitOptions": false,
+    // Youtube API variable
+    "YT": false
   }
 }
