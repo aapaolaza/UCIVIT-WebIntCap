@@ -32,15 +32,16 @@
    * Log save frequency.
    * Specifies the frequency of log save requests to the server
    */
-  const logSaveFrequency = 500;
+  ucivitOptions.logSaveFrequency = 500;
 
   /**
    * Log buffer size threshold
    * When the log buffer size exceeds this value, is sent directly to the server
    * In the cases when POST requests are not possible, sending large requests
    * trigger the 414 Request-URI too large error
+   * The limit is specified in number of characters, not number of events
    */
-  const logBufferSize = 3500;// The limit is specified in number of characters, not number of events
+  ucivitOptions.logBufferSize = 3500;
 
   // ////////////////////////////////////////////////////////////////////////
   // //////////////////////AD DETECTION//////////////////////////////////////
@@ -271,8 +272,6 @@
    */
   const windowFocusQueryFrequency = 500;
   let isWindowFocusedQuery = null;
-
-  let windowIsFocused = false;
 
   /**
    * Window resize tracking variables
@@ -560,7 +559,7 @@
     const diffSecs = Math.abs(new Date().getTime() - ucivitOptions.ucivitLoadTime);
     // return the value in ms of a new Date object according to UsaProxy start time + diffMSecs
     return (ucivitOptions.sessionstartms + diffSecs);
-  }
+  };
 
 
   // ///////////////////////// Log storing and data communication /////////////////
@@ -603,7 +602,7 @@
     logValLocked = false;
 
     // If logEntry reaches a critical size, send it directly to the server
-    if (JSON.stringify(logEntry).length >= logBufferSize) {
+    if (JSON.stringify(logEntry).length >= ucivitOptions.logBufferSize) {
       saveLog();
     }
 
@@ -1448,6 +1447,23 @@
   }
 
   /**
+  * This event will register the event of the window gaining focus.
+  * It will occur when the focus comes back to the window after going to another tab,
+  * or minimizing the window
+  */
+  function processWindowFocus() {
+    const eventTS = ucivitOptions.currentTime();
+    writeLog(eventTS, { event: 'windowfocus' });
+    isWindowFocusedQuery = document.hasFocus();
+  }
+
+  function processWindowBlur() {
+    const eventTS = ucivitOptions.currentTime();
+    writeLog(eventTS, { event: 'windowblur' });
+    isWindowFocusedQuery = document.hasFocus();
+  }
+
+  /**
    * Processes the particular event of "open a contextmenu" event
    */
   function processContextMenu(e) {
@@ -1861,40 +1877,6 @@
   }
 
   /**
-  * This event will register the event of the window gaining focus.
-  * It will occur when the focus comes back to the window after going to another tab,
-  * or minimizing the window
-  */
-  /**
-  * TODO: check if we would still need this auxiliary variable
-  *  We need an auxiliary variable, as certain versions of chrome trigger
-  * the same event twice
-  */
-
-  function processWindowFocusEvent() {
-    if (!windowIsFocused) {
-      windowIsFocused = true;
-      const eventTS = ucivitOptions.currentTime();
-      writeLog(eventTS, { event: 'windowfocus' });
-    }
-  }
-
-  /**
-  * This event will register the event of the window losing focus.
-  * It will occur when the focus on the window is lost
-  * after going to another tab, or minimizing the window
-  */
-  function processWindowBlurEvent() {
-    if (windowIsFocused) {
-      windowIsFocused = false;
-
-      const eventTS = ucivitOptions.currentTime();
-      writeLog(eventTS, { event: 'windowblur' });
-    }
-  }
-
-
-  /**
     * Extracts and encodes form inputs in the page. Content from text areas are also extracted
     */
   function getFormInputs() {
@@ -2282,8 +2264,6 @@
     // Window target
     listenersArray.push({ target: window, event: 'resize', function: processResize });
     listenersArray.push({ target: window, event: 'unload', function: processUnload });
-    listenersArray.push({ target: window, event: 'focus', function: processWindowFocusEvent });
-    listenersArray.push({ target: window, event: 'blur', function: processWindowBlurEvent });
 
     // Specific targets
     listenersArray.push({ target: document, event: 'submit', function: processSubmitEvent });
@@ -2305,12 +2285,16 @@
       $(listenerObj.target).on(listenerObj.event, '*', listenerObj.function);
     });
 
-    /* We also register a function to check the window focus periodically */
+    window.addEventListener('focus', processWindowFocus, false);
+    window.addEventListener('blur', processWindowBlur, false);
+
+    /* We also register a function to check the window focus periodically,
+    for the first focus, and in case the previous listeners don't work */
     setInterval(processWindowFocusQuery, windowFocusQueryFrequency);
 
     /* instantiate scroll check and save function being invoked periodically */
     setInterval(processScroll, scrollQueryFrequency);
-    setInterval(saveLog, logSaveFrequency);
+    setInterval(saveLog, ucivitOptions.logSaveFrequency);
 
     // In the case of moving, store the special event "resultLoaded"
     if (movingRequest) processSearchResultEvent();
