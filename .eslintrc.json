@@ -34,7 +34,8 @@
     "localStorage": false,
     // global ucivit variables
     "ucivitOptions": false,
-    // Youtube API variable
-    "YT": false
+    // External sourced video API variable
+    "YT": false,
+    "Vimeo": false
   }
 }

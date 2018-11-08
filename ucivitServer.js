@@ -14,17 +14,22 @@ const serverPath = '/ucivit';
 
 // Returns the current timestamp of the server
 app.all(`${serverPath}/ucivitTime`, (req, res) => {
-  // console.log('request: time');
   res.jsonp({ serverTime: `${new Date().getTime()}` });
 });
 
 app.all(`${serverPath}/ucivit.js`, (req, res) => {
-  // console.log('request: client script');
   res.sendFile(`${__dirname}/public/ucivit.js`);
 });
 
+app.all(`${serverPath}/ytTracking.js`, (req, res) => {
+  res.sendFile(`${__dirname}/public/ytTracking.js`);
+});
+
+app.all(`${serverPath}/vimeoTracking.js`, (req, res) => {
+  res.sendFile(`${__dirname}/public/vimeoTracking.js`);
+});
+
 app.all(`${serverPath}/ads.js`, (req, res) => {
-  // console.log('request: client script');
   res.sendFile(`${__dirname}/public/ads.js`);
 });
 

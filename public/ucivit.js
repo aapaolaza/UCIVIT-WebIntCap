@@ -2298,6 +2298,9 @@
 
     // In the case of moving, store the special event "resultLoaded"
     if (movingRequest) processSearchResultEvent();
+
+    // Check if there are any video iframes, and include the necessary code
+    insertVideoTrackingLibraries();
   }
 
   /**
@@ -2310,6 +2313,26 @@
     jQueryScriptNode.type = 'text/javascript';
     jQueryScriptNode.src = jQueryURL;
     document.getElementsByTagName('head')[0].appendChild(jQueryScriptNode);
+  }
+
+  /**
+   * Check if there are any video sources that require additional bespoke
+   * libraries
+   */
+  function insertVideoTrackingLibraries() {
+    if ($('iframe[src*="youtube.com"]').length > 0) {
+      const tag = document.createElement('script');
+      tag.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ytTracking.js`;
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+
+    if ($('iframe[src*="vimeo.com"]').length > 0) {
+      const tag = document.createElement('script');
+      tag.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/vimeoTracking.js`
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
   }
 
   /**
