@@ -173,7 +173,6 @@ const vimeoAPI = {
 
   /**
    * Sends the data to the UCIVIT server
-   * TODO: test the events are being stored correctly in production
    */
   function saveVimeoEvents() {
     if (vimeoAPI.eventLog.length > 0) {
