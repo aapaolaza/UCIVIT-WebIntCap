@@ -41,7 +41,6 @@ function onYouTubeIframeAPIReady() {
   // If ucivitOptions exist, then we can initiate the interaction tracking
   if (ucivitOptions) {
     ytAPI.eventLogURL = `${ucivitOptions.protocol + ucivitOptions.serverIP}/log/event`;
-    setInterval(ytAPI.saveYTEvents, ucivitOptions.logSaveFrequency);
     configureYTIframes();
     initYTAPI();
   }
@@ -109,19 +108,19 @@ ytAPI.decodePlayerState = (stateCode) => {
 };
 
 ytAPI.onPlayerReady = (e) => {
-  console.log('player ready');
+  // console.log('player ready');
   ytAPI.processYTEvent('ready', e.target);
 };
 ytAPI.onStateChange = (e) => {
-  console.log('player state change');
+  // console.log('player state change');
   ytAPI.processYTEvent('stateChange', e.target);
 };
 ytAPI.onPlaybackRateChange = (e) => {
-  console.log('player playbackrate change');
+  // console.log('player playbackrate change');
   ytAPI.processYTEvent('playbackRate', e.target);
 };
 ytAPI.onPlaybackQualityChange = (e) => {
-  console.log('player playback quality change');
+  // console.log('player playback quality change');
   ytAPI.processYTEvent('playbackQuality', e.target);
 };
 
@@ -157,7 +156,6 @@ ytAPI.processYTEvent = (triggerEvent, player) => {
   Object.assign(eventObj, ytAPI.getVideoInfo(triggerEvent, player));
 
   ytAPI.eventLog.push(eventObj); // Add logLine to interaction log
-  console.log(eventObj);
   // If ytAPI.eventLog reaches a critical size, send it directly to the server
   if (JSON.stringify(ytAPI.eventLog).length >= ucivitOptions.logBufferSize) {
     ytAPI.saveYTEvents();
@@ -166,7 +164,6 @@ ytAPI.processYTEvent = (triggerEvent, player) => {
 
 /**
  * Sends the data to the UCIVIT server
- * TODO: test the events are being stored correctly in production
  */
 ytAPI.saveYTEvents = () => {
   if (ytAPI.eventLog.length > 0) {
@@ -182,4 +179,5 @@ ytAPI.saveYTEvents = () => {
     ytAPI.eventLog = [];
   }
 };
+setInterval(ytAPI.saveYTEvents, ucivitOptions.logSaveFrequency);
 
