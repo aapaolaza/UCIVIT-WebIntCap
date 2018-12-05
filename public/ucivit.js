@@ -17,16 +17,20 @@
   const jQueryURL = 'https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js';
 
   /** Will determine the lifespan of the cookie, in days */
-  const cookieLife = 10000;
+  const COOKIELIFE = 10000;
 
   /** Cookie variables */
-  const userIdCookie = 'ucivitUserId';
-  const episodeCountCookie = 'ucivitEpisodeCount';
-  const lastLogTSCookie = 'ucivitLastLogTS';
+  const COOKIE_USERID = 'ucivitUserId';
+  const COOKIE_EPISODECOUNT = 'ucivitEpisodeCount';
+  const COOKIE_LASTLOGTS = 'ucivitLastLogTS';
 
-  const adBlockAlertCookie = 'ucivitAdBlockAlert';
+  const COOKIE_ADBLOCK = 'ucivitAdBlockAlert';
 
-  const episodeTimeout = 40 * 60 * 1000;
+  const LOCALSTORE_DEBUG = 'ucivitDebugMode';
+
+  const LOCALSTORE_PREVIOUSSEARCH = 'previousSearch';
+
+  const EPISODETIMEOUT = 40 * 60 * 1000;
 
   /**
    * Log save frequency.
@@ -48,7 +52,7 @@
   // ////////////////////////////////////////////////////////////////////////
 
   // This variable determines if the user is to be notified of errors
-  if (ucivitOptions.detectAdBlock && !getCookie(adBlockAlertCookie)) {
+  if (ucivitOptions.detectAdBlock && !getCookie(COOKIE_ADBLOCK)) {
     const adBlockNode = document.createElement('script');
     adBlockNode.type = 'text/javascript';
     adBlockNode.src = `${ucivitOptions.protocol}${ucivitOptions.serverIP}/ads.js`;
@@ -64,7 +68,7 @@
         if (confirm('An ad blocker was detected which can cause problems with the interaction capture, please disable any adblockers you may have\n Press false not to be reminded again. \n WARNING: functionalities based on your interaction data might misbehave.')) {
           // Do not do anything
         } else {
-          setCookie(adBlockAlertCookie, true, 1);
+          setCookie(COOKIE_ADBLOCK, true, 1);
         }
       }
     }, 1000);
@@ -100,11 +104,11 @@
   function setCookie(cookieName, value, expiration) {
     const exdate = new Date();
     if (typeof expiration === 'undefined') {
-      exdate.setDate(exdate.getDate() + cookieLife);
+      exdate.setDate(exdate.getDate() + COOKIELIFE);
     } else {
       exdate.setDate(exdate.getDate() + expiration);
     }
-    let cookieValue = value + ((cookieLife == null) ? '' : `; expires = ${exdate.toUTCString()} `);
+    let cookieValue = value + ((COOKIELIFE == null) ? '' : `; expires = ${exdate.toUTCString()} `);
 
     // remove the www from the start so the cookie is available to all pages in the domain
     let { domain } = document;
@@ -151,36 +155,36 @@
 
   // retrieve missing variables using cookies or generating them
   if (typeof userId === 'undefined') {
-    if (getCookie(userIdCookie)) {
+    if (getCookie(COOKIE_USERID)) {
       // If no sid has been provided, check the cookie
-      userId = getCookie(userIdCookie);
+      userId = getCookie(COOKIE_USERID);
     } else {
       // if the cookie is empty, then generate a new userID
       userId = generateId(16);
     }
   }
-  setCookie(userIdCookie, userId);
+  setCookie(COOKIE_USERID, userId);
 
   // If episode count or user has not been preset, get it from the cookie
   if (typeof episodeCount === 'undefined') {
-    if (getCookie(episodeCountCookie)) {
-      episodeCount = parseInt(getCookie(episodeCountCookie), 10);
+    if (getCookie(COOKIE_EPISODECOUNT)) {
+      episodeCount = parseInt(getCookie(COOKIE_EPISODECOUNT), 10);
     } else {
       // set it to 1 if it's the first time
       episodeCount = 1;
     }
   }
-  setCookie(episodeCountCookie, episodeCount);
+  setCookie(COOKIE_EPISODECOUNT, episodeCount);
 
   if (typeof lastLogTS === 'undefined') {
-    if (getCookie(lastLogTSCookie)) {
-      lastLogTS = parseInt(getCookie(lastLogTSCookie), 10);
+    if (getCookie(COOKIE_LASTLOGTS)) {
+      lastLogTS = parseInt(getCookie(COOKIE_LASTLOGTS), 10);
     } else {
       // set it to 1 if it's the first time
       lastLogTS = new Date().getTime();
     }
   }
-  setCookie(lastLogTSCookie, lastLogTS);
+  setCookie(COOKIE_LASTLOGTS, lastLogTS);
 
   /**
    * By default, the DOM won't be captured, to capture it,the deployment script needs to
@@ -497,8 +501,8 @@
    * Updates the client cookie with the corresponding episode information value
    */
   function updateEpisodeInformationCookie() {
-    setCookie(episodeCountCookie, episodeCount);
-    setCookie(lastLogTSCookie, lastLogTS);
+    setCookie(COOKIE_EPISODECOUNT, episodeCount);
+    setCookie(COOKIE_LASTLOGTS, lastLogTS);
     // update global variable
     ucivitOptions.episodeCount = episodeCount;
   }
@@ -534,7 +538,7 @@
   function calculateEpisode() {
     // The first time, just record current TS
     if ((lastLogTS !== -1) &&
-      ((new Date().getTime() - lastLogTS) > episodeTimeout)) {
+      ((new Date().getTime() - lastLogTS) > EPISODETIMEOUT)) {
       episodeCount = parseInt(episodeCount, 10) + 1;
       updateEpisodeInformation();
     }
@@ -575,6 +579,12 @@
         writeLog(eventTS, eventObj);
       }, 50);
       return false;
+    }
+
+    // If the debug mode is on, print the event
+    if (localStorage.getItem(LOCALSTORE_DEBUG)) {
+      if (eventObj.node) console.log(`${eventObj.event}:${eventObj.node.id}`);
+      else console.log(`${eventObj.event}:NA`);
     }
 
     const logObj = eventObj;
@@ -673,7 +683,7 @@
       // Add the sid to the get request
       sendJsonData(logEntry);
       // we record current time as the last log recorded
-      setCookie(lastLogTSCookie, ucivitOptions.currentTime());
+      setCookie(COOKIE_LASTLOGTS, ucivitOptions.currentTime());
       logEntry = []; // reset log data
       updateEpisodeInformation();// updates the stored episode count information}
     }
@@ -2151,7 +2161,7 @@
     if (!searchTerm) return false;// if there is no query, do nothing
 
     // The last search term is kept to detect if the user started a new search
-    const previousSearch = JSON.parse(localStorage.getItem('previousSearch'));
+    const previousSearch = JSON.parse(localStorage.getItem(LOCALSTORE_PREVIOUSSEARCH));
 
     if (previousSearch && previousSearch.query === searchTerm) {
       // The search is identified with a counter for this session.
@@ -2171,7 +2181,7 @@
         docCount: $('#search-tab-results .badge').html(),
       };
     }
-    localStorage.setItem('previousSearch', JSON.stringify(eventObj.result));
+    localStorage.setItem(LOCALSTORE_PREVIOUSSEARCH, JSON.stringify(eventObj.result));
 
     writeLog(eventTS, eventObj);
   }
@@ -2369,5 +2379,13 @@
    */
   checkJquery(0);
 
+  /**
+   * Allows users to switch on the debug mode, that lists every single event being recorded,
+   * along with the ID (if available) of its target
+   */
+  ucivitOptions.toggleDebugMode = () => {
+    if (localStorage.getItem(LOCALSTORE_DEBUG)) localStorage.setItem(LOCALSTORE_DEBUG, false);
+    else localStorage.setItem(LOCALSTORE_DEBUG, true);
+  }
   // end of the file JS wrap
 })();
