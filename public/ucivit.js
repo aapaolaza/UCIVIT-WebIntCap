@@ -1288,7 +1288,7 @@
           if (value === '') value = 'none';
         } else { value = target.checked; }
 
-        eventObj.change.value = target.options[target.selectedIndex].value;
+        eventObj.change.value = value;
         eventObj.change.checked = target.checked;
         break;
 
