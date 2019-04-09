@@ -582,7 +582,7 @@
     }
 
     // If the debug mode is on, print the event
-    if (localStorage.getItem(LOCALSTORE_DEBUG)) {
+    if (localStorage.getItem(LOCALSTORE_DEBUG) === "true") {
       if (eventObj.node) console.log(`${eventObj.event}:${eventObj.node.id}`);
       else console.log(`${eventObj.event}:NA`);
     }
@@ -2145,6 +2145,13 @@
     ])
    */
   function processSearchResultEvent() {
+    // only start the function when the document count badge is ready
+    if ($('#search-tab-results .badge').length === 0) {
+      setTimeout(processSearchResultEvent, 100);
+      console.log("waiting for badge")
+      return;
+    }
+    console.log("badge is ready")
     const eventTS = ucivitOptions.currentTime();
     // The result count is available in:
     // $('#search-tab-results .badge').html();
