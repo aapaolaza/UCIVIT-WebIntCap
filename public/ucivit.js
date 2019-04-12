@@ -2149,7 +2149,7 @@
     if ($('#search-tab-results .badge').length === 0) {
       setTimeout(processSearchResultEvent, 100);
       console.log("waiting for badge")
-      return;
+      return false;
     }
     console.log("badge is ready")
     const eventTS = ucivitOptions.currentTime();
@@ -2313,8 +2313,11 @@
     setInterval(processScroll, scrollQueryFrequency);
     setInterval(saveLog, ucivitOptions.logSaveFrequency);
 
-    // In the case of moving, store the special event "resultLoaded"
-    if (movingRequest) processSearchResultEvent();
+    // In the case of moving, and if it's a search page, store the special event "resultLoaded"
+    if (movingRequest
+      && window.location.href.indexOf('search') > -1
+      && window.location.search.indexOf('?') > -1)
+      processSearchResultEvent();
 
     // Check if there are any video iframes, and include the necessary code
     insertVideoTrackingLibraries();
