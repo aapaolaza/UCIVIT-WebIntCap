@@ -2148,10 +2148,10 @@
     // only start the function when the document count badge is ready
     if ($('#search-tab-results .badge').length === 0) {
       setTimeout(processSearchResultEvent, 100);
-      console.log("waiting for badge")
+      // console.log("waiting for badge")
       return false;
     }
-    console.log("badge is ready")
+    // console.log("badge is ready")
     const eventTS = ucivitOptions.currentTime();
     // The result count is available in:
     // $('#search-tab-results .badge').html();
