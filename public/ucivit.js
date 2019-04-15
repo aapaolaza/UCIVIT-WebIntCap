@@ -582,7 +582,7 @@
     }
 
     // If the debug mode is on, print the event
-    if (localStorage.getItem(LOCALSTORE_DEBUG)) {
+    if (localStorage.getItem(LOCALSTORE_DEBUG) === "true") {
       if (eventObj.node) console.log(`${eventObj.event}:${eventObj.node.id}`);
       else console.log(`${eventObj.event}:NA`);
     }
@@ -2145,6 +2145,13 @@
     ])
    */
   function processSearchResultEvent() {
+    // only start the function when the document count badge is ready
+    if ($('#search-tab-results .badge').length === 0) {
+      setTimeout(processSearchResultEvent, 100);
+      // console.log("waiting for badge")
+      return false;
+    }
+    // console.log("badge is ready")
     const eventTS = ucivitOptions.currentTime();
     // The result count is available in:
     // $('#search-tab-results .badge').html();
@@ -2306,8 +2313,11 @@
     setInterval(processScroll, scrollQueryFrequency);
     setInterval(saveLog, ucivitOptions.logSaveFrequency);
 
-    // In the case of moving, store the special event "resultLoaded"
-    if (movingRequest) processSearchResultEvent();
+    // In the case of moving, and if it's a search page, store the special event "resultLoaded"
+    if (movingRequest
+      && window.location.href.indexOf('search') > -1
+      && window.location.search.indexOf('?') > -1)
+      processSearchResultEvent();
 
     // Check if there are any video iframes, and include the necessary code
     insertVideoTrackingLibraries();
